@@ -45,7 +45,7 @@ k_size = [1, net_shape[1], net_shape[2], 1]
 net = tflearn.avg_pool_2d(net, k_size, padding='valid', strides=1)
 # Regression
 net = tflearn.fully_connected(net, 10, activation='softmax')
-sgd = tflearn.SGD(learning_rate=0.1, lr_decay=0.96, decay_step=200)
+sgd = tflearn.SGD(learning_rate=0.1, lr_decay=0.96, decay_step=300)
 net = tflearn.regression(net, optimizer='sgd',
                          loss='categorical_crossentropy',
                          learning_rate=0.1)

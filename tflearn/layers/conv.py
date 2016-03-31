@@ -564,7 +564,63 @@ def deep_residual_block(incoming, nb_blocks, out_channels,
         (http://arxiv.org/pdf/1512.03385v1.pdf)
 
     """
-    raise NotImplementedError
+    resnet = incoming
+    in_channels = incoming.get_shape().as_list()[-1]
+
+    with tf.name_scope(name):
+        for i in range(nb_blocks):
+            with tf.name_scope('ResidualBlock'):
+
+                identity = resnet
+
+                if downsample:
+                    # Use average pooling, because TensorFlow conv_2d can't
+                    # accept kernel size < strides.
+                    resnet = avg_pool_2d(resnet, downsample_strides,
+                                         downsample_strides)
+                    resnet = conv_2d(resnet, in_channels, 1, 1, 'valid',
+                                     activation, bias, weights_init,
+                                     bias_init, regularizer, weight_decay,
+                                     trainable, restore)
+                else:
+                    resnet = conv_2d(resnet, in_channels, 1, 1, 'valid',
+                                     activation, bias, weights_init,
+                                     bias_init, regularizer, weight_decay,
+                                     trainable, restore)
+                if batch_norm:
+                    resnet = tflearn.batch_normalization(resnet)
+
+                resnet = conv_2d(resnet, in_channels, 3, 1, 'same',
+                                 activation, bias, weights_init,
+                                 bias_init, regularizer, weight_decay,
+                                 trainable, restore)
+                if batch_norm:
+                    resnet = tflearn.batch_normalization(resnet)
+
+                resnet = conv_2d(resnet, out_channels, 1, 1, 'valid',
+                                 'linear', bias, weights_init,
+                                 bias_init, regularizer, weight_decay,
+                                 trainable, restore)
+
+                if downsample:
+                    # Use average pooling, because TensorFlow conv_2d can't
+                    # accept kernel size < strides.
+                    identity = avg_pool_2d(identity, downsample_strides,
+                                           downsample_strides)
+                    identity = conv_2d(identity, out_channels, 1, 1, 'valid',
+                                       'linear', bias, weights_init,
+                                       bias_init, regularizer, weight_decay,
+                                       trainable, restore)
+                else:
+                    identity = conv_2d(identity, out_channels, 1, 1, 'valid',
+                                       'linear', bias, weights_init,
+                                       bias_init, regularizer, weight_decay,
+                                       trainable, restore)
+
+                resnet = resnet + identity
+                resnet = tflearn.activation(resnet, activation)
+
+    return resnet
 
 
 def shallow_residual_block(incoming, nb_blocks, out_channels,
@@ -621,4 +677,57 @@ def shallow_residual_block(incoming, nb_blocks, out_channels,
         (http://arxiv.org/pdf/1512.03385v1.pdf)
 
     """
-    raise NotImplementedError
+    resnet = incoming
+    in_channels = incoming.get_shape().as_list()[-1]
+
+    with tf.name_scope(name):
+        for i in range(nb_blocks):
+            with tf.name_scope('ResidualBlock'):
+
+                identity = resnet
+
+                if downsample:
+                    resnet = conv_2d(resnet, out_channels, 3,
+                                     downsample_strides, 'same', 'linear',
+                                     bias, weights_init, bias_init,
+                                     regularizer, weight_decay, trainable,
+                                     restore)
+                else:
+                    resnet = conv_2d(resnet, out_channels, 3, 1, 'same',
+                                     'linear', bias, weights_init,
+                                     bias_init, regularizer, weight_decay,
+                                     trainable, restore)
+                if batch_norm:
+                    resnet = tflearn.batch_normalization(resnet)
+                resnet = tflearn.activation(resnet, activation)
+
+                resnet = conv_2d(resnet, out_channels, 3, 1, 'same',
+                                 'linear', bias, weights_init,
+                                 bias_init, regularizer, weight_decay,
+                                 trainable, restore)
+                if batch_norm:
+                    resnet = tflearn.batch_normalization(resnet)
+
+                # TensorFlow can't accept kernel size < strides, so using a
+                # average pooling or resizing for downsampling.
+
+                # Downsampling
+                if downsample:
+                    #identity = avg_pool_2d(identity, downsample_strides,
+                    #                       downsample_strides)
+                    size = resnet.get_shape().as_list()
+                    identity = tf.image.resize_nearest_neighbor(identity,
+                                                                [size[1],
+                                                                 size[2]])
+
+                # Projection to new dimension
+                if in_channels != out_channels:
+                    identity = conv_2d(identity, out_channels, 1, 1, 'same',
+                                       'linear', bias, weights_init,
+                                       bias_init, regularizer, weight_decay,
+                                       trainable, restore)
+
+                resnet = resnet + identity
+                resnet = tflearn.activation(resnet, activation)
+
+    return resnet

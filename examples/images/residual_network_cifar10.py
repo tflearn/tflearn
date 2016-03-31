@@ -36,24 +36,22 @@ testY = du.to_categorical(testY, 10)
 
 # Building Residual Network
 net = tflearn.input_data(shape=[None, 32, 32, 3])
-net = tflearn.conv_2d(net, 16, 3)
+net = tflearn.conv_2d(net, 32, 3)
 net = tflearn.batch_normalization(net)
 net = tflearn.activation(net, 'relu')
-net = tflearn.shallow_residual_block(net, 2, 16, regularizer='L2')
-net = tflearn.shallow_residual_block(net, 1, 16, downsample=True,
-                                     regularizer='L2')
-net = tflearn.shallow_residual_block(net, 2, 32, regularizer='L2')
+net = tflearn.shallow_residual_block(net, 4, 32, regularizer='L2')
 net = tflearn.shallow_residual_block(net, 1, 32, downsample=True,
                                      regularizer='L2')
-net = tflearn.shallow_residual_block(net, 2, 64, regularizer='L2')
+net = tflearn.shallow_residual_block(net, 4, 64, regularizer='L2')
 net = tflearn.shallow_residual_block(net, 1, 64, downsample=True,
                                      regularizer='L2')
+net = tflearn.shallow_residual_block(net, 5, 128, regularizer='L2')
 net_shape = net.get_shape().as_list()
 k_size = [1, net_shape[1], net_shape[2], 1]
 net = tflearn.avg_pool_2d(net, k_size, strides=1)
 # Regression
 net = tflearn.fully_connected(net, 10, activation='softmax')
-mom = tflearn.Momentum(0.1, lr_decay=0.1, decay_step=32000, staircase=True)
+mom = tflearn.Momentum(0.1, lr_decay=0.1, decay_step=16000, staircase=True)
 net = tflearn.regression(net, optimizer=mom,
                          loss='categorical_crossentropy')
 # Training
