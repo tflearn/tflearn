@@ -43,22 +43,17 @@ model.fit(X, Y)
 model.generate(50, temperature=1.0)
 ```
 
-There are many more examples available [here](http://tflearn.org/examples).
+There are many more examples available *[here](http://tflearn.org/examples)*.
 
 ## Installation
 
 **TensorFlow Installation**
 
-TFLearn requires Tensorflow to be installed: *[Tensorflow installation instructions](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md)*.
+TFLearn requires Tensorflow (version >= 0.7) to be installed: *[Tensorflow installation instructions](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md)*.
 
 **TFLearn Installation**
 
-To install TFLearn stable version, you can run:
-```python
-pip install tflearn
-```
-
-To install the latest version of TFLearn, you can run:
+To install TFLearn, the easiest way is to run:
 ```python
 pip install git+https://github.com/tflearn/tflearn.git
 ```
@@ -67,7 +62,7 @@ Otherwise, you can also install from source by running (from source folder):
 python setup.py install
 ```
 
-- For more details about installation process, please see the [Installation Guide](http://tflearn.org/installation).
+- For more details, please see the *[Installation Guide](http://tflearn.org/installation)*.
 
 ## Getting Started
 
@@ -80,7 +75,7 @@ There are many neural network implementation available, see *[Examples](http://t
 
 ## Documentation
 
-[http://tflearn.org/documentation](http://tflearn.org/documentation).
+[http://tflearn.org/documentation](http://tflearn.org/doc_index).
 
 ## Model Visualization
 

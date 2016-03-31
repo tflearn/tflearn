@@ -38,9 +38,9 @@ File | Layers
 [core](http://tflearn.org/layers/core/) | input_data, fully_connected, dropout, custom_layer, reshape, flatten, activation, single_unit
 [conv](http://tflearn.org/layers/conv/) | conv_2d, conv_2d_transpose, max_pool_2d, avg_pool_2d, conv_1d, max_pool_1d, avg_pool_1d, shallow_residual_block, deep_residual_block
 [recurrent](http://tflearn.org/layers/recurrent/) | simple_rnn, lstm, gru, bidirectionnal_rnn, dynamic_rnn
-[embedding](http://tflearn.org/layers/embedding/) | embedding
+[embedding](http://tflearn.org/layers/embedding_ops/) | embedding
 [normalization](http://tflearn.org/layers/normalization/) | batch_normalization, local_response_normalization
-[merge](http://tflearn.org/layers/merge/) | merge, merge_outputs
+[merge](http://tflearn.org/layers/merge_ops/) | merge, merge_outputs
 [estimator](http://tflearn.org/layers/estimator/) | regression
 
 ### Built-in Operations
@@ -157,7 +157,7 @@ dense_layer = Dense(input_layer, 32, restore='False')
 All weights that doesn't need to be restored will be added to tf.GraphKeys.EXCL_RESTORE_VARS collection, and when loading a pre-trained model, these variables restoration will simply be ignored.
 The following example shows how to fine-tune a network on a new task by restoring all weights except the last dense layer, and then train the new model on a new dataset:
 
-- Fine-tuning example: [finetuning.py](https://github.com/tflearn/blob/master/tflearn/examples/basics/finetuning.py).
+- Fine-tuning example: [finetuning.py](https://github.com/tflearn/blob/master/examples/basics/finetuning.py).
 
 ### Data management
 
@@ -175,7 +175,7 @@ model = DNN(network)
 model.fit(X, Y)
 ```
 
-For an example, see: [hdf5.py](https://github.com/tflearn/blob/master/tflearn/examples/basics/hdf5.py).
+For an example, see: [hdf5.py](https://github.com/tflearn/blob/master/examples/basics/hdf5.py).
 
 ### Graph Initialization
 
@@ -209,13 +209,13 @@ net = tf.nn.max_pool(net, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAM
 ...
 ```
 
-- For an example, see: [layers.py](https://github.com/tflearn/blob/master/tflearn/examples/extending_tensorflow/layers.py).
+- For an example, see: [layers.py](https://github.com/tflearn/blob/master/examples/extending_tensorflow/layers.py).
 
 ### Built-in Operations
 
 TFLearn built-in ops makes Tensorflow graphs writing faster and more readable. So, similar to layers, built-in ops are fully compatible with any TensorFlow expression. The following code example shows how to use them along with pure Tensorflow API.
 
-- See: [builtin_ops.py](https://github.com/tflearn/blob/master/tflearn/examples/extending_tensorflow/builtin_ops.py).
+- See: [builtin_ops.py](https://github.com/tflearn/blob/master/examples/extending_tensorflow/builtin_ops.py).
 
 Here is a list of available ops, click on the file for more details:
 
@@ -257,7 +257,7 @@ model.fit(feed_dict=[{in1: X1, label1: Y1}, {in2: X2, in3: X3, label2: Y2}])
 
 - To learn more about TrainOp and Trainer, see: [trainer](http://tflearn.org/helpers/trainer).
 
-- For an example, see: [trainer.py](https://github.com/tflearn/blob/master/tflearn/examples/extending_tensorflow/trainer.py).
+- For an example, see: [trainer.py](https://github.com/tflearn/blob/master/examples/extending_tensorflow/trainer.py).
 
 For prediction, TFLearn implements a `Predictor` class that is working in a similar way as `Trainer`. It takes any network as parameter and return the predicted value.
 ```python
@@ -300,7 +300,7 @@ my_var = vs.variable('W',
                      device='/gpu:0')
 ```
 
-- For an example, see: [variables.py](https://github.com/tflearn/blob/master/tflearn/examples/extending_tensorflow/variables.py).
+- For an example, see: [variables.py](https://github.com/tflearn/blob/master/examples/extending_tensorflow/variables.py).
 
 ### Summaries
 
@@ -330,7 +330,7 @@ summary_op = s.summarize_activations(collection='my_summaries')
 # summary_op is a the merged op of previously define weights, gradients and activations summary ops.
 ```
 
-- For an example, see: [summaries.py](https://github.com/tflearn/blob/master/tflearn/examples/extending_tensorflow/summaries.py).
+- For an example, see: [summaries.py](https://github.com/tflearn/blob/master/examples/extending_tensorflow/summaries.py).
 
 ### Regularizers
 
