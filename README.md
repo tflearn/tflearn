@@ -43,7 +43,7 @@ model.fit(X, Y)
 model.generate(50, temperature=1.0)
 ```
 
-There are many more examples available [here]().
+There are many more examples available [here](http://tflearn.org/examples).
 
 ## Installation
 
