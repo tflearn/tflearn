@@ -1,0 +1,48 @@
+site_name: TFLearn
+site_url: http://tflearn.org
+repo_url: https://github.com/tflearn/tflearn
+site_description: Documentation for TFLearn, a deep learning library featuring a higher-level API for TensorFlow.
+site_author: Aymeric Damien
+
+theme: readthedocs
+docs_dir: templates
+
+extra_css:
+  - css/extra.css
+
+pages:
+- Home: index.md
+- Index: doc_index.md
+- Installation: installation.md
+- Getting Started: getting_started.md
+- Examples: examples.md
+- Models:
+  - Deep Neural Network: models/dnn.md
+  - Generative Neural Network: models/generator.md
+- Layers:
+  - Core Layers: layers/core.md
+  - Convolutional Layers: layers/conv.md
+  - Recurrent Layers: layers/recurrent.md
+  - Normalization Layers: layers/normalization.md
+  - Embedding Layers: layers/embedding_ops.md
+  - Merge Layers: layers/merge_ops.md
+  - Estimator Layers: layers/estimator.md
+- Built-in Ops:
+  - Activations: activations.md
+  - Objectives: objectives.md
+  - Optimizers: optimizers.md
+  - Metrics: metrics.md
+  - Initializations: initializations.md
+  - Losses: losses.md
+  - Summaries: summaries.md
+  - Variables: variables.md
+- Helpers for Extending Tensorflow:
+  - Trainer: helpers/trainer.md
+  - Evaluator: helpers/evaluator.md
+  - Summarizer: helpers/summarizer.md
+  - Regularizer: helpers/regularizer.md
+- Others:
+  - Data Utils: data_utils.md
+  - Graph Config: config.md
+- Contributions: contributions.md
+- License: license.md

@@ -1,0 +1,624 @@
+# -*- coding: utf-8 -*-
+from __future__ import division, print_function, absolute_import
+
+import tensorflow as tf
+
+import tflearn
+from .. import variables as vs
+from .. import activations
+from .. import initializations
+from .. import losses
+from .. import utils
+
+
+def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
+            activation='linear', bias=True, weights_init='uniform_scaling',
+            bias_init='zeros', regularizer=None, weight_decay=0.001,
+            trainable=True, restore=True, name="Conv2D"):
+    """ Convolution 2D.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        4-D Tensor [batch, new height, new width, nb_filter].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Tensor.
+        nb_filter: `int`. The number of convolutional filters.
+        filter_size: 'int` or list of `ints`. Size of filters.
+        strides: 'int` or list of `ints`. Strides of conv operation.
+            Default: [1 1 1 1].
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        activation: `str` (name) or `Tensor`. Activation applied to this layer.
+            (see tflearn.activations). Default: 'linear'.
+        bias: `bool`. If True, a bias is used.
+        weights_init: `str` (name) or `Tensor`. Weights initialization.
+            (see tflearn.initializations) Default: 'truncated_normal'.
+        bias_init: `str` (name) or `Tensor`. Bias initialization.
+            (see tflearn.initializations) Default: 'zeros'.
+        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
+            layer weights (see tflearn.regularizers). Default: None.
+        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model
+        name: A name for this layer (optional). Default: 'Conv2D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+        W: `Variable`. Variable representing filter weights.
+        b: `Variable`. Variable representing biases.
+
+    """
+    input_shape = utils.get_incoming_shape(incoming)
+    filter_size = utils.autoformat_filter_conv2d(filter_size,
+                                                 input_shape[-1],
+                                                 nb_filter)
+    strides = utils.autoformat_kernel_2d(strides)
+    padding = utils.autoformat_padding(padding)
+
+    with tf.name_scope(name) as scope:
+
+        W_init = initializations.get(weights_init)()
+        W_regul = None
+        if regularizer:
+            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        W = vs.variable(scope + 'W', shape=filter_size,
+                        regularizer=W_regul, initializer=W_init,
+                        trainable=trainable, restore=restore)
+        # Track per layer variables
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
+
+        b = None
+        if bias:
+            b_init = initializations.get(bias_init)()
+            b = vs.variable(scope + 'b', shape=nb_filter,
+                            initializer=b_init, trainable=trainable,
+                            restore=restore)
+            # Track per layer variables
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
+
+        inference = tf.nn.conv2d(incoming, W, strides, padding)
+        if b: inference = tf.nn.bias_add(inference, b)
+        inference = activations.get(activation)(inference)
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights.
+    inference.scope = scope
+    inference.W = W
+    inference.b = b
+
+    return inference
+
+
+def conv_2d_transpose(incoming, nb_filter, filter_size, strides=1,
+                      padding='same', activation='linear', bias=True,
+                      weights_init='uniform_scaling', bias_init='zeros',
+                      regularizer=None, weight_decay=0.001, trainable=True,
+                      restore=True, name="Conv2DTranspose"):
+    """ Convolution 2D Transpose.
+
+    This operation is sometimes called "deconvolution" after (Deconvolutional
+    Networks)[http://www.matthewzeiler.com/pubs/cvpr2010/cvpr2010.pdf], but is
+    actually the transpose (gradient) of `conv2d` rather than an actual
+    deconvolution.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        4-D Tensor [batch, new height, new width, nb_filter].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Tensor.
+        nb_filter: `int`. The number of convolutional filters.
+        filter_size: 'int` or list of `ints`. Size of filters.
+        strides: 'int` or list of `ints`. Strides of conv operation.
+            Default: [1 1 1 1].
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        activation: `str` (name) or `Tensor`. Activation applied to this layer.
+            (see tflearn.activations). Default: 'linear'.
+        bias: `bool`. If True, a bias is used.
+        weights_init: `str` (name) or `Tensor`. Weights initialization.
+            (see tflearn.initializations) Default: 'truncated_normal'.
+        bias_init: `str` (name) or `Tensor`. Bias initialization.
+            (see tflearn.initializations) Default: 'zeros'.
+        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
+            layer weights (see tflearn.regularizers). Default: None.
+        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model
+        name: A name for this layer (optional). Default: 'Conv2DTranspose'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+        W: `Variable`. Variable representing filter weights.
+        b: `Variable`. Variable representing biases.
+
+    """
+    input_shape = utils.get_incoming_shape(incoming)
+    filter_size = utils.autoformat_filter_conv2d(filter_size,
+                                                 input_shape[-1],
+                                                 nb_filter)
+    strides = utils.autoformat_kernel_2d(strides)
+    padding = utils.autoformat_padding(padding)
+
+    with tf.name_scope(name) as scope:
+
+        W_init = initializations.get(weights_init)()
+        W_regul = None
+        if regularizer:
+            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        W = vs.variable(scope + 'W', shape=filter_size,
+                        regularizer=W_regul, initializer=W_init,
+                        trainable=trainable, restore=restore)
+        # Track per layer variables
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
+
+        b = None
+        if bias:
+            b_init = initializations.get(bias_init)()
+            b = vs.variable(scope + 'b', shape=nb_filter,
+                            initializer=b_init, trainable=trainable,
+                            restore=restore)
+            # Track per layer variables
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
+
+        inference = tf.nn.conv2d_transpose(incoming, W, strides, padding)
+        if b: inference = tf.nn.bias_add(inference, b)
+        inference = activations.get(activation)(inference)
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights.
+    inference.scope = scope
+    inference.W = W
+    inference.b = b
+
+    return inference
+
+
+def max_pool_2d(incoming, kernel_size, strides=None, padding='same',
+                name="MaxPool2D"):
+    """ Max Pooling 2D.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        4-D Tensor [batch, pooled height, pooled width, in_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Layer.
+        kernel_size: 'int` or list of `ints`. Pooling kernel size.
+        strides: 'int` or list of `ints`. Strides of conv operation.
+            Default: same as kernel_size.
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        name: A name for this layer (optional). Default: 'MaxPool2D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+
+    """
+
+    kernel = utils.autoformat_kernel_2d(kernel_size)
+    strides = utils.autoformat_kernel_2d(strides) if strides else kernel
+    padding = utils.autoformat_padding(padding)
+
+    with tf.name_scope(name) as scope:
+        inference = tf.nn.max_pool(incoming, kernel, strides, padding)
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights
+    inference.scope = scope
+
+    return inference
+
+
+def avg_pool_2d(incoming, kernel_size, strides=None, padding='same',
+                name="AvgPool2D"):
+    """ Average Pooling 2D.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        4-D Tensor [batch, pooled height, pooled width, in_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Layer.
+        kernel_size: 'int` or list of `ints`. Pooling kernel size.
+        strides: 'int` or list of `ints`. Strides of conv operation.
+            Default: same as kernel_size.
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        name: A name for this layer (optional). Default: 'AvgPool2D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+
+    """
+
+    kernel = utils.autoformat_kernel_2d(kernel_size)
+    strides = utils.autoformat_kernel_2d(strides) if strides else kernel
+    padding = utils.autoformat_padding(padding)
+
+    with tf.name_scope(name) as scope:
+        inference = tf.nn.avg_pool(incoming, kernel, strides, padding)
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights
+    inference.scope = scope
+
+    return inference
+
+
+def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
+           activation='linear', bias=True, weights_init='uniform_scaling',
+           bias_init='zeros', regularizer=None, weight_decay=0.001,
+           trainable=True, restore=True, name="Conv1D"):
+    """ Convolution 1D.
+
+    Input:
+        3-D Tensor [batch, steps, in_channels].
+
+    Output:
+        3-D Tensor [batch, new steps, nb_filters].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 3-D Tensor.
+        nb_filter: `int`. The number of convolutional filters.
+        filter_size: 'int` or list of `ints`. Size of filters.
+        strides: 'int` or list of `ints`. Strides of conv operation.
+            Default: [1 1 1 1].
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        activation: `str` (name) or `Tensor`. Activation applied to this layer.
+            (see tflearn.activations). Default: 'linear'.
+        bias: `bool`. If True, a bias is used.
+        weights_init: `str` (name) or `Tensor`. Weights initialization.
+            (see tflearn.initializations) Default: 'truncated_normal'.
+        bias_init: `str` (name) or `Tensor`. Bias initialization.
+            (see tflearn.initializations) Default: 'zeros'.
+        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
+            layer weights (see tflearn.regularizers). Default: None.
+        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model
+        name: A name for this layer (optional). Default: 'Conv1D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+        W: `Variable`. Variable representing filter weights.
+        b: `Variable`. Variable representing biases.
+
+    """
+    input_shape = utils.get_incoming_shape(incoming)
+    filter_size = utils.autoformat_filter_conv2d(filter_size,
+                                                 input_shape[-1],
+                                                 nb_filter)
+    filter_size = [1, filter_size[1], 1, 1]
+    strides = utils.autoformat_kernel_2d(strides)
+    strides = [1, strides[1], 1, 1]
+    padding = utils.autoformat_padding(padding)
+
+    with tf.name_scope(name) as scope:
+
+        W_init = initializations.get(weights_init)()
+        W_regul = None
+        if regularizer:
+            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        W = vs.variable(scope + 'W', shape=filter_size,
+                        regularizer=W_regul, initializer=W_init,
+                        trainable=trainable, restore=restore)
+        # Track per layer variables
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
+
+        b = None
+        if bias:
+            b_init = initializations.get(bias_init)()
+            b = vs.variable(scope + 'b', shape=nb_filter,
+                            initializer=b_init, trainable=trainable,
+                            restore=restore)
+            # Track per layer variables
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
+
+        # Adding dummy dimension to fit with Tensorflow conv2d
+        inference = tf.expand_dims(incoming, -1)
+        inference = tf.nn.conv2d(inference, W, strides, padding)
+        if b: inference = tf.nn.bias_add(inference, b)
+        inference = tf.squeeze(inference, 3)
+        inference = activations.get(activation)(inference)
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights.
+    inference.scope = scope
+    inference.W = W
+    inference.b = b
+
+    return inference
+
+
+def max_pool_1d(incoming, kernel_size, strides=None, padding='same',
+                name="MaxPool2D"):
+    """ Max Pooling 1D.
+
+    Input:
+        3-D Tensor [batch, steps, in_channels].
+
+    Output:
+        3-D Tensor [batch, pooled steps, in_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 3-D Layer.
+        kernel_size: 'int` or list of `ints`. Pooling kernel size.
+        strides: 'int` or list of `ints`. Strides of conv operation.
+            Default: same as kernel_size.
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        name: A name for this layer (optional). Default: 'MaxPool1D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+
+    """
+
+    kernel = utils.autoformat_kernel_2d(kernel_size)
+    kernel = [1, kernel[1], 1, 1]
+    strides = utils.autoformat_kernel_2d(strides) if strides else kernel
+    strides = [1, strides[1], 1, 1]
+    padding = utils.autoformat_padding(padding)
+
+    with tf.name_scope(name) as scope:
+        inference = tf.nn.max_pool(incoming, kernel, strides, padding)
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights
+    inference.scope = scope
+
+    return inference
+
+
+def avg_pool_1d(incoming, kernel_size, strides=None, padding='same',
+                name="AvgPool2D"):
+    """ Average Pooling 1D.
+
+    Input:
+        3-D Tensor [batch, steps, in_channels].
+
+    Output:
+        3-D Tensor [batch, pooled steps, in_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 3-D Layer.
+        kernel_size: 'int` or list of `ints`. Pooling kernel size.
+        strides: 'int` or list of `ints`. Strides of conv operation.
+            Default: same as kernel_size.
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        name: A name for this layer (optional). Default: 'AvgPool1D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+
+    """
+
+    kernel = utils.autoformat_kernel_2d(kernel_size)
+    kernel = [1, kernel[1], 1, 1]
+    strides = utils.autoformat_kernel_2d(strides) if strides else kernel
+    padding = utils.autoformat_padding(padding)
+
+    with tf.name_scope(name) as scope:
+        inference = tf.nn.avg_pool(incoming, kernel, strides, padding)
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights
+    inference.scope = scope
+
+    return inference
+
+
+def deep_bottleneck(incoming, nb_layers, nb_filter, bottlenet_size,
+                    activation='relu', batch_norm=True, bias=False,
+                    weights_init='uniform_scaling', bias_init='zeros',
+                    regularizer=None, weight_decay=0.001, trainable=True,
+                    restore=True, name="DeepBottleneck"):
+    """ Deep Bottleneck.
+
+    As described in MSRA's Deep Residual Network paper.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        4-D Tensor [batch, new height, new width, nb_filter].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Layer.
+        nb_layers: `int`. Number of layer blocks.
+        nb_filter: `int`. The number of convolutional filters of the
+            layers surrounding the bottleneck layer.
+        bottlenet_size: `int`. The number of convolutional filter of the
+            bottleneck convolutional layer.
+        activation: `str` (name) or `Tensor`. Activation applied to this layer.
+            (see tflearn.activations). Default: 'linear'.
+        batch_norm: `bool`. If True, apply batch normalization.
+        bias: `bool`. If True, a bias is used.
+        weights_init: `str` (name) or `Tensor`. Weights initialization.
+            (see tflearn.initializations) Default: 'uniform_scaling'.
+        bias_init: `str` (name) or `tf.Tensor`. Bias initialization.
+            (see tflearn.initializations) Default: 'zeros'.
+        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
+            layer weights (see tflearn.regularizers). Default: None.
+        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model
+        name: A name for this layer (optional). Default: 'DeepBottleneck'.
+
+    """
+    resnet = incoming
+    # Build bottleneck block layers, this layer doesn't need
+    # `build inference` as other layers, because it only uses
+    # pre-existing layers, and doesn't define any new ops.
+    with tf.name_scope(name):
+        for i in range(nb_layers):
+            with tf.name_scope('ResidualLayer'):
+                with tf.name_scope("in"):
+                    residual = conv_2d(resnet, nb_filter, 1, 1, 'valid',
+                                       'linear', bias, weights_init,
+                                       bias_init, regularizer, weight_decay,
+                                       trainable, restore)
+                    if batch_norm:
+                        residual = tflearn.batch_normalization(residual)
+                    residual = tflearn.activation(residual, activation)
+                with tf.name_scope("bottleneck"):
+                    residual = conv_2d(residual, bottlenet_size, 3, 1, 'same',
+                                       'linear', bias, weights_init,
+                                       bias_init, regularizer, weight_decay,
+                                       trainable, restore)
+                    if batch_norm:
+                        residual = tflearn.batch_normalization(residual)
+                    residual = tflearn.activation(residual, activation)
+                with tf.name_scope("out"):
+                    residual = conv_2d(residual, nb_filter, 1, 1, 'valid',
+                                       'linear', bias, weights_init,
+                                       bias_init, regularizer, weight_decay,
+                                       trainable, restore)
+                    if batch_norm:
+                        residual = tflearn.batch_normalization(residual)
+                    residual = tflearn.activation(residual, activation)
+
+                resnet = resnet + residual
+
+    return resnet
+
+
+def deep_residual_block(incoming, nb_blocks, out_channels,
+                        downsample=False, downsample_strides=2,
+                        activation='relu', batch_norm=True, bias=False,
+                        weights_init='uniform_scaling', bias_init='zeros',
+                        regularizer=None, weight_decay=0.001, trainable=True,
+                        restore=True, name="DeepResidualBlock"):
+    """ Deep Residual Block.
+
+    A deep residual block as described in MSRA's Deep Residual Network paper.
+
+    Notice: Because TensorFlow doesn't support a strides > filter size,
+    an average pooling is used as a fix, but decrease performances.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        4-D Tensor [batch, new height, new width, nb_filter].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Layer.
+        nb_blocks: `int`. Number of layer blocks.
+        out_channels: `int`. The number of convolutional filters of the
+            layers surrounding the bottleneck layer.
+        downsample:
+        downsample_strides:
+        activation: `str` (name) or `Tensor`. Activation applied to this layer.
+            (see tflearn.activations). Default: 'linear'.
+        batch_norm: `bool`. If True, apply batch normalization.
+        bias: `bool`. If True, a bias is used.
+        weights_init: `str` (name) or `Tensor`. Weights initialization.
+            (see tflearn.initializations) Default: 'uniform_scaling'.
+        bias_init: `str` (name) or `tf.Tensor`. Bias initialization.
+            (see tflearn.initializations) Default: 'zeros'.
+        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
+            layer weights (see tflearn.regularizers). Default: None.
+        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model
+        name: A name for this layer (optional). Default: 'DeepBottleneck'.
+
+    References:
+        Deep Residual Learning for Image Recognition. Kaiming He, Xiangyu
+        Zhang, Shaoqing Ren, Jian Sun. 2015.
+
+    Links:
+        [http://arxiv.org/pdf/1512.03385v1.pdf]
+        (http://arxiv.org/pdf/1512.03385v1.pdf)
+
+    """
+    raise NotImplementedError
+
+
+def shallow_residual_block(incoming, nb_blocks, out_channels,
+                           downsample=False, downsample_strides=2,
+                           activation='relu', batch_norm=True, bias=False,
+                           weights_init='uniform_scaling', bias_init='zeros',
+                           regularizer=None, weight_decay=0.0001,
+                           trainable=True, restore=True,
+                           name="ShallowResidualBlock"):
+    """ Shallow Residual Block.
+
+    A shallow residual block as described in MSRA's Deep Residual Network
+    paper.
+
+    Notice: Because TensorFlow doesn't support a strides > filter size,
+    an average pooling is used as a fix, but decrease performances.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        4-D Tensor [batch, new height, new width, nb_filter].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Layer.
+        nb_blocks: `int`. Number of layer blocks.
+        out_channels: `int`. The number of convolutional filters of the
+            convolution layers.
+        downsample: `bool`. If True, apply downsampling using
+            'downsample_strides' for strides.
+        downsample_strides: `int`. The strides to use when downsampling.
+        activation: `str` (name) or `Tensor`. Activation applied to this layer.
+            (see tflearn.activations). Default: 'linear'.
+        batch_norm: `bool`. If True, apply batch normalization.
+        bias: `bool`. If True, a bias is used.
+        weights_init: `str` (name) or `Tensor`. Weights initialization.
+            (see tflearn.initializations) Default: 'uniform_scaling'.
+        bias_init: `str` (name) or `tf.Tensor`. Bias initialization.
+            (see tflearn.initializations) Default: 'zeros'.
+        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
+            layer weights (see tflearn.regularizers). Default: None.
+        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model
+        name: A name for this layer (optional). Default: 'ShallowBottleneck'.
+
+    References:
+        Deep Residual Learning for Image Recognition. Kaiming He, Xiangyu
+        Zhang, Shaoqing Ren, Jian Sun. 2015.
+
+    Links:
+        [http://arxiv.org/pdf/1512.03385v1.pdf]
+        (http://arxiv.org/pdf/1512.03385v1.pdf)
+
+    """
+    raise NotImplementedError

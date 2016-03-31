@@ -1,0 +1,36 @@
+code{
+    font-size:90%;
+    line-height:135%;
+}
+
+.extra_h1{
+    display:inline-block;
+    font-size:100%;
+    line-height:135%;
+    background: #f0f0f0;
+    border-left: solid 3px #2980B9;
+    padding: 6px 10px;
+    letter-spacing: 0.01em;
+}
+
+.extra_h2{
+    display: inline-block;
+    margin-bottom: 6px;
+    border: none;
+    border-left: solid 3px #ccc;
+    line-height: 130%;
+    padding: 6px;
+    background: #f0f0f0;
+    color:#555;
+    font-weight:300;
+    font-size:100%;
+}
+
+.hr_large{
+    border-top:1px dashed #ccc;
+    display: block;
+}
+
+.toctree-l4{
+    padding: 0.4045em 2.427em 0.4045em 3.227em !important;
+}
