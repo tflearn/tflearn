@@ -40,7 +40,7 @@ net = tflearn.dropout(net, 0.5)
 net = tflearn.fully_connected(net, 5000, activation='softmax')
 net = tflearn.regression(net, optimizer='adam', loss='categorical_crossentropy')
 
-mmodel = tflearn.SequenceGenerator(net, dictionary=idx, seq_maxlen=100)
+model = tflearn.SequenceGenerator(net, dictionary=idx, seq_maxlen=100)
 model.fit(X, Y)
 model.generate(50, temperature=1.0)
 ```
