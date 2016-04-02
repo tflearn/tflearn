@@ -20,12 +20,7 @@ pip install --upgrade https://storage.googleapis.com/tensorflow/mac/tensorflow-0
 
 ## TFLearn Installation
 
-To install TFLearn stable version, you can run:
-```python
-pip install tflearn
-```
-
-To install the latest version of TFLearn, you can run:
+To install TFLearn, the easiest way is to run:
 ```python
 pip install git+https://github.com/tflearn/tflearn.git
 ```
