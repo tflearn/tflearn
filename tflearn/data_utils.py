@@ -102,7 +102,7 @@ def string_to_semi_redundant_sequences(string, seq_maxlen=25, redun_step=3):
     the associated dictionary.
 
     Arguments:
-        path: `float`. Path of text file.
+        string: `str`. Lower-case text from input text file.
         seq_maxlen: `int`. Maximum length of a sequence. Default: 25.
         redun_step: `int`. Redundancy step. Default: 3.
 
