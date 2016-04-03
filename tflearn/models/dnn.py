@@ -37,6 +37,7 @@ class DNN(object):
     def __init__(self, network, clip_gradients=5.0, tensorboard_verbose=0,
                  tensorboard_dir="/tmp/tflearn_logs/", checkpoint_path=None,
                  max_checkpoints=None):
+        assert isinstance(network, tf.Tensor), "'network' arg is not a Tensor!"
         self.net = network
         self.train_ops = tf.get_collection(tf.GraphKeys.TRAIN_OPS)
         if len(self.train_ops) == 0:
@@ -70,7 +71,8 @@ class DNN(object):
             raise Exception("No target data! Please add a 'regression' layer "
                             "to your model (or add your target data "
                             "placeholder to tf.GraphKeys.TARGETS collection).")
-        self.predictor = None
+        self.predictor = Evaluator([self.net],
+                                   session=self.session)
 
     def fit(self, X_inputs, Y_targets, n_epoch=10, validation_set=None,
             show_metric=False, batch_size=None, shuffle=None,
@@ -157,8 +159,6 @@ class DNN(object):
                          snapshot_epoch=snapshot_epoch,
                          shuffle_all=shuffle,
                          run_id=run_id)
-        self.predictor = Evaluator([self.net],
-                                   session=self.trainer.session)
 
     def predict(self, X):
         """ Predict.

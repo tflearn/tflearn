@@ -387,7 +387,9 @@ class TrainOp(object):
         self.loss = loss
         self.optimizer = optimizer
         self.metric = metric
-        self.metric_summ_name = metric.name.split('/')[0]
+        self.metric_summ_name = ""
+        if metric is not None:
+            self.metric_summ_name = metric.name.split('/')[0]
         self.grad = None
         self.apply_grad = None
         self.summ_op = None

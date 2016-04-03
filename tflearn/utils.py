@@ -260,6 +260,9 @@ def feed_dict_builder(X, Y, net_inputs, net_targets):
 
     if not (is_none(Y) or is_none(net_targets)):
         if not isinstance(Y, dict):
+            # Verify network has targets
+            if len(net_targets) == 0:
+                return feed_dict
             # If validation split, copy that value to every target placeholder.
             if isinstance(Y, float):
                 Y = [Y for _t in net_targets]
