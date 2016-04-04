@@ -32,7 +32,7 @@ encoder = tflearn.fully_connected(encoder, 64)
 decoder = tflearn.fully_connected(encoder, 256)
 decoder = tflearn.fully_connected(decoder, 784)
 
-# Regression, with mean square error between
+# Regression, with mean square error
 net = tflearn.regression(decoder, optimizer='adam', learning_rate=0.001,
                          loss='mean_square', metric=None)
 
