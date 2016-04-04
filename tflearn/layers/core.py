@@ -234,7 +234,13 @@ def reshape(incoming, new_shape, name="Reshape"):
 def flatten(incoming, name="Flatten"):
     """ Flatten.
 
-    A shortcut for Reshape layer into 2-D [Batch, Dims].
+    Flatten the incoming Tensor.
+
+    Input:
+        (2+)-D `Tensor`.
+
+    Output:
+        2-D `Tensor` [batch, flatten_dims].
 
     Arguments:
         incoming: `Tensor`. The incoming tensor.
@@ -279,7 +285,7 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
         1-D Tensor [samples].
 
     Arguments:
-        incoming: `Tensor`. Incoming (2+)D Tensor.
+        incoming: `Tensor`. Incoming Tensor.
         activation: `str` (name) or `Tensor`. Activation applied to this layer.
             (see tflearn.activations). Default: 'linear'.
         bias: `bool`. If True, a bias is used.

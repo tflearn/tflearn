@@ -28,8 +28,7 @@
     - [Summaries](summaries)
 - Helpers for extending Tensorflow
     - [Trainer](helpers/trainer)
-    - [Predictor](helpers/predictor)
-    - [Generator](helpers/generator)
+    - [Evaluator](helpers/evaluator)
     - [Summarizer](helpers/summarizer)
     - [Regularizer](helpers/regularizer)
 - Others

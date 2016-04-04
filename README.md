@@ -66,8 +66,7 @@ python setup.py install
 
 ## Getting Started
 
-See *[Getting Started with TFLearn](http://tflearn.org/getting_started)* for a
- tutorial to learn more about TFLearn functionalities.
+See *[Getting Started with TFLearn](http://tflearn.org/getting_started)* for a tutorial to learn more about TFLearn functionalities.
 
 ## Examples
 
@@ -75,7 +74,7 @@ There are many neural network implementation available, see *[Examples](http://t
 
 ## Documentation
 
-[http://tflearn.org/documentation](http://tflearn.org/doc_index).
+[http://tflearn.org/doc_index](http://tflearn.org/doc_index).
 
 ## Model Visualization
 
