@@ -3,11 +3,11 @@
 Credits: A. Krizhevsky. https://www.cs.toronto.edu/~kriz/cifar.html.
 
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import os
 import sys
-import urllib
+from six.moves import urllib
 import tarfile
 
 import numpy as np
@@ -64,9 +64,10 @@ def maybe_download(filename, source_url, work_directory):
     filepath = os.path.join(work_directory, filename)
     if not os.path.exists(filepath):
         print("Downloading CIFAR 10, Please wait...")
-        filepath, _ = urllib.urlretrieve(source_url + filename, filepath)
+        filepath, _ = urllib.request.urlretrieve(source_url + filename,
+                                                 filepath)
         statinfo = os.stat(filepath)
-        print('Succesfully downloaded', filename, statinfo.st_size, 'bytes.')
+        print(('Succesfully downloaded', filename, statinfo.st_size, 'bytes.'))
         untar(filepath)
     return filepath
 
@@ -76,6 +77,6 @@ def untar(fname):
         tar = tarfile.open(fname)
         tar.extractall()
         tar.close()
-        print "File Extracted in Current Directory"
+        print("File Extracted in Current Directory")
     else:
-        print "Not a tar.gz file: '%s '" % sys.argv[0]
+        print("Not a tar.gz file: '%s '" % sys.argv[0])

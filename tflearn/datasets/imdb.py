@@ -3,7 +3,6 @@
 Credits: LISA-lab, https://github.com/lisa-lab/
 """
 from __future__ import print_function
-from six.moves import xrange
 import six.moves.cPickle as pickle
 
 import gzip
