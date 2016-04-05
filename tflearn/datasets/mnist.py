@@ -5,7 +5,7 @@ Credits: Y. LeCun. http://yann.lecun.com/exdb/mnist/.
 from __future__ import print_function
 import gzip
 import os
-import urllib
+from six.moves import urllib
 import numpy
 
 SOURCE_URL = 'http://yann.lecun.com/exdb/mnist/'
@@ -23,7 +23,8 @@ def maybe_download(filename, work_directory):
     filepath = os.path.join(work_directory, filename)
     if not os.path.exists(filepath):
         print('Downloading MNIST...')
-        filepath, _ = urllib.urlretrieve(SOURCE_URL + filename, filepath)
+        filepath, _ = urllib.request.urlretrieve(SOURCE_URL + filename,
+                                                 filepath)
         statinfo = os.stat(filepath)
         print('Succesfully downloaded', filename, statinfo.st_size, 'bytes.')
     return filepath
@@ -119,10 +120,10 @@ class DataSet(object):
     def next_batch(self, batch_size, fake_data=False):
         """Return the next `batch_size` examples from this data set."""
         if fake_data:
-            fake_image = [1.0 for _ in xrange(784)]
+            fake_image = [1.0 for _ in range(784)]
             fake_label = 0
-            return [fake_image for _ in xrange(batch_size)], [
-                fake_label for _ in xrange(batch_size)]
+            return [fake_image for _ in range(batch_size)], [
+                fake_label for _ in range(batch_size)]
         start = self._index_in_epoch
         self._index_in_epoch += batch_size
         if self._index_in_epoch > self._num_examples:

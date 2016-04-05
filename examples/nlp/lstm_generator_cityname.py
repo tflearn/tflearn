@@ -1,14 +1,14 @@
 from __future__ import absolute_import, division, print_function
 
 import os
-import urllib
+from six.moves import urllib
 
 import tflearn
 from tflearn.data_utils import *
 
 path = "US_Cities.txt"
 if not os.path.isfile(path):
-    urllib.urlretrieve("https://raw.githubusercontent.com/tflearn/tflearn.github.io/master/resources/US_Cities.txt", path)
+    urllib.request.urlretrieve("https://raw.githubusercontent.com/tflearn/tflearn.github.io/master/resources/US_Cities.txt", path)
 
 maxlen = 20
 
