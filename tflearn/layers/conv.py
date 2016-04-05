@@ -437,7 +437,7 @@ def avg_pool_1d(incoming, kernel_size, strides=None, padding='same',
     return inference
 
 
-def deep_bottleneck(incoming, nb_layers, nb_filter, bottlenet_size,
+def deep_bottleneck(incoming, nb_layers, nb_filter, bottleneck_size,
                     activation='relu', batch_norm=True, bias=False,
                     weights_init='uniform_scaling', bias_init='zeros',
                     regularizer=None, weight_decay=0.001, trainable=True,
@@ -457,7 +457,7 @@ def deep_bottleneck(incoming, nb_layers, nb_filter, bottlenet_size,
         nb_layers: `int`. Number of layer blocks.
         nb_filter: `int`. The number of convolutional filters of the
             layers surrounding the bottleneck layer.
-        bottlenet_size: `int`. The number of convolutional filter of the
+        bottleneck_size: `int`. The number of convolutional filter of the
             bottleneck convolutional layer.
         activation: `str` (name) or `Tensor`. Activation applied to this layer.
             (see tflearn.activations). Default: 'linear'.
@@ -484,7 +484,7 @@ def deep_bottleneck(incoming, nb_layers, nb_filter, bottlenet_size,
         for i in range(nb_layers):
             with tf.name_scope('ResidualLayer'):
                 with tf.name_scope("in"):
-                    residual = conv_2d(resnet, nb_filter, 1, 1, 'valid',
+                    residual = conv_2d(resnet, bottleneck_size, 1, 1, 'valid',
                                        'linear', bias, weights_init,
                                        bias_init, regularizer, weight_decay,
                                        trainable, restore)
@@ -492,7 +492,7 @@ def deep_bottleneck(incoming, nb_layers, nb_filter, bottlenet_size,
                         residual = tflearn.batch_normalization(residual)
                     residual = tflearn.activation(residual, activation)
                 with tf.name_scope("bottleneck"):
-                    residual = conv_2d(residual, bottlenet_size, 3, 1, 'same',
+                    residual = conv_2d(residual, bottleneck_size, 3, 1, 'same',
                                        'linear', bias, weights_init,
                                        bias_init, regularizer, weight_decay,
                                        trainable, restore)
