@@ -62,7 +62,26 @@ will enable training mode, while the second one will enable predicting mode.
 def is_training(is_training=False,  session=None):
     """ is_training.
 
-    Check whether the model is currently in training mode or not.
+    Set the graph training mode.
+
+    This is meant to be used to control ops that have different output at
+    training and testing time., such as dropout or batch normalization,
+
+    Examples:
+        ```
+        >> # Retrieve variable responsible for managing training mode
+        >> training_mode = tflearn.get_training_mode()
+        >> # Define a conditional op
+        >> my_conditional_op = tf.cond(training_mode, if_yes_op, if_no_op)
+        >> # Set training mode to True
+        >> tflearn.is_training(True)
+        >> session.run(my_conditional_op)
+        if_yes_op
+        >> # Set training mode to False
+        >> tflearn.is_training(False)
+        >> session.run(my_conditional_op)
+        if_no_op
+        ```
 
     Returns:
         A `bool`, True if training, False else.
