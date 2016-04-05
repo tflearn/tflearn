@@ -51,7 +51,7 @@ class TermLogger(Callback):
         self.global_data_size = 0
         self.global_val_data_size = 0
         curses.setupterm()
-        sys.stdout.write(curses.tigetstr('civis'))
+        sys.stdout.write(curses.tigetstr('civis').decode())
 
     def add(self, data_size, val_size=0, metric_name=None, name=None):
         if not metric_name: metric_name = 'acc'
@@ -123,7 +123,7 @@ class TermLogger(Callback):
         sys.stdout.flush()
 
         # Set caret visible
-        sys.stdout.write(curses.tigetstr('cvvis'))
+        sys.stdout.write(curses.tigetstr('cvvis').decode())
 
     def termlogs(self):
 

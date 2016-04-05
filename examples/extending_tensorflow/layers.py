@@ -2,6 +2,7 @@
 This tutorial will introduce how to combine TFLearn and Tensorflow, using
 TFLearn trainer with regular Tensorflow graph.
 """
+from __future__ import print_function
 
 import tensorflow as tf
 import tflearn
@@ -58,5 +59,5 @@ with tf.Graph().as_default():
                 cost = sess.run(loss, feed_dict={X: batch_xs, Y: batch_ys})
                 avg_cost += cost/total_batch
                 if i % 20 == 0:
-                    print "Epoch:", '%03d' % (epoch+1), "Step:", \
-                        '%03d' % i, "Loss:", str(cost)
+                    print("Epoch:", '%03d' % (epoch+1), "Step:", '%03d' % i,
+                          "Loss:", str(cost))

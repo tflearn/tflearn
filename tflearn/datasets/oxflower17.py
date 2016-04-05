@@ -4,11 +4,11 @@ Credits: Maria-Elena Nilsback and Andrew Zisserman.
 http://www.robots.ox.ac.uk/~vgg/data/flowers/17/
 
 """
-from __future__ import absolute_import
+from __future__ import absolute_import, print_function
 
 import os
 import sys
-import urllib
+from six.moves import urllib
 import tarfile
 
 import numpy as np
@@ -43,9 +43,10 @@ def maybe_download(filename, source_url, work_directory):
     if not os.path.exists(filepath):
         print("Downloading Oxford 17 category Flower Dataset, Please "
               "wait...")
-        filepath, _ = urllib.urlretrieve(source_url + filename, filepath)
+        filepath, _ = urllib.request.urlretrieve(source_url + filename,
+                                                 filepath)
         statinfo = os.stat(filepath)
-        print('Succesfully downloaded', filename, statinfo.st_size, 'bytes.')
+        print(('Succesfully downloaded', filename, statinfo.st_size, 'bytes.'))
 
         untar(filepath, work_directory)
         build_class_directories(os.path.join(work_directory, 'jpg'))
@@ -72,6 +73,6 @@ def untar(fname, extract_dir):
         tar = tarfile.open(fname)
         tar.extractall(extract_dir)
         tar.close()
-        print "File Extracted"
+        print("File Extracted")
     else:
-        print "Not a tar.gz/tgz file: '%s '" % sys.argv[0]
+        print("Not a tar.gz/tgz file: '%s '" % sys.argv[0])

@@ -497,7 +497,7 @@ class TrainOp(object):
                     self.grad, self.grad_norm = \
                         tf.clip_by_global_norm(self.grad, clip_gradients)
 
-            self.grad = zip(self.grad, self.train_vars)
+            self.grad = list(zip(self.grad, self.train_vars))
             self.apply_grad = self.optimizer.apply_gradients(
                     grads_and_vars=self.grad,
                     global_step=self.training_steps,
