@@ -200,7 +200,8 @@ class DNN(object):
         #with self.graph.as_default():
         self.trainer.restore(model_file)
         self.session = self.trainer.session
-        self.predictor = Evaluator([self.net])
+        self.predictor = Evaluator([self.net],
+                                   session=self.session)
 
     def get_weights(self, weight_tensor):
         """ Get Weights.

@@ -55,14 +55,6 @@ def simple_rnn(incoming, n_units, activation='sigmoid', bias=True,
 
     with tf.name_scope(name) as scope:
         cell = BasicRNNCell(n_units, activation, bias, W_init, trainable)
-        # Track per layer variables
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, cell.W)
-        if not restore:
-            tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.W)
-        if bias:
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, cell.b)
-            if not restore:
-                tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.b)
 
         inference = incoming
         # If a tensor given, convert it to a per timestep list
@@ -72,6 +64,17 @@ def simple_rnn(incoming, n_units, activation='sigmoid', bias=True,
             axes = [1, 0] + list(range(2, ndim))
             inference = tf.transpose(inference, (axes))
             inference = tf.unpack(inference)
+
+        # Track per layer variables
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
+                             cell.W)
+        if not restore:
+            tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.W)
+        if bias:
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
+                                 cell.b)
+            if not restore:
+                tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.b)
 
         outputs, states = _rnn(cell, inference, dtype=tf.float32,
                                scope=scope[:-1])
@@ -126,14 +129,6 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
     with tf.name_scope(name) as scope:
         cell = BasicLSTMCell(n_units, activation, inner_activation, bias,
                              W_init, forget_bias, trainable)
-        # Track per layer variables
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, cell.W)
-        if not restore:
-            tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.W)
-        if bias:
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, cell.b)
-            if not restore:
-                tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.b)
         inference = incoming
         # If a tensor given, convert it to a per timestep list
         if type(inference) not in [list, np.array]:
@@ -145,7 +140,15 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
 
         outputs, states = _rnn(cell, inference, dtype=tf.float32,
                                scope=scope[:-1])
-
+        # Track per layer variables
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, cell.W)
+        if not restore:
+            tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.W)
+        if bias:
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
+                                 cell.b)
+            if not restore:
+                tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.b)
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, outputs[-1])
 
@@ -194,18 +197,7 @@ def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
     with tf.name_scope(name) as scope:
         cell = GRUCell(n_units, activation, inner_activation, bias, W_init,
                        trainable)
-        # Track per layer variables
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, cell.W[0])
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, cell.W[1])
-        if not restore:
-            tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.W[0])
-            tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.W[1])
-        if bias:
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, cell.b[0])
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, cell.b[1])
-            if not restore:
-                tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.b[0])
-                tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.b[1])
+
         inference = incoming
         # If a tensor given, convert it to a per timestep list
         if type(inference) not in [list, np.array]:
@@ -218,6 +210,22 @@ def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
         outputs, states = _rnn(cell, inference, dtype=tf.float32,
                                scope=scope[:-1])
 
+        # Track per layer variables
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
+                             cell.W[0])
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
+                             cell.W[1])
+        if not restore:
+            tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.W[0])
+            tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.W[1])
+        if bias:
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
+                                 cell.b[0])
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
+                                 cell.b[1])
+            if not restore:
+                tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.b[0])
+                tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.b[1])
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, outputs[-1])
 
