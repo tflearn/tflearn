@@ -598,9 +598,11 @@ def deep_residual_block(incoming, nb_blocks, out_channels,
                     resnet = tflearn.batch_normalization(resnet)
 
                 resnet = conv_2d(resnet, out_channels, 1, 1, 'valid',
-                                 'linear', bias, weights_init,
+                                 activation, bias, weights_init,
                                  bias_init, regularizer, weight_decay,
                                  trainable, restore)
+                if batch_norm:
+                    resnet = tflearn.batch_normalization(resnet)
 
                 if downsample:
                     # Use average pooling, because TensorFlow conv_2d can't
