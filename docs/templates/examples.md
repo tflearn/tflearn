@@ -5,8 +5,8 @@
 - [Logical Operators](https://github.com/tflearn/tflearn/blob/master/examples/basics/logical.py). Implement logical operators with TFLearn (also includes a usage of 'merge').
 - [Weights Persistence](https://github.com/tflearn/tflearn/blob/master/examples/basics/weights_persistence.py). Save and Restore a model.
 - [Fine-Tuning](https://github.com/tflearn/tflearn/blob/master/examples/basics/finetuning.py). Fine-Tune a pre-trained model on a new task.
-- [Using HDF5](https://github.com/tflearn/tflearn/blob/master/examples/basics/hdf5.py). Use HDF5 to handle large datasets.
-- [Using DASK](https://github.com/tflearn/tflearn/blob/master/examples/basics/dask.py). Use DASK to handle large datasets.
+- [Using HDF5](https://github.com/tflearn/tflearn/blob/master/examples/basics/use_hdf5.py). Use HDF5 to handle large datasets.
+- [Using DASK](https://github.com/tflearn/tflearn/blob/master/examples/basics/use_dask.py). Use DASK to handle large datasets.
 
 ## Extending Tensorflow
 - [Layers](https://github.com/tflearn/tflearn/blob/master/examples/extending_tensorflow/layers.py). Use TFLearn layers along with Tensorflow.
