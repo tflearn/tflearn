@@ -44,14 +44,18 @@ class TermLogger(Callback):
     def __init__(self, training_step=0):
         super(TermLogger, self).__init__()
         self.data = []
+        self.has_curses = True
         self.display_type = "multi"
         self.global_loss = None
         self.global_acc = None
         self.global_step = training_step
         self.global_data_size = 0
         self.global_val_data_size = 0
-        curses.setupterm()
-        sys.stdout.write(curses.tigetstr('civis').decode())
+        try:
+            curses.setupterm()
+            sys.stdout.write(curses.tigetstr('civis').decode())
+        except Exception:
+            self.has_curses = False
 
     def add(self, data_size, val_size=0, metric_name=None, name=None):
         if not metric_name: metric_name = 'acc'
@@ -123,7 +127,8 @@ class TermLogger(Callback):
         sys.stdout.flush()
 
         # Set caret visible
-        sys.stdout.write(curses.tigetstr('cvvis').decode())
+        if self.has_curses:
+            sys.stdout.write(curses.tigetstr('cvvis').decode())
 
     def termlogs(self):
 
