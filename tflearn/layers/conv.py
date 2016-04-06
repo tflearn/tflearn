@@ -609,11 +609,9 @@ def deep_residual_block(incoming, nb_blocks, out_channels,
                     # accept kernel size < strides.
                     identity = avg_pool_2d(identity, downsample_strides,
                                            downsample_strides)
-                    identity = conv_2d(identity, out_channels, 1, 1, 'valid',
-                                       'linear', bias, weights_init,
-                                       bias_init, regularizer, weight_decay,
-                                       trainable, restore)
-                else:
+                    
+                # Projection to new dimension
+                if in_channels != out_channels:
                     identity = conv_2d(identity, out_channels, 1, 1, 'valid',
                                        'linear', bias, weights_init,
                                        bias_init, regularizer, weight_decay,
