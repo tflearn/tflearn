@@ -513,7 +513,7 @@ def deep_bottleneck(incoming, nb_layers, nb_filter, bottleneck_size,
     return resnet
 
 
-def deep_residual_block(incoming, nb_blocks, out_channels,
+def deep_residual_block(incoming, nb_blocks, bottleneck_size, out_channels,
                         downsample=False, downsample_strides=2,
                         activation='relu', batch_norm=True, bias=False,
                         weights_init='uniform_scaling', bias_init='zeros',
@@ -535,6 +535,8 @@ def deep_residual_block(incoming, nb_blocks, out_channels,
     Arguments:
         incoming: `Tensor`. Incoming 4-D Layer.
         nb_blocks: `int`. Number of layer blocks.
+        bottleneck_size: `int`. The number of convolutional filter of the
+            bottleneck convolutional layer.
         out_channels: `int`. The number of convolutional filters of the
             layers surrounding the bottleneck layer.
         downsample:
@@ -578,19 +580,19 @@ def deep_residual_block(incoming, nb_blocks, out_channels,
                     # accept kernel size < strides.
                     resnet = avg_pool_2d(resnet, downsample_strides,
                                          downsample_strides)
-                    resnet = conv_2d(resnet, in_channels, 1, 1, 'valid',
+                    resnet = conv_2d(resnet, bottleneck_size, 1, 1, 'valid',
                                      activation, bias, weights_init,
                                      bias_init, regularizer, weight_decay,
                                      trainable, restore)
                 else:
-                    resnet = conv_2d(resnet, in_channels, 1, 1, 'valid',
+                    resnet = conv_2d(resnet, bottleneck_size, 1, 1, 'valid',
                                      activation, bias, weights_init,
                                      bias_init, regularizer, weight_decay,
                                      trainable, restore)
                 if batch_norm:
                     resnet = tflearn.batch_normalization(resnet)
 
-                resnet = conv_2d(resnet, in_channels, 3, 1, 'same',
+                resnet = conv_2d(resnet, bottleneck_size, 3, 1, 'same',
                                  activation, bias, weights_init,
                                  bias_init, regularizer, weight_decay,
                                  trainable, restore)
@@ -612,6 +614,7 @@ def deep_residual_block(incoming, nb_blocks, out_channels,
                     
                 # Projection to new dimension
                 if in_channels != out_channels:
+                    in_channels = out_channels
                     identity = conv_2d(identity, out_channels, 1, 1, 'valid',
                                        'linear', bias, weights_init,
                                        bias_init, regularizer, weight_decay,
@@ -722,6 +725,7 @@ def shallow_residual_block(incoming, nb_blocks, out_channels,
 
                 # Projection to new dimension
                 if in_channels != out_channels:
+                    in_channels = out_channels
                     identity = conv_2d(identity, out_channels, 1, 1, 'same',
                                        'linear', bias, weights_init,
                                        bias_init, regularizer, weight_decay,
