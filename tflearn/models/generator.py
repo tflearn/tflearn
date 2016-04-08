@@ -8,6 +8,7 @@ from ..helpers.trainer import Trainer, evaluate as eval
 from ..helpers.evaluator import Evaluator
 from ..utils import feed_dict_builder, is_none
 
+
 class SequenceGenerator(object):
     """ Sequence Generator Model.
 
@@ -54,6 +55,7 @@ class SequenceGenerator(object):
                                tensorboard_verbose=tensorboard_verbose,
                                checkpoint_path=checkpoint_path,
                                max_checkpoints=max_checkpoints)
+        self.session = self.trainer.session
         self.inputs = tf.get_collection(tf.GraphKeys.INPUTS)
         self.targets = tf.get_collection(tf.GraphKeys.TARGETS)
         self.predictor = Evaluator([self.net],
