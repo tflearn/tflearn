@@ -15,7 +15,7 @@ Layers are a core feature of TFLearn. While completely defining a model using Te
 - Add an activation function after the convolution
 - etc...
 
-In Tensorflow, write those kind of operation set can be quite fastidious:
+In Tensorflow, writing these kinds of operations can be quite tedious:
 
 ```python
 with tf.name_scope('conv1'):
