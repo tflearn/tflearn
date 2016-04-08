@@ -23,7 +23,7 @@ class Evaluator(object):
 
     def __init__(self, tensors, model=None, session=None):
         self.tensors = to_list(tensors)
-        self.graph = tensors[0].graph
+        self.graph = tensors.graph
         self.model = model
 
         with self.graph.as_default():
