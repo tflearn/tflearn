@@ -23,7 +23,10 @@ class Evaluator(object):
 
     def __init__(self, tensors, model=None, session=None):
         self.tensors = to_list(tensors)
-        self.graph = tensors[0].graph
+        if isinstance(self.tensors, tf.Tensor):
+            self.graph = tensors.graph
+        else:
+            self.graph = tensors[0].graph
         self.model = model
 
         with self.graph.as_default():
