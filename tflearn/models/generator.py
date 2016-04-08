@@ -56,7 +56,8 @@ class SequenceGenerator(object):
                                max_checkpoints=max_checkpoints)
         self.inputs = tf.get_collection(tf.GraphKeys.INPUTS)
         self.targets = tf.get_collection(tf.GraphKeys.TARGETS)
-        self.predictor = None
+        self.predictor = Evaluator([self.net],
+                                   session=self.session)
         self.dic = dictionary
         self.rev_dic = reverse_dictionary(dictionary)
         self.seq_maxlen = seq_maxlen
@@ -222,8 +223,10 @@ class SequenceGenerator(object):
 
         """
         self.trainer.restore(model_file)
-        #TODO: get all out_tensors here
-        self.predictor = Evaluator(self.net, model=model_file)
+        self.session = self.trainer.session
+        self.predictor = Evaluator([self.net],
+                                   session=self.session,
+                                   model=model_file)
 
     def get_weights(self, weight_tensor):
         """ Get weights.
