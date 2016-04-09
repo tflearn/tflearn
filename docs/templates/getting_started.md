@@ -60,9 +60,9 @@ In practice, the arguments (such as 'activation' or 'regularizer' of conv_2d) ju
 
 ```python
 # Activation and Regularization inside a layer:
-fc2 = tflearn.dense(fc1, 32, activation='tanh', regularizer='L2')
+fc2 = tflearn.fully_connected(fc1, 32, activation='tanh', regularizer='L2')
 # Equivalent to:
-fc2 = tflearn.dense(fc1, 32)
+fc2 = tflearn.fully_connected(fc1, 32)
 tflearn.add_weights_regularization(fc2, loss='L2')
 fc2 = tflearn.relu(fc2)
 
@@ -143,21 +143,51 @@ model.save('my_model.tflearn')
 model.load('my_model.tflearn')
 ```
 
+To retrieve a layer variables, you can either use the layer name, or directly use 'W' or 'b' attributes that are supercharged to the returned Tensor class.
+```python
+# Let's create a layer
+fc1 = fully_connected(input_layer, 64, name="fc_layer_1")
+# Using Tensor attributes (Attributes are supercharged to the original Tensor class)
+fc1_weights_var = fc1.W
+fc1_biases_var = fc1.b
+# Using Tensor name
+fc1_vars = tflearn.get_layer_variables_by_name("fc_layer_1")
+fc1_weights_var = fc1_vars[0]
+fc1_biases_var = fc1_vars[1]
+```
+
+To get or set the value of these variables, TFLearn models class implement `get_weights` and `set_weights` methods:
+```python
+input_data = tflearn.input_data(shape=[None, 784])
+fc1 = tflearn.fully_connected(input_data, 64)
+fc2 = tflearn.fully_connected(input_data, 10, activation='softmax')
+net = tflearn.regression(fc1)
+model = DNN(net)
+# Get weights values of fc1
+model.get_weights(fc1.W)
+# Assign new random weights to fc1
+model.set_weights(fc1.W, numpy.random.rand(64, 10))
+```
+
+Note that you can also directly use TensorFlow `eval` or `assign` ops to get or set the value of these variables.
+
+- For an example, see: [weights_persistence.py](https://github.com/tflearn/tflearn/blob/master/examples/basics/weights_persistence.py).
+
 ### Fine-tuning
 
 Fine-tune a pre-trained model on a new task might be useful in many cases. So, when defining a model in TFLearn, you can specify which layer's weights you want to be restored or not (when loading pre-trained model). This can be handle with the 'restore' argument of layer functions (only available for layers with weights).
 
 ```python
 # Weights will be restored by default.
-dense_layer = Dense(input_layer, 32)
+fc_layer = tflearn.fully_connected(input_layer, 32)
 # Weights will not be restored, if specified so.
-dense_layer = Dense(input_layer, 32, restore='False')
+fc_layer = tflearn.fully_connected(input_layer, 32, restore='False')
 ```
 
 All weights that doesn't need to be restored will be added to tf.GraphKeys.EXCL_RESTORE_VARS collection, and when loading a pre-trained model, these variables restoration will simply be ignored.
-The following example shows how to fine-tune a network on a new task by restoring all weights except the last dense layer, and then train the new model on a new dataset:
+The following example shows how to fine-tune a network on a new task by restoring all weights except the last fully connected layer, and then train the new model on a new dataset:
 
-- Fine-tuning example: [finetuning.py](https://github.com/tflearn/blob/master/examples/basics/finetuning.py).
+- Fine-tuning example: [finetuning.py](https://github.com/tflearn/tflearn/blob/master/examples/basics/finetuning.py).
 
 ### Data management
 
@@ -175,7 +205,7 @@ model = DNN(network)
 model.fit(X, Y)
 ```
 
-For an example, see: [hdf5.py](https://github.com/tflearn/blob/master/examples/basics/hdf5.py).
+For an example, see: [hdf5.py](https://github.com/tflearn/tflearn/blob/master/examples/basics/hdf5.py).
 
 ### Graph Initialization
 
@@ -209,13 +239,13 @@ net = tf.nn.max_pool(net, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAM
 ...
 ```
 
-- For an example, see: [layers.py](https://github.com/tflearn/blob/master/examples/extending_tensorflow/layers.py).
+- For an example, see: [layers.py](https://github.com/tflearn/tflearn/blob/master/examples/extending_tensorflow/layers.py).
 
 ### Built-in Operations
 
 TFLearn built-in ops makes Tensorflow graphs writing faster and more readable. So, similar to layers, built-in ops are fully compatible with any TensorFlow expression. The following code example shows how to use them along with pure Tensorflow API.
 
-- See: [builtin_ops.py](https://github.com/tflearn/blob/master/examples/extending_tensorflow/builtin_ops.py).
+- See: [builtin_ops.py](https://github.com/tflearn/tflearn/blob/master/examples/extending_tensorflow/builtin_ops.py).
 
 Here is a list of available ops, click on the file for more details:
 
@@ -257,7 +287,7 @@ model.fit(feed_dict=[{in1: X1, label1: Y1}, {in2: X2, in3: X3, label2: Y2}])
 
 - To learn more about TrainOp and Trainer, see: [trainer](http://tflearn.org/helpers/trainer).
 
-- For an example, see: [trainer.py](https://github.com/tflearn/blob/master/examples/extending_tensorflow/trainer.py).
+- For an example, see: [trainer.py](https://github.com/tflearn/tflearn/blob/master/examples/extending_tensorflow/trainer.py).
 
 For prediction, TFLearn implements a `Predictor` class that is working in a similar way as `Trainer`. It takes any network as parameter and return the predicted value.
 ```python
@@ -300,7 +330,7 @@ my_var = vs.variable('W',
                      device='/gpu:0')
 ```
 
-- For an example, see: [variables.py](https://github.com/tflearn/blob/master/examples/extending_tensorflow/variables.py).
+- For an example, see: [variables.py](https://github.com/tflearn/tflearn/blob/master/examples/extending_tensorflow/variables.py).
 
 ### Summaries
 
@@ -330,7 +360,7 @@ summary_op = s.summarize_activations(collection='my_summaries')
 # summary_op is a the merged op of previously define weights, gradients and activations summary ops.
 ```
 
-- For an example, see: [summaries.py](https://github.com/tflearn/blob/master/examples/extending_tensorflow/summaries.py).
+- For an example, see: [summaries.py](https://github.com/tflearn/tflearn/blob/master/examples/extending_tensorflow/summaries.py).
 
 ### Regularizers
 
