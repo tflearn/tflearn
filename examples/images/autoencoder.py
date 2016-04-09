@@ -43,7 +43,8 @@ model.fit(X, X, n_epoch=10, validation_set=(testX, testX),
 
 # Encoding X[0] for test
 print("\nTest encoding of X[0]:")
-encoding_model = tflearn.DNN(encoder)
+# New model, re-using the same session, for weights sharing
+encoding_model = tflearn.DNN(encoder, session=model.session)
 print(encoding_model.predict([X[0]]))
 
 # Testing the image reconstruction on new data (test set)

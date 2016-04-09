@@ -27,16 +27,20 @@ class DNN(object):
             no model checkpoint will be saved. Default: None.
         max_checkpoints: `int` or None. Maximum amount of checkpoints. If
             None, no limit. Default: None.
+        session: `Session`. A session for running ops. If None, a new one will
+            be created. Note: When providing a session, variables must have been
+            initialized already, otherwise an error will be raised.
 
     Attributes:
         trainer: `Trainer`. Handle model training.
         predictor: `Predictor`. Handle model prediction.
+        session: `Session`. The current model session.
 
     """
 
     def __init__(self, network, clip_gradients=5.0, tensorboard_verbose=0,
                  tensorboard_dir="/tmp/tflearn_logs/", checkpoint_path=None,
-                 max_checkpoints=None):
+                 max_checkpoints=None, session=None):
         assert isinstance(network, tf.Tensor), "'network' arg is not a Tensor!"
         self.net = network
         self.train_ops = tf.get_collection(tf.GraphKeys.TRAIN_OPS)
@@ -49,7 +53,8 @@ class DNN(object):
                                tensorboard_dir=tensorboard_dir,
                                tensorboard_verbose=tensorboard_verbose,
                                checkpoint_path=checkpoint_path,
-                               max_checkpoints=max_checkpoints)
+                               max_checkpoints=max_checkpoints,
+                               session=session)
         self.session = self.trainer.session
 
         self.inputs = tf.get_collection(tf.GraphKeys.INPUTS)

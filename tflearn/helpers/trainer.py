@@ -45,6 +45,9 @@ class Trainer(object):
             model checkpoints.
         random_seed: `int`. Random seed, for test reproductivity.
             Default: None.
+        session: `Session`. A session for running ops. If None, a new one will
+            be created. Note: When providing a session, variables must have been
+            initialized already, otherwise an error will be raised.
 
     """
 
@@ -52,7 +55,8 @@ class Trainer(object):
                  tensorboard_dir="/tmp/tflearn_logs/",
                  tensorboard_verbose=0, checkpoint_path=None,
                  max_checkpoints=None,
-                 keep_checkpoint_every_n_hours=10000.0, random_seed=None):
+                 keep_checkpoint_every_n_hours=10000.0, random_seed=None,
+                 session=None):
 
         self.graph = tf.get_default_graph()
         if graph:
@@ -84,7 +88,12 @@ class Trainer(object):
             tflearn_conf = tf.get_collection(tf.GraphKeys.GRAPH_CONFIG)
             if tflearn_conf:
                 config = tflearn_conf[0]
-            self.session = tf.Session(config=config)
+
+            if not session:
+                self.session = tf.Session(config=config)
+            else:
+                self.session = session
+                self.restored = True
 
             for i, train_op in enumerate(self.train_ops):
 
