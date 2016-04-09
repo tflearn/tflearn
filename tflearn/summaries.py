@@ -83,7 +83,7 @@ def add_activations_summary(activation_ops, name_prefix="", name_suffix="",
         summ_name = format_scope_name(ao_name, name_prefix,
                                       "Activations/" + name_suffix)
         summ_exists = summary_exists(summ_name)
-        if summ_exists:
+        if summ_exists is not None:
             tf.add_to_collection(collection_key, summ_exists)
         else:
             get_summary("histogram", summ_name, ao, collection_key)
@@ -91,7 +91,7 @@ def add_activations_summary(activation_ops, name_prefix="", name_suffix="",
         summ_name = format_scope_name(ao_name, name_prefix,
                                       "Sparsity/" + name_suffix)
         summ_exists = summary_exists(summ_name)
-        if summ_exists:
+        if summ_exists is not None:
             tf.add_to_collection(collection_key, summ_exists)
             summ.append(summ_exists)
         else:
@@ -124,7 +124,7 @@ def add_gradients_summary(grads, name_prefix="", name_suffix="",
             summ_name = format_scope_name(var.op.name, name_prefix,
                                           "Gradients/" + name_suffix)
             summ_exists = summary_exists(summ_name)
-            if summ_exists:
+            if summ_exists is not None:
                 tf.add_to_collection(collection_key, summ_exists)
                 summ.append(summ_exists)
             else:
@@ -155,7 +155,7 @@ def add_trainable_vars_summary(variables, name_prefix="", name_suffix="",
     for var in variables:
         summ_name = format_scope_name(var.op.name, name_prefix, name_suffix)
         summ_exists = summary_exists(summ_name)
-        if summ_exists:
+        if summ_exists is not None:
             tf.add_to_collection(collection_key, summ_exists)
             summ.append(summ_exists)
         else:

@@ -197,11 +197,11 @@ class DNN(object):
             model_file: `str`. Model path.
 
         """
-        #with self.graph.as_default():
         self.trainer.restore(model_file)
         self.session = self.trainer.session
         self.predictor = Evaluator([self.net],
-                                   session=self.session)
+                                   session=self.session,
+                                   model=model_file)
 
     def get_weights(self, weight_tensor):
         """ Get Weights.
