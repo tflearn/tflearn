@@ -1,8 +1,15 @@
+'''
+    This file contains test cases for tflearn
+'''
+
 import tensorflow as tf
 import tflearn
 import unittest
 
 class TestActivations(unittest.TestCase):
+    '''
+        This class contains test cases for the functions in tflearn/activations.py
+    '''
     PLACES = 4 # Number of places to match when testing floating point values
 
     def test_linear(self):
