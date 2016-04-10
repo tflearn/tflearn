@@ -266,9 +266,9 @@ def avg_pool_2d(incoming, kernel_size, strides=None, padding='same',
 
 
 def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
-           activation='linear', bias=True, weights_init='uniform_scaling',
-           bias_init='zeros', regularizer=None, weight_decay=0.001,
-           trainable=True, restore=True, name="Conv1D"):
+            activation='linear', bias=True, weights_init='uniform_scaling',
+            bias_init='zeros', regularizer=None, weight_decay=0.001,
+            trainable=True, restore=True, name="Conv1D"):
     """ Convolution 1D.
 
     Input:
@@ -355,7 +355,7 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
 
 def max_pool_1d(incoming, kernel_size, strides=None, padding='same',
-                name="MaxPool2D"):
+                name="MaxPool1D"):
     """ Max Pooling 1D.
 
     Input:
@@ -397,7 +397,7 @@ def max_pool_1d(incoming, kernel_size, strides=None, padding='same',
 
 
 def avg_pool_1d(incoming, kernel_size, strides=None, padding='same',
-                name="AvgPool2D"):
+                name="AvgPool1D"):
     """ Average Pooling 1D.
 
     Input:
