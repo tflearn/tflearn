@@ -66,7 +66,6 @@ class TermLogger(Callback):
         except NameError:
             self.has_ipython = False
 
-
     def add(self, data_size, val_size=0, metric_name=None, name=None):
         if not metric_name: metric_name = 'acc'
         self.data.append({
@@ -185,7 +184,7 @@ class TermLogger(Callback):
     def print_termlogs(self):
 
         termlogs = self.termlogs()
-        if self.has_ipython:
+        if self.has_ipython and not self.has_curses:
             clear_output(wait=True)
         else:
             for i in range(len(self.data) + 1):
