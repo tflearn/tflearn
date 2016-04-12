@@ -1,6 +1,10 @@
 from __future__ import division, print_function, absolute_import
 
 import sys, curses
+try:
+    from IPython.core.display import clear_output
+except:
+    pass
 
 
 class Callback(object):
@@ -45,6 +49,7 @@ class TermLogger(Callback):
         super(TermLogger, self).__init__()
         self.data = []
         self.has_curses = True
+        self.has_ipython = True
         self.display_type = "multi"
         self.global_loss = None
         self.global_acc = None
@@ -56,6 +61,11 @@ class TermLogger(Callback):
             sys.stdout.write(curses.tigetstr('civis').decode())
         except Exception:
             self.has_curses = False
+        try:
+            clear_output
+        except NameError:
+            self.has_ipython = False
+
 
     def add(self, data_size, val_size=0, metric_name=None, name=None):
         if not metric_name: metric_name = 'acc'
@@ -121,8 +131,9 @@ class TermLogger(Callback):
     def on_train_end(self):
         # Reset caret to last position
         to_be_printed = ""
-        for i in range(len(self.data) + 2):
-            to_be_printed += "\033[B"
+        if not self.has_ipython:
+            for i in range(len(self.data) + 2):
+                to_be_printed += "\033[B"
         sys.stdout.write(to_be_printed)
         sys.stdout.flush()
 
@@ -174,8 +185,11 @@ class TermLogger(Callback):
     def print_termlogs(self):
 
         termlogs = self.termlogs()
-        for i in range(len(self.data) + 1):
-            termlogs += "\033[A"
+        if self.has_ipython:
+            clear_output(wait=True)
+        else:
+            for i in range(len(self.data) + 1):
+                termlogs += "\033[A"
 
         sys.stdout.write(termlogs)
         sys.stdout.flush()
