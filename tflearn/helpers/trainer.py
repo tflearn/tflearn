@@ -293,7 +293,11 @@ class Trainer(object):
 
         """
         # Temp workaround for tensorflow 0.7.0 dict proto serialization issue
-        l = tf.get_collection("summary_tags")
+        try:
+            # Try latest api
+            l = tf.get_collection_ref("summary_tags")
+        except Exception:
+            l = tf.get_collection("summary_tags")
         l_stags = list(l)
         del l[:]
 
