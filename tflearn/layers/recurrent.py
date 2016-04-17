@@ -294,7 +294,7 @@ def dynamic_rnn(incoming, rnncell, sequence_length=None, time_major=False,
 
     RNN with dynamic sequence length.
 
-    Unlike `rnn`, the input `inputs` is not a Python list of `Tensors`.
+    Unlike `rnn`, the input `incoming` is not a Python list of `Tensors`.
     Instead, it is a single `Tensor` where the maximum time is either the
     first or second dimension (see the parameter `time_major`).  The
     corresponding output is a single `Tensor` having the same number of time
@@ -313,6 +313,15 @@ def dynamic_rnn(incoming, rnncell, sequence_length=None, time_major=False,
     Arguments:
         incoming: `Tensor`. The incoming 3-D Tensor.
         rnncell: `RNNCell`. The RNN Cell to use for computation.
+        sequence_length: `int32` `Tensor`. A Tensor of shape [batch_size].
+            (Optional).
+        time_major: The shape format of the `inputs` and `outputs` Tensors.
+            If true, these `Tensors` must be shaped `[max_time, batch_size, depth]`.
+            If false, these `Tensors` must be shaped `[batch_size, max_time, depth]`.
+            Using time_major = False is a bit more efficient because it avoids
+            transposes at the beginning and end of the RNN calculation.  However,
+            most TensorFlow data is batch-major, so by default this function
+            accepts input and emits output in batch-major form.
         return_seq: `bool`. If True, returns the full sequence instead of
             last sequence output only.
         name: `str`. A name for this layer (optional).
@@ -334,7 +343,8 @@ def dynamic_rnn(incoming, rnncell, sequence_length=None, time_major=False,
 
         outputs, states = _dynamic_rnn(rnncell, inference,
                                        sequence_length=sequence_length,
-                                       time_major=time_major, scope="DynRNN")
+                                       time_major=time_major,
+                                       scope="DynamicRNN")
 
         c = tf.GraphKeys.LAYER_VARIABLES
         for v in [rnncell.W, rnncell.b]:
