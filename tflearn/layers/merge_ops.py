@@ -18,9 +18,10 @@ def merge(tensors_list, mode, axis=1, name="Merge"):
     Arguments:
         tensors_list: A list of `Tensor`, A list of tensors to merge.
         mode: `str`. Merging mode, it supports:
+            ```
             'concat': concatenate outputs along specified axis
-            'elemwise_sum': outputs element-wise sum.
-            'elemwise_mul': outputs element-wise sum.
+            'elemwise_sum': outputs element-wise sum
+            'elemwise_mul': outputs element-wise sum
             'sum': outputs element-wise sum along specified axis
             'mean': outputs element-wise average along specified axis
             'prod': outputs element-wise multiplication along specified axis
@@ -28,6 +29,7 @@ def merge(tensors_list, mode, axis=1, name="Merge"):
             'min': outputs min elements along specified axis
             'and': `logical and` btw outputs elements along specified axis
             'or': `logical or` btw outputs elements along specified axis
+            ```
         axis: `int`. Represents the axis to use for merging mode.
             In most cases: 0 for concat and 1 for other modes.
         name: A name for this layer (optional). Default: 'Merge'.
