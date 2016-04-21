@@ -138,7 +138,9 @@ def roc_auc_score(y_pred, y_true):
 
     Measures overall performance for a full range of threshold levels.
 
-    `y_pred` and `y_true` must have the same type and shape.
+    Arguments:
+        y_pred: `Tensor`. Predicted values.
+        y_true: `Tensor` . Targets (labels), a probability distribution.
 
     """
     with tf.name_scope("RocAucScore"):
