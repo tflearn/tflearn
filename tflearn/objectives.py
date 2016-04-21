@@ -125,3 +125,36 @@ def hinge_loss(y_pred, y_true):
     """
     with tf.name_scope("HingeLoss"):
         return tf.reduce_mean(tf.maximum(1. - y_true * y_pred, 0.))
+
+
+def roc_auc_score(y_pred, y_true):
+    """ ROC AUC Score.
+
+    Approximates the Area Under Curve score, using approximation based on
+    the Wilcoxon-Mann-Whitney U statistic.
+
+    Yan, L., Dodier, R., Mozer, M. C., & Wolniewicz, R. (2003).
+    Optimizing Classifier Performance via an Approximation to the Wilcoxon-Mann-Whitney Statistic.
+
+    Measures overall performance for a full range of threshold levels.
+
+    `y_pred` and `y_true` must have the same type and shape.
+
+    """
+    with tf.name_scope("RocAucScore"):
+
+        pos = tf.boolean_mask(y_pred, tf.cast(y_true, tf.bool))
+        neg = tf.boolean_mask(y_pred, ~tf.cast(y_true, tf.bool))
+
+        pos = tf.expand_dims(pos, 0)
+        neg = tf.expand_dims(neg, 1)
+
+        # original paper suggests performance is robust to exact parameter choice
+        gamma = 0.2
+        p     = 3
+
+        difference = tf.zeros_like(pos * neg) + pos - neg - gamma
+
+        masked = tf.boolean_mask(difference, difference < 0.0)
+
+        return tf.reduce_sum(tf.pow(-masked, p))
