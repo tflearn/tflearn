@@ -93,7 +93,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
        trainable: `bool`. If True, weights will be trainable.
        restore: `bool`. If True, this layer weights will be restored when
             loading a model
-       name: A name for this layer (optional). Default: 'Dense'.
+       name: A name for this layer (optional). Default: 'FullyConnected'.
 
     Attributes:
         scope: `Scope`. This layer scope.
