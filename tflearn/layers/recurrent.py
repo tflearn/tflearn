@@ -25,7 +25,8 @@ from .. import initializations
 
 def simple_rnn(incoming, n_units, activation='sigmoid', bias=True,
                weights_init='truncated_normal', return_seq=False,
-               trainable=True, restore=True, name="SimpleRNN"):
+               return_states=False, initial_state=None, trainable=True,
+               restore=True, name="SimpleRNN"):
     """ Simple RNN.
 
     Simple Recurrent Layer.
@@ -47,6 +48,10 @@ def simple_rnn(incoming, n_units, activation='sigmoid', bias=True,
             (See tflearn.initializations) Default: 'truncated_normal'.
         return_seq: `bool`. If True, returns the full sequence instead of
             last sequence output only.
+        return_states: `bool`. If True, returns a tuple with output and
+            states: (output, states).
+        initial_state: `Tensor`. An initial state for the RNN.  This must be
+            a tensor of appropriate type and shape [batch_size x cell.state_size].
         name: `str`. A name for this layer (optional).
 
     """
@@ -54,7 +59,8 @@ def simple_rnn(incoming, n_units, activation='sigmoid', bias=True,
     W_init = initializations.get(weights_init)()
 
     with tf.name_scope(name) as scope:
-        cell = BasicRNNCell(n_units, activation, bias, W_init, trainable)
+        cell = BasicRNNCell(n_units, activation, bias, W_init,
+                            trainable, restore)
 
         inference = incoming
         # If a tensor given, convert it to a per timestep list
@@ -68,26 +74,26 @@ def simple_rnn(incoming, n_units, activation='sigmoid', bias=True,
         # Track per layer variables
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
                              cell.W)
-        if not restore:
-            tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.W)
         if bias:
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
                                  cell.b)
-            if not restore:
-                tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.b)
 
         outputs, states = _rnn(cell, inference, dtype=tf.float32,
-                               scope=scope[:-1])
+                               initial_state=initial_state, scope=scope[:-1])
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, outputs[-1])
 
-    return outputs if return_seq else outputs[-1]
+    o = outputs if return_seq else outputs[-1]
+    s = states if return_seq else states[-1]
+
+    return (o, s) if return_states else o
 
 
 def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
          bias=True, weights_init='truncated_normal', forget_bias=1.0,
-         return_seq=False, trainable=True, restore=True, name="LSTM"):
+         return_seq=False, return_states=False, initial_state=None,
+         trainable=True, restore=True, name="LSTM"):
     """ LSTM.
 
     Long Short Term Memory Recurrent Layer.
@@ -112,6 +118,10 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
         forget_bias: `float`. Bias of the forget gate. Default: 1.0.
         return_seq: `bool`. If True, returns the full sequence instead of
             last sequence output only.
+        return_states: `bool`. If True, returns a tuple with output and
+            states: (output, states).
+        initial_state: `Tensor`. An initial state for the RNN.  This must be
+            a tensor of appropriate type and shape [batch_size x cell.state_size].
         name: `str`. A name for this layer (optional).
 
     References:
@@ -128,7 +138,7 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
 
     with tf.name_scope(name) as scope:
         cell = BasicLSTMCell(n_units, activation, inner_activation, bias,
-                             W_init, forget_bias, trainable)
+                             W_init, forget_bias, trainable, restore)
         inference = incoming
         # If a tensor given, convert it to a per timestep list
         if type(inference) not in [list, np.array]:
@@ -139,25 +149,25 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
             inference = tf.unpack(inference)
 
         outputs, states = _rnn(cell, inference, dtype=tf.float32,
-                               scope=scope[:-1])
+                               initial_state=initial_state, scope=scope[:-1])
         # Track per layer variables
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, cell.W)
-        if not restore:
-            tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.W)
         if bias:
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
                                  cell.b)
-            if not restore:
-                tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.b)
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, outputs[-1])
 
-    return outputs if return_seq else outputs[-1]
+    o = outputs if return_seq else outputs[-1]
+    s = states if return_seq else states[-1]
+
+    return (o, s) if return_states else o
 
 
 def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
         bias=True, weights_init='truncated_normal', return_seq=False,
-        trainable=True, restore=True, name="GRU"):
+        return_states=False, initial_state=None, trainable=True,
+        restore=True, name="GRU"):
     """ GRU.
 
     Gated Recurrent Unit Layer.
@@ -181,6 +191,10 @@ def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
             (See tflearn.initializations) Default: 'truncated_normal'.
         return_seq: `bool`. If True, returns the full sequence instead of
             last sequence output only.
+        return_states: `bool`. If True, returns a tuple with output and
+            states: (output, states).
+        initial_state: `Tensor`. An initial state for the RNN.  This must be
+            a tensor of appropriate type and shape [batch_size x cell.state_size].
         name: `str`. A name for this layer (optional).
 
     References:
@@ -196,7 +210,7 @@ def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
 
     with tf.name_scope(name) as scope:
         cell = GRUCell(n_units, activation, inner_activation, bias, W_init,
-                       trainable)
+                       trainable, restore)
 
         inference = incoming
         # If a tensor given, convert it to a per timestep list
@@ -208,32 +222,30 @@ def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
             inference = tf.unpack(inference)
 
         outputs, states = _rnn(cell, inference, dtype=tf.float32,
-                               scope=scope[:-1])
+                               initial_state=initial_state, scope=scope[:-1])
 
         # Track per layer variables
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
                              cell.W[0])
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
                              cell.W[1])
-        if not restore:
-            tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.W[0])
-            tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.W[1])
         if bias:
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
                                  cell.b[0])
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
                                  cell.b[1])
-            if not restore:
-                tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.b[0])
-                tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, cell.b[1])
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, outputs[-1])
 
-    return outputs if return_seq else outputs[-1]
+    o = outputs if return_seq else outputs[-1]
+    s = states if return_seq else states[-1]
+
+    return (o, s) if return_states else o
 
 
 def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
-                      name="BidirectionalRNN"):
+                      return_states=False, initial_state_fw=None,
+                      initial_state_bw=None, name="BidirectionalRNN"):
     """ Bidirectional RNN.
 
     Build a bidirectional recurrent neural network, it requires 2 RNN Cells
@@ -254,6 +266,14 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
         rnncell_bw: `RNNCell`. The RNN Cell to use for backward computation.
         return_seq: `bool`. If True, returns the full sequence instead of
             last sequence output only.
+        return_states: `bool`. If True, returns a tuple with output and
+            states: (output, states).
+        initial_state_fw: `Tensor`. An initial state for the forward RNN.
+            This must be a tensor of appropriate type and shape [batch_size
+            x cell.state_size].
+        initial_state_bw: `Tensor`. An initial state for the backward RNN.
+            This must be a tensor of appropriate type and shape [batch_size
+            x cell.state_size].
         name: `str`. A name for this layer (optional).
 
     """
@@ -273,7 +293,10 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
             inference = tf.unpack(inference)
 
         outputs, states_fw, states_bw = _bidirectional_rnn(
-            rnncell_fw, rnncell_bw, inference, scope="BiRNN")
+            rnncell_fw, rnncell_bw, inference,
+            initial_state_fw=initial_state_fw,
+            initial_state_bw=initial_state_bw,
+            scope="BiRNN")
 
         c = tf.GraphKeys.LAYER_VARIABLES
         for v in [rnncell_fw.W, rnncell_fw.b, rnncell_bw.W, rnncell_bw.b]:
@@ -285,11 +308,16 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, outputs[-1])
 
-    return outputs if return_seq else outputs[-1]
+    o = outputs if return_seq else outputs[-1]
+    sfw = states_fw if return_seq else states_fw[-1]
+    sbw = states_fw if return_seq else states_bw[-1]
+
+    return (o, sfw, sbw) if return_states else o
 
 
 def dynamic_rnn(incoming, rnncell, sequence_length=None, time_major=False,
-                return_seq=False, name="DynamicRNN"):
+                return_seq=False, return_states=False, initial_state=None,
+                name="DynamicRNN"):
     """ Dynamic RNN.
 
     RNN with dynamic sequence length.
@@ -324,6 +352,10 @@ def dynamic_rnn(incoming, rnncell, sequence_length=None, time_major=False,
             accepts input and emits output in batch-major form.
         return_seq: `bool`. If True, returns the full sequence instead of
             last sequence output only.
+        return_states: `bool`. If True, returns a tuple with output and
+            states: (output, states).
+        initial_state: `Tensor`. An initial state for the RNN.  This must be
+            a tensor of appropriate type and shape [batch_size x cell.state_size].
         name: `str`. A name for this layer (optional).
 
     """
@@ -341,10 +373,11 @@ def dynamic_rnn(incoming, rnncell, sequence_length=None, time_major=False,
             inference = tf.transpose(inference, (axes))
             inference = tf.unpack(inference)
 
-        outputs, states = _dynamic_rnn(rnncell, inference,
-                                       sequence_length=sequence_length,
-                                       time_major=time_major,
-                                       scope="DynamicRNN")
+        outputs, final_state = _dynamic_rnn(rnncell, inference,
+                                            initial_state=initial_state,
+                                            sequence_length=sequence_length,
+                                            time_major=time_major,
+                                            scope="DynamicRNN")
 
         c = tf.GraphKeys.LAYER_VARIABLES
         for v in [rnncell.W, rnncell.b]:
@@ -353,8 +386,10 @@ def dynamic_rnn(incoming, rnncell, sequence_length=None, time_major=False,
             else:
                 tf.add_to_collection(c, v)
 
-        return outputs if return_seq else outputs[-1]
+    o = outputs if return_seq else outputs[-1]
+    s = final_state # Only final_state available
 
+    return (o, s) if return_states else o
 
 # --------------------------
 #  RNN Cells
@@ -424,7 +459,7 @@ class BasicRNNCell(RNNCell):
     """The most basic RNN cell."""
 
     def __init__(self, num_units, activation='tanh', bias=True, W_init=None,
-                 trainable=True):
+                 trainable=True, restore=True):
         self._num_units = num_units
         self.activation = activations.get(activation)
         self.W = None
@@ -432,6 +467,7 @@ class BasicRNNCell(RNNCell):
         self.W_init = W_init
         self.bias = bias
         self.trainable = trainable
+        self.restore = restore
 
     @property
     def input_size(self):
@@ -448,8 +484,9 @@ class BasicRNNCell(RNNCell):
     def __call__(self, inputs, state, scope):
         """Most basic RNN: output = new_state = tanh(W * input + U * state + B)."""
         self.W, self.b, concat = _linear([inputs, state], self._num_units,
-                                        self.bias, self.W, self.b, self.W_init,
-                                        trainable=self.trainable, scope=scope)
+                                         self.bias, self.W, self.b,
+                                         self.W_init, trainable=self.trainable,
+                                         restore=self.restore, scope=scope)
         output = self.activation(concat)
         return output, output
 
@@ -468,7 +505,7 @@ class BasicLSTMCell(RNNCell):
 
     def __init__(self, num_units, activation='sigmoid',
                  inner_activation='tanh', bias=True, W_init=None,
-                 forget_bias=1.0, trainable=True):
+                 forget_bias=1.0, trainable=True, restore=True):
         self._num_units = num_units
         self._forget_bias = forget_bias
         self.activation = activations.get(activation)
@@ -478,6 +515,7 @@ class BasicLSTMCell(RNNCell):
         self.W_init = W_init
         self.bias = bias
         self.trainable = trainable
+        self.restore = restore
 
     @property
     def input_size(self):
@@ -495,8 +533,11 @@ class BasicLSTMCell(RNNCell):
         # Parameters of gates are concatenated into one multiply for efficiency.
         c, h = array_ops.split(1, 2, state)
         self.W, self.b, concat = _linear([inputs, h], 4 * self._num_units,
-                                        self.bias, self.W, self.b, self.W_init,
-                                        trainable=self.trainable, scope=scope)
+                                         self.bias, self.W, self.b,
+                                         self.W_init,
+                                         trainable=self.trainable,
+                                         restore=self.restore,
+                                         scope=scope)
 
         # i = input_gate, j = new_input, f = forget_gate, o = output_gate
         i, j, f, o = array_ops.split(1, 4, concat)
@@ -512,7 +553,7 @@ class GRUCell(RNNCell):
 
     def __init__(self, num_units, activation='sigmoid',
                  inner_activation='tanh', bias=True, W_init=None,
-                 input_size=None, trainable=True):
+                 input_size=None, trainable=True, restore=True):
         self._num_units = num_units
         self._input_size = num_units if input_size is None else input_size
         self.activation = activations.get(activation)
@@ -522,6 +563,7 @@ class GRUCell(RNNCell):
         self.W_init = W_init
         self.bias = bias
         self.trainable = trainable
+        self.restore = restore
 
     @property
     def input_size(self):
@@ -539,19 +581,21 @@ class GRUCell(RNNCell):
         """Gated recurrent unit (GRU) with nunits cells."""
         # We start with bias of 1.0 to not reset and not update.
         self.W[0], self.b[0], r_u = _linear([inputs, state],
-                                           2 * self._num_units,
-                                           self.bias, self.W[0],
-                                           self.b[0], self.W_init, 1.0,
-                                           trainable=self.trainable,
-                                           scope=scope + "/Gates")
+                                            2 * self._num_units,
+                                            self.bias, self.W[0],
+                                            self.b[0], self.W_init, 1.0,
+                                            trainable=self.trainable,
+                                            restore=self.restore,
+                                            scope=scope + "/Gates")
         r, u = array_ops.split(1, 2, r_u)
         r, u = self.activation(r), self.activation(u)
 
         self.W[1], self.b[1], c = _linear([inputs, r * state], self._num_units,
-                                         self.bias, self.W[1],
-                                         self.b[1], self.W_init,
-                                         trainable=self.trainable,
-                                         scope=scope + "/Candidate")
+                                          self.bias, self.W[1],
+                                          self.b[1], self.W_init,
+                                          trainable=self.trainable,
+                                          restore=self.restore,
+                                          scope=scope + "/Candidate")
         c = self.inner_activation(c)
         new_h = u * state + (1 - u) * c
         return new_h, new_h
@@ -652,8 +696,8 @@ def _rnn(cell, inputs, initial_state=None, dtype=None, sequence_length=None,
 
 
 def _bidirectional_rnn(cell_fw, cell_bw, inputs,
-                      initial_state_fw=None, initial_state_bw=None,
-                      dtype=tf.float32, sequence_length=None, scope=None):
+                       initial_state_fw=None, initial_state_bw=None,
+                       dtype=tf.float32, sequence_length=None, scope=None):
     """ Creates a bidirectional recurrent neural network.
     Similar to the unidirectional case above (rnn) but takes input and builds
     independent forward and backward RNNs with the final forward and backward
@@ -776,9 +820,9 @@ def _dynamic_rnn(cell, inputs, sequence_length=None, initial_state=None,
       cell: An instance of RNNCell.
       inputs: The RNN inputs.
         If time_major == False (default), this must be a tensor of shape:
-          `[batch_size, max_time, cell.input_size]`.
+          `[batch_size, max_time, input_size]`.
         If time_major == True, this must be a tensor of shape:
-          `[max_time, batch_size, cell.input_size]`.
+          `[max_time, batch_size, input_size]`.
       sequence_length: (optional) An int32/int64 vector sized `[batch_size]`.
       initial_state: (optional) An initial state for the RNN.  This must be
         a tensor of appropriate type and shape `[batch_size x cell.state_size]`.
@@ -818,9 +862,9 @@ def _dynamic_rnn(cell, inputs, sequence_length=None, initial_state=None,
     if not isinstance(cell, RNNCell):
         raise TypeError("cell must be an instance of RNNCell")
 
-    # By default, time_major==False and inputs are batch-major: shaped
-    #   [batch, time, depth]
-    # For internal calculations, we transpose to [time, batch, depth]
+        # By default, time_major==False and inputs are batch-major: shaped
+        #   [batch, time, depth]
+        # For internal calculations, we transpose to [time, batch, depth]
     if not time_major:
         inputs = array_ops.transpose(inputs, [1, 0, 2])  # (B,T,D) => (T,B,D)
 
@@ -833,7 +877,7 @@ def _dynamic_rnn(cell, inputs, sequence_length=None, initial_state=None,
     # Create a new scope in which the caching device is either
     # determined by the parent scope, or is set to place the cached
     # Variable using the same placement as for the rest of the RNN.
-    with tf.name_scope(scope or "RNN") as varscope:
+    with tf.variable_scope(scope or "RNN") as varscope:
         if varscope.caching_device is None:
             varscope.set_caching_device(lambda op: op.device)
         input_shape = array_ops.shape(inputs)
@@ -843,8 +887,7 @@ def _dynamic_rnn(cell, inputs, sequence_length=None, initial_state=None,
             state = initial_state
         else:
             if not dtype:
-                raise ValueError(
-                    "If no initial_state is provided, dtype must be.")
+                raise ValueError("If no initial_state is provided, dtype must be.")
             state = cell.zero_state(batch_size, dtype)
 
         def _assert_has_shape(x, shape):
@@ -870,29 +913,30 @@ def _dynamic_rnn(cell, inputs, sequence_length=None, initial_state=None,
         # If we are performing batch-major calculations, transpose output back
         # to shape [batch, time, depth]
         if not time_major:
-            outputs = array_ops.transpose(outputs,
-                                          [1, 0, 2])  # (T,B,D) => (B,T,D)
+            outputs = array_ops.transpose(outputs, [1, 0, 2])  # (T,B,D) => (B,T,D)
 
         return outputs, final_state
 
 
-def _dynamic_rnn_loop(
-        cell, inputs, initial_state, parallel_iterations, swap_memory,
-        sequence_length=None):
+def _dynamic_rnn_loop(cell, inputs, initial_state, parallel_iterations,
+                      swap_memory, sequence_length=None):
     """Internal implementation of Dynamic RNN.
-    Args:
+
+    Arguments:
       cell: An instance of RNNCell.
       inputs: A `Tensor` of shape [time, batch_size, depth].
       initial_state: A `Tensor` of shape [batch_size, depth].
       parallel_iterations: Positive Python int.
       swap_memory: A Python boolean
       sequence_length: (optional) An `int32` `Tensor` of shape [batch_size].
+
     Returns:
       Tuple (final_outputs, final_state).
       final_outputs:
         A `Tensor` of shape [time, batch_size, depth]`.
       final_state:
         A `Tensor` of shape [batch_size, depth].
+
     Raises:
       ValueError: If the input depth cannot be inferred via shape inference
         from the inputs.
@@ -954,9 +998,14 @@ def _dynamic_rnn_loop(
 
         if sequence_length is not None:
             (output, new_state) = _rnn_step(
-                time, sequence_length, min_sequence_length,
-                max_sequence_length,
-                zero_output, state, call_cell)
+                time=time,
+                sequence_length=sequence_length,
+                min_sequence_length=min_sequence_length,
+                max_sequence_length=max_sequence_length,
+                zero_output=zero_output,
+                state=state,
+                call_cell=call_cell,
+                skip_conditionals=True)
         else:
             (output, new_state) = call_cell()
 
@@ -964,7 +1013,7 @@ def _dynamic_rnn_loop(
 
         return (time + 1, new_state, output_ta_t)
 
-    (unused_final_time, final_state, output_final_ta) = control_flow_ops.While(
+    (_, final_state, output_final_ta) = control_flow_ops.while_loop(
         cond=lambda time, _1, _2: time < time_steps,
         body=_time_step,
         loop_vars=(time, state, output_ta),
@@ -976,14 +1025,14 @@ def _dynamic_rnn_loop(
     final_outputs.set_shape([
         const_time_steps, const_batch_size, cell.output_size])
 
-    return (final_outputs, final_state)
+    return final_outputs, final_state
 
 
 def _rnn_step(time, sequence_length, min_sequence_length, max_sequence_length,
-              zero_output, state, call_cell):
-    """ Calculate one step of a dynamic RNN minibatch.
+              zero_output, state, call_cell, skip_conditionals=False):
+    """Calculate one step of a dynamic RNN minibatch.
     Returns an (output, state) pair conditioned on the sequence_lengths.
-    The pseudocode is something like:
+    When skip_conditionals=False, the pseudocode is something like:
     if t >= max_sequence_length:
       return (zero_output, state)
     if t < min_sequence_length:
@@ -992,13 +1041,13 @@ def _rnn_step(time, sequence_length, min_sequence_length, max_sequence_length,
     # on if we've finished calculating each row.
     new_output, new_state = call_cell()
     final_output = np.vstack([
-          zero_output if time >= sequence_lengths[r] else new_output_r
-          for r, new_output_r in enumerate(new_output)
-        ])
+      zero_output if time >= sequence_lengths[r] else new_output_r
+      for r, new_output_r in enumerate(new_output)
+    ])
     final_state = np.vstack([
-          state[r] if time >= sequence_lengths[r] else new_state_r
-          for r, new_state_r in enumerate(new_state)
-        ])
+      state[r] if time >= sequence_lengths[r] else new_state_r
+      for r, new_state_r in enumerate(new_state)
+    ])
     return (final_output, final_state)
 
     Arguments:
@@ -1011,38 +1060,60 @@ def _rnn_step(time, sequence_length, min_sequence_length, max_sequence_length,
       call_cell: lambda returning tuple of (new_output, new_state) where
         new_output is a `Tensor` matrix of shape [batch_size, output_size]
         new_state is a `Tensor` matrix of shape [batch_size, state_size]
+      skip_conditionals: Python bool, whether to skip using the conditional
+        calculations.  This is useful for dynamic_rnn, where the input tensor
+        matches max_sequence_length, and using conditionals just slows
+        everything down.
 
     Returns:
       A tuple of (final_output, final_state) as given by the pseudocode above:
         final_output is a `Tensor` matrix of shape [batch_size, output_size]
         final_state is a `Tensor` matrix of shape [batch_size, state_size]
     """
-    # Step 1: determine whether we need to call_cell or not
-    empty_update = lambda: (zero_output, state)
     state_shape = state.get_shape()
-    output, new_state = control_flow_ops.cond(
-        time < max_sequence_length, call_cell, empty_update)
 
-    # Step 2: determine whether we need to copy through state and/or outputs
-    existing_output_state = lambda: (output, new_state)
-
-    def copy_through():
+    def _copy_some_through(new_output, new_state):
         # Use broadcasting select to determine which values should get
         # the previous state & zero output, and which values should get
         # a calculated state & output.
         copy_cond = (time >= sequence_length)
-        return (math_ops.select(copy_cond, zero_output, output),
+        return (math_ops.select(copy_cond, zero_output, new_output),
                 math_ops.select(copy_cond, state, new_state))
 
-    (output, state) = control_flow_ops.cond(
-        time < min_sequence_length, existing_output_state, copy_through)
-    output.set_shape(zero_output.get_shape())
-    state.set_shape(state_shape)
-    return (output, state)
+    def _maybe_copy_some_through():
+        """Run RNN step.  Pass through either no or some past state."""
+        new_output, new_state = call_cell()
+
+        return control_flow_ops.cond(
+            # if t < min_seq_len: calculate and return everything
+            time < min_sequence_length, lambda: (new_output, new_state),
+            # else copy some of it through
+            lambda: _copy_some_through(new_output, new_state))
+
+    # but benefits from removing cond() and its gradient.  We should
+    # profile with and without this switch here.
+    if skip_conditionals:
+        # Instead of using conditionals, perform the selective copy at all time
+        # steps.  This is faster when max_seq_len is equal to the number of unrolls
+        # (which is typical for dynamic_rnn).
+        new_output, new_state = call_cell()
+        (final_output, final_state) = _copy_some_through(new_output, new_state)
+    else:
+        empty_update = lambda: (zero_output, state)
+
+        (final_output, final_state) = control_flow_ops.cond(
+            # if t >= max_seq_len: copy all state through, output zeros
+            time >= max_sequence_length, empty_update,
+            # otherwise calculation is required: copy some or all of it through
+            _maybe_copy_some_through)
+
+    final_output.set_shape(zero_output.get_shape())
+    final_state.set_shape(state_shape)
+    return (final_output, final_state)
 
 
 def _linear(args, output_size, bias, W=None, b=None, W_init=None,
-           bias_start=0.0, trainable=True, scope=None):
+           bias_start=0.0, trainable=True, restore=True, scope=None):
     """ Linear map: sum_i(args[i] * W[i]), where W[i] is a variable.
 
     Arguments:
@@ -1085,6 +1156,8 @@ def _linear(args, output_size, bias, W=None, b=None, W_init=None,
         with tf.variable_scope(scope, reuse=False):
             W = tf.get_variable(name="W", shape=[total_arg_size, output_size],
                                 initializer=W_init, trainable=trainable)
+            if not restore:
+                tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, W)
 
     # Now the computation.
     if len(args) == 1:
@@ -1101,4 +1174,6 @@ def _linear(args, output_size, bias, W=None, b=None, W_init=None,
                 "b", [output_size],
                 initializer=init_ops.constant_initializer(bias_start),
                 trainable=trainable)
+            if not restore:
+                tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, b)
     return W, b, res + b

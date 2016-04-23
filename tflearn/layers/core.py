@@ -66,7 +66,7 @@ def input_data(shape=None, placeholder=None, dtype=tf.float32,
 def fully_connected(incoming, n_units, activation='linear', bias=True,
                     weights_init='truncated_normal', bias_init='zeros',
                     regularizer=None, weight_decay=0.001, trainable=True,
-                    restore=True, name="Dense"):
+                    restore=True, name="FullyConnected"):
     """ Fully Connected.
 
     A fully connected layer.
@@ -93,7 +93,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
        trainable: `bool`. If True, weights will be trainable.
        restore: `bool`. If True, this layer weights will be restored when
             loading a model
-       name: A name for this layer (optional). Default: 'Dense'.
+       name: A name for this layer (optional). Default: 'FullyConnected'.
 
     Attributes:
         scope: `Scope`. This layer scope.
