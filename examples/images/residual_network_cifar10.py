@@ -46,9 +46,7 @@ net = tflearn.shallow_residual_block(net, 4, 64, regularizer='L2')
 net = tflearn.shallow_residual_block(net, 1, 64, downsample=True,
                                      regularizer='L2')
 net = tflearn.shallow_residual_block(net, 5, 128, regularizer='L2')
-net_shape = net.get_shape().as_list()
-k_size = [1, net_shape[1], net_shape[2], 1]
-net = tflearn.avg_pool_2d(net, k_size, strides=1)
+net = tflearn.global_avg_pool(net)
 # Regression
 net = tflearn.fully_connected(net, 10, activation='softmax')
 mom = tflearn.Momentum(0.1, lr_decay=0.1, decay_step=16000, staircase=True)
