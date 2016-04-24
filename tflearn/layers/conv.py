@@ -437,11 +437,31 @@ def avg_pool_1d(incoming, kernel_size, strides=None, padding='same',
     return inference
 
 
+def global_avg_pool(incoming, name="GlobalAvgPool"):
+    """ Global Average Pooling.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        2-D Tensor [batch, pooled dim]
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Tensor.
+        name: A name for this layer (optional). Default: 'GlobalAvgPool'.
+
+    """
+    assert len(utils.get_incoming_shape(incoming)) == 4
+
+    with tf.name_scope(name):
+        return tf.reduce_mean(incoming, [1, 2])
+
+
 def deep_residual_block(incoming, nb_blocks, bottleneck_size, out_channels,
                         downsample=False, downsample_strides=2,
                         activation='relu', batch_norm=True, bias=False,
                         weights_init='uniform_scaling', bias_init='zeros',
-                        regularizer=None, weight_decay=0.001, trainable=True,
+                        regularizer=None, weight_decay=0.0001, trainable=True,
                         restore=True, name="DeepResidualBlock"):
     """ Deep Residual Block.
 
@@ -505,23 +525,25 @@ def deep_residual_block(incoming, nb_blocks, bottleneck_size, out_channels,
                     resnet = avg_pool_2d(resnet, downsample_strides,
                                          downsample_strides)
                     resnet = conv_2d(resnet, bottleneck_size, 1, 1, 'valid',
-                                     activation, bias, weights_init,
+                                     'linear', bias, weights_init,
                                      bias_init, regularizer, weight_decay,
                                      trainable, restore)
                 else:
                     resnet = conv_2d(resnet, bottleneck_size, 1, 1, 'valid',
-                                     activation, bias, weights_init,
+                                     'linear', bias, weights_init,
                                      bias_init, regularizer, weight_decay,
                                      trainable, restore)
                 if batch_norm:
                     resnet = tflearn.batch_normalization(resnet)
+                resnet = tflearn.activation(resnet, activation)
 
                 resnet = conv_2d(resnet, bottleneck_size, 3, 1, 'same',
-                                 activation, bias, weights_init,
+                                 'linear', bias, weights_init,
                                  bias_init, regularizer, weight_decay,
                                  trainable, restore)
                 if batch_norm:
                     resnet = tflearn.batch_normalization(resnet)
+                resnet = tflearn.activation(resnet, activation)
 
                 resnet = conv_2d(resnet, out_channels, 1, 1, 'valid',
                                  activation, bias, weights_init,

@@ -21,7 +21,7 @@ def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
         beta: `float`. Default: 0.0.
         gamma: `float`. Default: 1.0.
         epsilon: `float`. Defalut: 1e-5.
-        decay: `float`. Default: 0.999.
+        decay: `float`. Default: 0.9.
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
             loading a model.
