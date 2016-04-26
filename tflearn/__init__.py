@@ -54,3 +54,7 @@ from .layers.merge_ops import merge, merge_outputs
 
 # Datasets
 from . import datasets
+
+# Utils
+from . import data_utils
+from . import utils

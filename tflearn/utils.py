@@ -244,7 +244,12 @@ def feed_dict_builder(X, Y, net_inputs, net_targets):
                                      "and data provided match.")
                 elif len(X) != len(net_inputs):
                     raise Exception(str(len(X)) + " inputs feeded, "
-                                    "but expected: " + str(len(net_inputs)))
+                                    "but expected: " + str(len(net_inputs)) +
+                                    ". If you are using notebooks, please "
+                                    "make sure that you didn't run graph "
+                                    "construction cell multiple time, "
+                                    "or try to enclose your graph within "
+                                    "`with tf.Graph().as_default():`")
             else:
                 X = [X]
             for i, x in enumerate(X):
