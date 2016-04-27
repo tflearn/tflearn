@@ -56,7 +56,9 @@ def simple_rnn(incoming, n_units, activation='sigmoid', bias=True,
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    W_init = initializations.get(weights_init)()
+    W_init = weights_init
+    if isinstance(weights_init, str):
+        W_init = initializations.get(weights_init)()
 
     with tf.name_scope(name) as scope:
         cell = BasicRNNCell(n_units, activation, bias, W_init,
@@ -134,7 +136,9 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    W_init = initializations.get(weights_init)()
+    W_init = weights_init
+    if isinstance(weights_init, str):
+        W_init = initializations.get(weights_init)()
 
     with tf.name_scope(name) as scope:
         cell = BasicLSTMCell(n_units, activation, inner_activation, bias,
@@ -206,7 +210,9 @@ def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    W_init = initializations.get(weights_init)()
+    W_init = weights_init
+    if isinstance(weights_init, str):
+        W_init = initializations.get(weights_init)()
 
     with tf.name_scope(name) as scope:
         cell = GRUCell(n_units, activation, inner_activation, bias, W_init,
@@ -464,6 +470,8 @@ class BasicRNNCell(RNNCell):
         self.activation = activations.get(activation)
         self.W = None
         self.b = None
+        if isinstance(W_init, str):
+            W_init = initializations.get(W_init)()
         self.W_init = W_init
         self.bias = bias
         self.trainable = trainable
@@ -512,6 +520,8 @@ class BasicLSTMCell(RNNCell):
         self.inner_activation = activations.get(inner_activation)
         self.W = None
         self.b = None
+        if isinstance(W_init, str):
+            W_init = initializations.get(W_init)()
         self.W_init = W_init
         self.bias = bias
         self.trainable = trainable
@@ -560,6 +570,8 @@ class GRUCell(RNNCell):
         self.inner_activation = activations.get(inner_activation)
         self.W = [None, None]
         self.b = [None, None]
+        if isinstance(W_init, str):
+            W_init = initializations.get(W_init)()
         self.W_init = W_init
         self.bias = bias
         self.trainable = trainable

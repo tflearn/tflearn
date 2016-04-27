@@ -37,7 +37,9 @@ def embedding(incoming, input_dim, output_dim, weights_init='truncated_normal',
     input_shape = utils.get_incoming_shape(incoming)
     n_inputs = int(np.prod(input_shape[1:]))
 
-    W_init = initializations.get(weights_init)()
+    W_init = weights_init
+    if isinstance(weights_init, str):
+        W_init = initializations.get(weights_init)()
 
     with tf.name_scope(name) as scope:
         with tf.device('/cpu:0'):

@@ -61,7 +61,9 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
     with tf.name_scope(name) as scope:
 
-        W_init = initializations.get(weights_init)()
+        W_init = weights_init
+        if isinstance(weights_init, str):
+            W_init = initializations.get(weights_init)()
         W_regul = None
         if regularizer:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
