@@ -13,7 +13,6 @@ setup(name='TFLearn',
       packages=find_packages(),
       install_requires=[
           'numpy',
-          'h5py',
           'six',
           'Pillow'
       ],

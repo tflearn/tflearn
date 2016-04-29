@@ -4,7 +4,12 @@ from __future__ import division, print_function, absolute_import
 import six
 import string
 import random
-import h5py
+try:
+    import h5py
+    H5PY_SUPPORTED = True
+except Exception as e:
+    print("hdf5 not supported (please install/reinstall h5py)")
+    H5PY_SUPPORTED = False
 import numpy as np
 import tensorflow as tf
 
@@ -143,9 +148,9 @@ def del_duplicated(l):
     #return list(np.unique(np.array(l)))
 
 
-def make_batches(size, batch_size):
-    nb_batch = int(np.ceil(size/float(batch_size)))
-    return [(i*batch_size, min(size, (i+1)*batch_size)) for i in range(0, nb_batch)]
+def make_batches(samples_size, batch_size):
+    nb_batch = int(np.ceil(samples_size/float(batch_size)))
+    return [(i*batch_size, min(samples_size, (i+1)*batch_size)) for i in range(0, nb_batch)]
 
 
 def slice_array(X, start=None, stop=None):
@@ -154,13 +159,13 @@ def slice_array(X, start=None, stop=None):
             return [x[start] for x in X]
         else:
             return [x[start:stop] for x in X]
-    elif type(X) == h5py.Dataset:
-        return [X[i] for i in start]
+    if H5PY_SUPPORTED:
+        if type(X) == h5py.Dataset:
+            return [X[i] for i in start]
+    if hasattr(start, '__len__'):
+        return X[start]
     else:
-        if hasattr(start, '__len__'):
-            return X[start]
-        else:
-            return X[start:stop]
+        return X[start:stop]
 
 
 def get_dict_first_element(input_dict):
