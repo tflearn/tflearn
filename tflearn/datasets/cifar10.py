@@ -52,7 +52,12 @@ def load_data(dirname="cifar-10-batches-py", one_hot=False):
 
 def load_batch(fpath):
     with open(fpath, 'rb') as f:
-        d = pickle.load(f)
+        if sys.version_info > (3, 0):
+            # Python3
+            d = pickle.load(f, encoding='latin1')
+        else:
+            # Python2
+            d = pickle.load(f)
     data = d["data"]
     labels = d["labels"]
     return data, labels
