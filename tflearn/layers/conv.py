@@ -312,9 +312,11 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
-    filter_size = [1, filter_size[1], 1, 1]
+    # filter_size = [1, filter_size[1], 1, 1]
+    filter_size[1] = 1
     strides = utils.autoformat_kernel_2d(strides)
-    strides = [1, strides[1], 1, 1]
+    # strides = [1, strides[1], 1, 1]
+    strides[1] = 1
     padding = utils.autoformat_padding(padding)
 
     with tf.name_scope(name) as scope:
@@ -339,10 +341,10 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
 
         # Adding dummy dimension to fit with Tensorflow conv2d
-        inference = tf.expand_dims(incoming, -1)
+        inference = tf.expand_dims(incoming, 2)
         inference = tf.nn.conv2d(inference, W, strides, padding)
         if b: inference = tf.nn.bias_add(inference, b)
-        inference = tf.squeeze(inference, 3)
+        inference = tf.squeeze(inference, [2])
         inference = activations.get(activation)(inference)
 
         # Track activations.
@@ -387,7 +389,9 @@ def max_pool_1d(incoming, kernel_size, strides=None, padding='same',
     padding = utils.autoformat_padding(padding)
 
     with tf.name_scope(name) as scope:
-        inference = tf.nn.max_pool(incoming, kernel, strides, padding)
+        inference = tf.expand_dims(incoming, 2)
+        inference = tf.nn.max_pool(inference, kernel, strides, padding)
+        inference = tf.squeeze(inference, [2])
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
@@ -428,7 +432,9 @@ def avg_pool_1d(incoming, kernel_size, strides=None, padding='same',
     padding = utils.autoformat_padding(padding)
 
     with tf.name_scope(name) as scope:
-        inference = tf.nn.avg_pool(incoming, kernel, strides, padding)
+        inference = tf.expand_dims(incoming, 2)
+        inference = tf.nn.avg_pool(inference, kernel, strides, padding)
+        inference = tf.squeeze(inference, [2])
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
