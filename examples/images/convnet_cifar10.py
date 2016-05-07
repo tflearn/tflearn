@@ -16,6 +16,8 @@ from tflearn.data_utils import shuffle, to_categorical
 from tflearn.layers.core import input_data, dropout, fully_connected
 from tflearn.layers.conv import conv_2d, max_pool_2d
 from tflearn.layers.estimator import regression
+from tflearn.data_preprocessing import ImagePreprocessing
+from tflearn.data_augmentation import ImageAugmentation
 
 # Data loading and preprocessing
 from tflearn.datasets import cifar10
@@ -24,8 +26,19 @@ X, Y = shuffle(X, Y)
 Y = to_categorical(Y, 10)
 Y_test = to_categorical(Y_test, 10)
 
+# Real-time data preprocessing
+img_prep = ImagePreprocessing()
+img_prep.add_featurewise_zero_center()
+img_prep.add_featurewise_stdnorm()
+
+# Real-time data augmentation
+img_aug = ImageAugmentation()
+img_aug.add_random_flip_leftright()
+
 # Convolutional network building
-network = input_data(shape=[None, 32, 32, 3])
+network = input_data(shape=[None, 32, 32, 3],
+                     data_preprocessing=img_prep,
+                     data_augmentation=img_aug)
 network = conv_2d(network, 32, 3, activation='relu')
 network = max_pool_2d(network, 2)
 network = conv_2d(network, 64, 3, activation='relu')

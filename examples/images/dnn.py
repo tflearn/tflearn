@@ -36,6 +36,6 @@ net = tflearn.regression(softmax, optimizer=sgd, metric=top_k,
                          loss='categorical_crossentropy')
 
 # Training
-model = tflearn.DNN(net, tensorboard_verbose=3)
+model = tflearn.DNN(net, tensorboard_verbose=0)
 model.fit(X, Y, n_epoch=20, validation_set=(testX, testY),
           show_metric=True, run_id="dense_model")
