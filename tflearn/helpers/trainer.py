@@ -597,7 +597,7 @@ class TrainOp(object):
             self.n_train_samples = len(self.index_array)
             self.n_val_samples = len(self.val_index_array)
             val_feed_dict = feed_dict
-        else:
+        elif val_feed_dict is not None:
             self.val_index_array = None
             self.n_val_samples = len(get_dict_first_element(val_feed_dict))
 
