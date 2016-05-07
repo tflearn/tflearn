@@ -15,6 +15,8 @@ Note: Those preprocessing functions are only meant to be directly applied to
 data, they are not meant to be use with Tensors or Layers.
 """
 
+_EPSILON = 1e-8
+
 
 # ------------------------------
 # TARGETS (LABELS) PREPROCESSING
@@ -231,6 +233,20 @@ def build_image_dataset_from_dir(directory,
     return X, Y
 
 
+def random_flip_leftright(x):
+    if bool(random.getrandbits(1)):
+        return np.fliplr(x)
+    else:
+        return x
+
+
+def random_flip_updown(x):
+    if bool(random.getrandbits(1)):
+        return np.flipud(x)
+    else:
+        return x
+
+
 # ------------------
 # DATA PREPROCESSING
 # ------------------
@@ -286,7 +302,7 @@ def samplewise_std_normalization(X):
 
     """
     for i in range(len(X)):
-        X[i] /= np.std(X[i], axis=1, keepdims=True)
+        X[i] /= (np.std(X[i], axis=1, keepdims=True) + _EPSILON)
     return X
 
 

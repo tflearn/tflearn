@@ -13,6 +13,7 @@ from tflearn import losses
 
 
 def input_data(shape=None, placeholder=None, dtype=tf.float32,
+               data_preprocessing=None, data_augmentation=None,
                name="InputData"):
     """ Input Data.
 
@@ -41,6 +42,13 @@ def input_data(shape=None, placeholder=None, dtype=tf.float32,
             You can retrieve that placeholder through graph key: 'INPUTS',
             or the 'placeholder' attribute of this function's returned tensor.
         dtype: `tf.type`, Placeholder data type (optional). Default: float32.
+        data_preprocessing: A `DataPreprocessing` subclass object to manage
+            real-time data pre-processing when training and predicting (such
+            as zero center data, std normalization...).
+        data_augmentation: `DataAugmentation`. A `DataAugmentation` subclass
+            object to manage real-time data augmentation while training (
+            such as random image crop, random image flip, random sequence
+            reverse...).
         name: `str`. A name for this layer (optional).
 
     """
@@ -59,6 +67,9 @@ def input_data(shape=None, placeholder=None, dtype=tf.float32,
 
     # Keep track of inputs
     tf.add_to_collection(tf.GraphKeys.INPUTS, placeholder)
+    # Keep track of data preprocessing and augmentation
+    tf.add_to_collection(tf.GraphKeys.DATA_PREP, data_preprocessing)
+    tf.add_to_collection(tf.GraphKeys.DATA_AUG, data_augmentation)
 
     return placeholder
 

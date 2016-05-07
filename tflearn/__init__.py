@@ -58,3 +58,7 @@ from . import datasets
 # Utils
 from . import data_utils
 from . import utils
+
+# Data Utils
+from . import data_augmentation
+from . import data_preprocessing

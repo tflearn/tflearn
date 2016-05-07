@@ -56,6 +56,7 @@ class TermLogger(Callback):
         self.global_step = training_step
         self.global_data_size = 0
         self.global_val_data_size = 0
+        self.snapped = False
         try:
             curses.setupterm()
             sys.stdout.write(curses.tigetstr('civis').decode())
@@ -130,9 +131,11 @@ class TermLogger(Callback):
     def on_train_end(self):
         # Reset caret to last position
         to_be_printed = ""
-        if not self.has_ipython:
+        if self.has_curses: #if not self.has_ipython #TODO:check bug here
             for i in range(len(self.data) + 2):
                 to_be_printed += "\033[B"
+            if not self.snapped:
+                to_be_printed += "--\n"
         sys.stdout.write(to_be_printed)
         sys.stdout.flush()
 
@@ -200,6 +203,7 @@ class TermLogger(Callback):
 
         sys.stdout.write(termlogs)
         sys.stdout.flush()
+        self.snapped = True
 
 
 class ModelSaver(object):

@@ -30,3 +30,9 @@ tf.GraphKeys.EXCL_RESTORE_VARS = 'restore_variables'
 
 # Collection to store the default graph configuration
 tf.GraphKeys.GRAPH_CONFIG = 'graph_config'
+
+# Collection to store all input variable data preprocessing
+tf.GraphKeys.DATA_PREP = 'data_preprocessing'
+
+# Collection to store all input variable data preprocessing
+tf.GraphKeys.DATA_AUG = 'data_augmentation'

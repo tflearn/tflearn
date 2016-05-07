@@ -10,6 +10,7 @@ from .. import callbacks
 from ..config import init_training_mode
 from ..utils import to_list, id_generator, check_dir_name, standarize_dict, \
     get_dict_first_element, make_batches, slice_array, check_scope_path
+from .. import data_flow
 
 from .summarizer import summaries, summarize, summarize_gradients, \
     summarize_variables, summarize_activations
@@ -95,6 +96,8 @@ class Trainer(object):
                 self.session = session
                 self.restored = True
 
+            self.coord = tf.train.Coordinator()
+
             for i, train_op in enumerate(self.train_ops):
 
                 # For display simplicity in Tensorboard, if only one optmizer,
@@ -127,7 +130,7 @@ class Trainer(object):
 
     def fit(self, feed_dicts, n_epoch=10, val_feed_dicts=None, show_metric=False,
             snapshot_step=None, snapshot_epoch=True, shuffle_all=None,
-            run_id=None):
+            dprep_dict=None, daug_dict=None, run_id=None):
         """ fit.
 
         Train network with feeded data dicts.
@@ -156,7 +159,7 @@ class Trainer(object):
                 `float`. The data used for validation. Feed dict are
                 following the same specification as `feed_dicts` above. It
                 is also possible to provide a `float` for splitting training
-                data for validation.
+                data for validation (Note that this will shuffle data).
             show_metric: `bool`. If True, accuracy will be calculated and
                 displayed at every step. Might give slower training.
             snapshot_step: `int`. If not None, the network will be snapshot
@@ -166,6 +169,8 @@ class Trainer(object):
                 of every epoch.
             shuffle_all: `bool`. If True, shuffle all data batches (overrides
                 `TrainOp` shuffle parameter behavior).
+            dprep_dict
+            daug_dict
             run_id: `str`. A name for the current run. Used for Tensorboard
                 display. If no name provided, a random one will be generated.
 
@@ -187,14 +192,12 @@ class Trainer(object):
             self.summ_writer = tf.train.SummaryWriter(
                 self.tensorboard_dir + run_id, self.session.graph_def)
 
-            # TODO: Add a check that all keys in feed dict match val feed dict
             feed_dicts = to_list(feed_dicts)
             for d in feed_dicts: standarize_dict(d)
             val_feed_dicts = to_list(val_feed_dicts)
-            if val_feed_dicts: [standarize_dict(d) for d in val_feed_dicts]
-
-            # Handle validation split
-            validation_split(val_feed_dicts, feed_dicts)
+            if val_feed_dicts:
+                [standarize_dict(d) for d in val_feed_dicts if not
+                 isinstance(d, float)]
 
             termlogger = callbacks.TermLogger(self.training_step)
             modelsaver = callbacks.ModelSaver(self.save,
@@ -205,8 +208,9 @@ class Trainer(object):
             for i, train_op in enumerate(self.train_ops):
                 vd = val_feed_dicts[i] if val_feed_dicts else None
                 # Prepare all train_ops for fitting
-                train_op.initialize_fit(feed_dicts[i], vd, show_metric,
-                                        self.summ_writer)
+                train_op.initialize_fit(feed_dicts[i], vd, dprep_dict,
+                                        daug_dict, show_metric,
+                                        self.summ_writer, self.coord)
 
                 # Prepare TermLogger for training diplay
                 metric_term_name = None
@@ -258,9 +262,10 @@ class Trainer(object):
                             else:
                                 global_acc = None
 
+                            data_status = train_op.train_dflow.data_status
                             # Optimizer batch end
-                            termlogger.on_sub_batch_end(i, train_op.epoch,
-                                                        train_op.step,
+                            termlogger.on_sub_batch_end(i, data_status.epoch,
+                                                        data_status.current_iter,
                                                         train_op.loss_value,
                                                         train_op.acc_value,
                                                         train_op.val_loss,
@@ -280,6 +285,8 @@ class Trainer(object):
             finally:
                 termlogger.on_train_end()
                 modelsaver.on_train_end()
+                for t in self.train_ops:
+                    t.train_dflow.interrupt()
 
     def save(self, model_file, global_step=None):
         """ save.
@@ -301,6 +308,18 @@ class Trainer(object):
         l_stags = list(l)
         del l[:]
 
+        try:
+            # Try latest api
+            l1 = tf.get_collection_ref(tf.GraphKeys.DATA_PREP)
+            l2 = tf.get_collection_ref(tf.GraphKeys.DATA_AUG)
+        except Exception:
+            l1 = tf.get_collection(tf.GraphKeys.DATA_PREP)
+            l2 = tf.get_collection(tf.GraphKeys.DATA_AUG)
+        l1_dtags = list(l1)
+        l2_dtags = list(l2)
+        del l1[:]
+        del l2[:]
+
         # Temp workaround for tensorflow 0.7.0 relative path issue
         if model_file[0] not in ['/', '~']: model_file = './' + model_file
 
@@ -309,6 +328,10 @@ class Trainer(object):
         # 0.7 workaround, restore values
         for t in l_stags:
             tf.add_to_collection("summary_tags", t)
+        for t in l1_dtags:
+            tf.add_to_collection(tf.GraphKeys.DATA_PREP, t)
+        for t in l2_dtags:
+            tf.add_to_collection(tf.GraphKeys.DATA_AUG, t)
 
     def restore(self, model_file):
         """ restore.
@@ -380,6 +403,17 @@ class TrainOp(object):
             provided, it will be created. Early defining the step tensor
             might be useful for network creation, such as for learning rate
             decay.
+        input_vars: list of `Variable`. The input data for this training op
+            to be transformed by data augmentation. Default:
+            tf.GraphKeys.INPUTS collection. (optional) Only necessary when
+            using data augmentation.
+        data_preprocessing: A `DataPreprocessing` subclass object to manage
+            real-time data pre-processing when training and predicting (such
+            as zero center data, std normalization...).
+        data_augmentation: `DataAugmentation`. A `DataAugmentation` subclass
+            object to manage real-time data augmentation while training (
+            such as random image crop, random image flip, random sequence
+            reverse...).
         name: `str`. A name for this class (optional).
         graph: `tf.Graph`. Tensorflow Graph to use for training. Default:
             default tf graph.
@@ -411,17 +445,9 @@ class TrainOp(object):
         self.train_vars = trainable_vars
         self.shuffle = shuffle
 
-        # Train utils
-        self.epoch = 0
-        self.step = 0
-
-        self.batches = None
-        self.batch_index = 0
-        self.batch_start = 0
-        self.batch_end = 0
         self.batch_size = batch_size
-        self.data_size = 0
         self.n_batches = 0
+
         self.ema = ema
 
         self.feed_dict = None
@@ -533,8 +559,8 @@ class TrainOp(object):
                 with tf.control_dependencies([self.apply_grad]):
                     self.train = tf.no_op(name="train_op_" + str(i))
 
-    def initialize_fit(self, feed_dict, val_feed_dict, show_metric,
-                       summ_writer):
+    def initialize_fit(self, feed_dict, val_feed_dict, dprep_dict, daug_dict,
+                       show_metric, summ_writer, coord):
         """ initialize_fit.
 
         Initialize data for feeding the training process. It is meant to
@@ -542,7 +568,12 @@ class TrainOp(object):
 
         Arguments:
             feed_dict: `dict`. The data dictionary to feed.
-            val_feed_dict: `dict`. The validation data dictionary to feed.
+            val_feed_dict: `dict` or `float`. The validation data dictionary to
+                feed or validation split.
+            dprep_dict: `dict`. Data Preprocessing dict (with placeholder as
+                key and corresponding `DataPreprocessing` object as value).
+            daug_dict: `dict`. Data Augmentation dict (with placeholder as
+                key and corresponding `DataAugmentation` object as value).
             show_metric: `bool`. If True, display accuracy at every step.
             summ_writer: `SummaryWriter`. The summary writer to use for
                 Tensorboard logging.
@@ -552,40 +583,51 @@ class TrainOp(object):
         self.feed_dict = feed_dict
         self.val_feed_dict = val_feed_dict
         self.n_train_samples = len(get_dict_first_element(feed_dict))
-        self.n_val_samples = 0
-        if val_feed_dict:
-            self.n_val_samples = len(get_dict_first_element(val_feed_dict))
+
         self.index_array = np.arange(self.n_train_samples)
+        self.n_val_samples = 0
+        # Validation Split
+        #TODO: Optional per key validation split
+        if isinstance(val_feed_dict, float):
+            split_at = int(self.n_train_samples * (1 - val_feed_dict))
+            # Shuffle Data
+            np.random.shuffle(self.index_array)
+            self.val_index_array = self.index_array[split_at:]
+            self.index_array = self.index_array[:split_at]
+            self.n_train_samples = len(self.index_array)
+            self.n_val_samples = len(self.val_index_array)
+            val_feed_dict = feed_dict
+        else:
+            self.val_index_array = None
+            self.n_val_samples = len(get_dict_first_element(val_feed_dict))
+
+        if dprep_dict:
+            for k in dprep_dict:
+                assert feed_dict[k] is not None, \
+                    "Unknown DataPreprocessing dict key!"
+                dprep_dict[k].initialize(feed_dict[k], self.session)
+        self.train_dflow = data_flow.FeedDictFlow(feed_dict, coord,
+                                                  continuous=True,
+                                                  batch_size=self.batch_size,
+                                                  dprep_dict=dprep_dict,
+                                                  daug_dict=daug_dict,
+                                                  index_array=self.index_array,
+                                                  num_threads=8)
+
+        self.n_batches = len(self.train_dflow.batches)
+        self.train_dflow.start()
+        # TODO: Optimize data_flow to not start/restart threads (cost time)
+        # every time testing
+        if val_feed_dict:
+            self.test_dflow = data_flow.FeedDictFlow(val_feed_dict, coord,
+                                                     batch_size=self.batch_size,
+                                                     dprep_dict=dprep_dict,
+                                                     daug_dict=None,
+                                                     index_array=self.val_index_array,
+                                                     num_threads=8)
+
         self.create_testing_summaries(show_metric, self.metric_summ_name,
                                       val_feed_dict)
-
-        if self.shuffle:
-            np.random.shuffle(self.index_array)
-
-        self.set_batches(make_batches(self.n_train_samples, self.batch_size))
-
-    def set_batches(self, batches):
-        self.batches = batches
-        self.n_batches = len(batches)
-        self.batch_size = int(batches[0][1] - batches[0][0])
-        self.data_size = self.batch_size * (self.n_batches - 1) + \
-                         int(batches[-1][1] - batches[-1][0])
-        self.batch_start, self.batch_end = self.batches[self.batch_index]
-
-    def next_batch(self):
-        """ Return True if a next batch is available """
-        self.batch_index += 1
-        self.step = min(self.batch_index*self.batch_size, self.data_size)
-
-        if self.batch_index == self.n_batches:
-            self.batch_index = 0
-            self.epoch += 1
-            self.step = 0
-            return False
-
-        self.batch_start, self.batch_end = self.batches[self.batch_index]
-
-        return True
 
     def _train(self, training_step, snapshot_epoch, snapshot_step,
                show_metric):
@@ -603,16 +645,9 @@ class TrainOp(object):
         self.val_loss, self.val_acc = None, None
         train_summ_str, test_summ_str = None, None
         snapshot = False
+        epoch = self.train_dflow.data_status.epoch
 
-        batch_ids = self.index_array[self.batch_start:self.batch_end]
-
-        feed_batch = {}
-        for key in self.feed_dict:
-            # Make batch for multi-dimensional data
-            if np.ndim(self.feed_dict[key]) > 0:
-                feed_batch[key] = slice_array(self.feed_dict[key], batch_ids)
-            else:
-                feed_batch[key] = self.feed_dict[key]
+        feed_batch = self.train_dflow.next()
 
         tflearn.is_training(True, self.session)
         self.session.run([self.train], feed_batch)
@@ -632,12 +667,7 @@ class TrainOp(object):
             self.acc_value = summaries.get_value_from_summary_string(
                 sname, train_summ_str)
 
-        # Check if data reached an epoch
-        if not self.next_batch():
-            if self.shuffle:
-                np.random.shuffle(self.index_array)
-            batches = make_batches(self.n_train_samples, self.batch_size)
-            self.set_batches(batches)
+        if epoch != self.train_dflow.data_status.epoch:
             if snapshot_epoch:
                 snapshot = True
 
@@ -649,13 +679,14 @@ class TrainOp(object):
         # Calculate validation
         if snapshot and self.val_feed_dict:
             # Evaluation returns the mean over all batches.
-            self.val_loss = evaluate(self.session, self.loss,
-                                     self.val_feed_dict,
-                                     self.batch_size)
+            eval_ops = [self.loss]
             if show_metric and self.metric is not None:
-                self.val_acc = evaluate(self.session, self.metric,
-                                        self.val_feed_dict,
-                                        self.batch_size)
+                eval_ops.append(self.metric)
+            e = evaluate_flow(self.session, eval_ops, self.test_dflow)
+            self.val_loss = e[0]
+            if show_metric and self.metric is not None:
+                self.val_acc = e[1]
+
             # Set evaluation results to variables, to be summarized.
             if show_metric:
                 update_val_op = [tf.assign(self.val_loss_T, self.val_loss),
@@ -665,10 +696,10 @@ class TrainOp(object):
             self.session.run(update_val_op)
 
             # Run summary operation.
-            test_summ_str = self.session.run(self.val_summary_op,
-                                             self.val_feed_dict)
+            test_summ_str = self.session.run(self.val_summary_op)
 
         # Write to Tensorboard
+        #TODO: Delete?
         n_step = self.training_steps.eval(session=self.session)
         if n_step > 1:
             if train_summ_str:
@@ -747,32 +778,21 @@ def duplicate_identical_ops(ops):
                 ops[j] = ops[i].duplicate()
 
 
-def validation_split(val_feed_dicts, feed_dicts):
-    """ validation_split.
-
-    Handles validation split; build validation data based on a
-    percentage of training data. It checks all val_feed_dicts keys
-    values for a float, if found, it retrieves the exact same key in feed_dict
-    and split its data according to `float` value and move it to val_feed_dict.
-
-    Args:
-        val_feed_dicts: `dict` of arrays or float. validation dictionary.
-        feed_dicts: `dict` of arrays. training data dictionary.
-
-    """
-    if val_feed_dicts:
-        for i, val_dict in enumerate(val_feed_dicts):
-            for key, val in val_dict.items():
-                if isinstance(val, float):
-                    split = val
-                    if type(feed_dicts[i][key]) in [list, np.ndarray]:
-                        split_at = int(len(feed_dicts[i][key]) * (1 - split))
-                        feed_dicts[i][key], val_feed_dicts[i][key] = \
-                            (slice_array(feed_dicts[i][key], 0, split_at),
-                             slice_array(feed_dicts[i][key], split_at))
-                    else:
-                        # If parameter is not an array, we duplicate value
-                        val_feed_dicts[i][key] = feed_dicts[i][key]
+def evaluate_flow(session, ops_to_evaluate, dataflow):
+        if not isinstance(ops_to_evaluate, list):
+            ops_to_evaluate = [ops_to_evaluate]
+        tflearn.is_training(False, session)
+        dataflow.reset()
+        dataflow.start()
+        res = [0. for i in ops_to_evaluate]
+        feed_batch = dataflow.next()
+        n_batches = len(dataflow.batches)
+        while feed_batch:
+            r = session.run(ops_to_evaluate, feed_batch)
+            for i in range(len(r)):
+                res[i] += r[i] / n_batches
+            feed_batch = dataflow.next()
+        return res
 
 
 def evaluate(session, op_to_evaluate, feed_dict, batch_size):
