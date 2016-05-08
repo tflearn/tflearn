@@ -8,7 +8,7 @@ import numpy as np
 class DataAugmentation(object):
     """ Data Augmentation.
 
-    A class that manage data augmentation.
+    Base class for managing data augmentation.
 
     """
 
@@ -26,6 +26,11 @@ class DataAugmentation(object):
 
 
 class ImageAugmentation(DataAugmentation):
+    """ ImageAugmentation.
+
+    Augmentation methods designed especially for images.
+
+    """
 
     def __init__(self):
         super(ImageAugmentation, self).__init__()
@@ -39,10 +44,20 @@ class ImageAugmentation(DataAugmentation):
         self.args.append(None)
 
     def add_random_flip_leftright(self):
+        """ add_random_flip_leftright.
+
+        Randomly flip an image (left to right).
+
+        """
         self.methods.append(self._random_flip_leftright)
         self.args.append(None)
 
     def add_random_flip_updown(self):
+        """ add_random_flip_leftright.
+
+        Randomly flip an image (upside down).
+
+        """
         self.methods.append(self._random_flip_leftright)
         self.args.append(None)
 

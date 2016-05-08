@@ -42,6 +42,9 @@ pages:
   - Summarizer: helpers/summarizer.md
   - Regularizer: helpers/regularizer.md
 - Others:
+  - Data Preprocessing: data_preprocessing.md
+  - Data Augmentation: data_augmentation.md
+  - Data Flow: data_flow.md
   - Data Utils: data_utils.md
   - Graph Config: config.md
 - Contributions: contributions.md

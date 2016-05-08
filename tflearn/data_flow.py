@@ -28,8 +28,12 @@ class DataFlow(object):
             feeded again.
         ensure_data_order: `bool`. Ensure that data order is keeped when using
             'next' to retrieve data (Processing will be slower).
-        data_augmentation: `DataAugmentation`. Optional data augmentation
-            parameter for performing real time data pre-processing.
+        dprep_dict: dict. Optional data pre-processing parameter for performing
+            real time data pre-processing. Keys must be placeholders and values
+            `DataPreprocessing` subclass object.
+        dprep_dict: dict. Optional data augmentation parameter for performing
+            real time data augmentation. Keys must be placeholders and values
+            `DataAugmentation` subclass object.
 
     """
 
@@ -50,6 +54,35 @@ class DataFlow(object):
 
 
 class FeedDictFlow(DataFlow):
+
+    """ FeedDictFlow.
+
+    Generate a stream of batches from a dataset. It uses two queues, one for
+    generating batch of data ids, and the other one to load data and apply pre
+    processing. If continuous is `True`, data flow will never ends until `stop`
+    is invoked, or `coord` interrupt threads.
+
+    Arguments:
+        feed_dict: `dict`. A TensorFlow formatted feed dict (with placeholders
+            as keys and data as values).
+        coord: `Coordinator`. A Tensorflow coordinator.
+        num_threads: `int`. Total number of simultaneous threads to process data.
+        max_queue: `int`. Maximum number of data stored in a queue.
+        shuffle: `bool`. If True, data will be shuffle.
+        continuous: `bool`. If True, when an epoch is over, same data will be
+            feeded again.
+        ensure_data_order: `bool`. Ensure that data order is keeped when using
+            'next' to retrieve data (Processing will be slower).
+        dprep_dict: dict. Optional data pre-processing parameter for performing
+            real time data pre-processing. Keys must be placeholders and values
+            `DataPreprocessing` subclass object.
+        dprep_dict: dict. Optional data augmentation parameter for performing
+            real time data augmentation. Keys must be placeholders and values
+            `DataAugmentation` subclass object.
+        index_array: `list`. An optional list of index to be used instead of
+            using the whole dataset indexes (Useful for validation split).
+
+    """
 
     def __init__(self, feed_dict, coord, batch_size=128, num_threads=8,
                  max_queue=32, shuffle=False, continuous=False,
@@ -83,7 +116,9 @@ class FeedDictFlow(DataFlow):
         self.data_status = DataFlowStatus(self.batch_size, self.n_samples)
 
     def next(self, timeout=None):
-        """ Get next feed dict.
+        """ next.
+
+        Get the next feed dict.
 
         Returns:
             A TensorFlow feed dict, or 'False' if it has no more data.
@@ -93,6 +128,14 @@ class FeedDictFlow(DataFlow):
         return self.feed_dict_queue.get(timeout=timeout)
 
     def start(self, reset_status=True):
+        """ start.
+
+        Arguments:
+            reset_status: `bool`. If True, `DataStatus` will be reset.
+
+        Returns:
+
+        """
         # Start to process data and fill queues
         self.clear_queues()
         self.interrupted = False
@@ -109,6 +152,11 @@ class FeedDictFlow(DataFlow):
             t.start()
 
     def stop(self):
+        """ stop.
+
+        Stop the queue from creating more feed_dict.
+
+        """
         # Send stop signal to processing queue
         for i in range(self.num_threads):
             self.batch_ids_queue.put(False)
@@ -116,6 +164,10 @@ class FeedDictFlow(DataFlow):
         threading.Thread(target=self.wait_for_threads).start()
 
     def reset(self):
+        """ reset.
+
+        Reset batch index.
+        """
         self.batch_index = -1
 
     def interrupt(self):
@@ -185,6 +237,11 @@ class FeedDictFlow(DataFlow):
         self.feed_dict_queue.put(False)
 
     def clear_queues(self):
+        """ clear_queues.
+
+        Clear queues.
+
+        """
         while not self.feed_dict_queue.empty():
             self.feed_dict_queue.get()
         while not self.batch_ids_queue.empty():

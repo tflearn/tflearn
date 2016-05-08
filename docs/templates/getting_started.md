@@ -207,6 +207,30 @@ model.fit(X, Y)
 
 For an example, see: [hdf5.py](https://github.com/tflearn/tflearn/blob/master/examples/basics/hdf5.py).
 
+### Data Preprocessing and Data Augmentation
+It is common to perform data pre-processing and data augmentation while training a model, so TFLearn provides wrappers to easily handle it. Note that TFLearn data stream is designed with pipelining in order to speed-up training (by pre-processing data on CPU while GPU is performing model training).
+
+```python
+# Real-time image preprocessing
+img_prep = tflearn.ImagePreprocessing()
+# Zero Center (With mean computed over the whole dataset)
+img_prep.add_featurewise_zero_center()
+# STD Normalization (With std computed over the whole dataset)
+img_prep.add_featurewise_stdnorm()
+
+# Real-time data augmentation
+img_aug = tflearn.ImageAugmentation()
+# Random flip an image
+img_aug.add_random_flip_leftright()
+
+# Add these methods into an 'input_data' layer
+network = input_data(shape=[None, 32, 32, 3],
+                     data_preprocessing=img_prep,
+                     data_augmentation=img_aug)
+```
+
+For more details, see [Data Preprocessing](http://tflearn.org/data_preprocessing) and [Data Augmentation](http://tflearn.org/data_augmentation)
+
 ### Graph Initialization
 
 It might be useful to limit resources, or assigns more or less GPU RAM memory while training. To do so, a graph initializer can be used to configure a graph before run:

@@ -131,11 +131,7 @@ class DataPreprocessing(object):
         self.args.append(None)
 
     def add_zca_whitening(self):
-        """ add_zca_whitening.
-
-        ZCA Whitening.
-
-        """
+        """ ZCA Whitening."""
         raise NotImplementedError
 
     # ---------------------------
@@ -234,7 +230,7 @@ class ImagePreprocessing(DataPreprocessing):
 
     """ Image Preprocessing.
 
-    Manage real-time image pre-processing.
+    Pre-processing methods designed especially for images.
 
     """
 
@@ -248,6 +244,14 @@ class ImagePreprocessing(DataPreprocessing):
     # -----------------------
 
     def add_image_normalization(self):
+        """ add_image_normalization.
+
+        Normalize a picture pixel to 0-1 float (instead of 0-255 int).
+
+        Returns:
+            Nothing.
+
+        """
         self.methods.append(self._normalize_image)
         self.args.append(None)
 

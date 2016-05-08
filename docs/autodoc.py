@@ -21,6 +21,9 @@ from tflearn import losses
 from tflearn import summaries
 from tflearn import utils
 from tflearn import variables
+from tflearn import data_flow
+from tflearn import data_preprocessing
+from tflearn import data_augmentation
 from tflearn.layers import conv
 from tflearn.layers import core
 from tflearn.layers import embedding_ops
@@ -49,6 +52,9 @@ MODULES = [(activations, 'tflearn.activations'),
            (summaries, 'tflearn.summaries'),
            (variables, 'tflearn.variables'),
            (utils, 'tflearn.utils'),
+           (data_flow, 'tflearn.data_flow'),
+           (data_preprocessing, 'data.preprocessing'),
+           (data_augmentation, 'data_augmentation'),
            (conv, 'tflearn.layers.conv'),
            (core, 'tflearn.layers.core'),
            (embedding_ops, 'tflearn.layers.embedding_ops'),
