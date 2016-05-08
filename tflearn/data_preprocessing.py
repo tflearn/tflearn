@@ -12,6 +12,9 @@ class DataPreprocessing(object):
 
     Manage real-time data preprocessing.
 
+    Arguments:
+        None.
+
     """
 
     def __init__(self, name="DataPreprocessing"):
@@ -231,6 +234,9 @@ class ImagePreprocessing(DataPreprocessing):
     """ Image Preprocessing.
 
     Pre-processing methods designed especially for images.
+
+    Arguments:
+        None.
 
     """
 

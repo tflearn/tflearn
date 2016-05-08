@@ -10,6 +10,9 @@ class DataAugmentation(object):
 
     Base class for managing data augmentation.
 
+    Arguments:
+        None.
+
     """
 
     def __init__(self):
@@ -30,6 +33,9 @@ class ImageAugmentation(DataAugmentation):
 
     Augmentation methods designed especially for images.
 
+    Arguments:
+        None.
+
     """
 
     def __init__(self):
@@ -48,6 +54,9 @@ class ImageAugmentation(DataAugmentation):
 
         Randomly flip an image (left to right).
 
+        Returns:
+            Nothing.
+
         """
         self.methods.append(self._random_flip_leftright)
         self.args.append(None)
@@ -56,6 +65,9 @@ class ImageAugmentation(DataAugmentation):
         """ add_random_flip_leftright.
 
         Randomly flip an image (upside down).
+
+        Returns:
+            Nothing.
 
         """
         self.methods.append(self._random_flip_leftright)
