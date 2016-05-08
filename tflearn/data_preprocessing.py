@@ -376,7 +376,7 @@ class ImagePreprocessing(DataPreprocessing):
         mean = 0.
         if isinstance(limit, int):
             _dataset = _dataset[:limit]
-        if isinstance(_dataset, np.ndarray):
+        if isinstance(_dataset, np.ndarray) and not self.global_mean_pc:
             mean = np.mean(_dataset)
         else:
             # Iterate in case of non numpy data
@@ -384,8 +384,8 @@ class ImagePreprocessing(DataPreprocessing):
                 if not self.global_mean_pc:
                     mean += np.mean(dataset[i]) / len(dataset)
                 else:
-                    mean += (np.mean(dataset[i], axis=(0, 1, 2),
-                             keepdims=True) / len(dataset))[0][0][0]
+                    mean += (np.mean(dataset[i], axis=(0, 1),
+                             keepdims=True) / len(dataset))[0][0]
         self.global_mean.assign(mean, session)
         return mean
 
@@ -396,15 +396,15 @@ class ImagePreprocessing(DataPreprocessing):
         std = 0.
         if isinstance(limit, int):
             _dataset = _dataset[:limit]
-        if isinstance(_dataset, np.ndarray):
+        if isinstance(_dataset, np.ndarray) and not self.global_std_pc:
             std = np.std(_dataset)
         else:
             for i in range(len(dataset)):
                 if not self.global_std_pc:
                     std += np.std(dataset[i]) / len(dataset)
                 else:
-                    std += (np.std(dataset[i], axis=(0, 1, 2),
-                             keepdims=True) / len(dataset))[0][0][0]
+                    std += (np.std(dataset[i], axis=(0, 1),
+                             keepdims=True) / len(dataset))[0][0]
         self.global_std.assign(std, session)
         return std
 

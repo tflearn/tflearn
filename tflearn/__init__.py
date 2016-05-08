@@ -60,5 +60,5 @@ from . import data_utils
 from . import utils
 
 # Data Utils
-from . import data_augmentation
-from . import data_preprocessing
+from .data_augmentation import DataAugmentation, ImageAugmentation, SequenceAugmentation
+from .data_preprocessing import DataPreprocessing, ImagePreprocessing, SequencePreprocessing
