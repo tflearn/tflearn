@@ -261,6 +261,21 @@ class ImagePreprocessing(DataPreprocessing):
         self.methods.append(self._normalize_image)
         self.args.append(None)
 
+    def add_crop_center(self, shape):
+        """ add_crop_center.
+
+        Crop the center of an image.
+
+        Arguments:
+            shape: `tuple` of `int`. The croping shape (height, width).
+
+        Returns:
+            Nothing.
+
+        """
+        self.methods.append(self._crop_center)
+        self.args.append([shape])
+
     def resize(self, height, width):
         raise NotImplementedError
 
@@ -272,7 +287,16 @@ class ImagePreprocessing(DataPreprocessing):
     # -----------------------
 
     def _normalize_image(self, batch):
-        return batch / 255.
+        return np.array(batch) / 255.
+
+    def _crop_center(self, batch, shape):
+        oshape = np.shape(batch[0])
+        nh = int((oshape[0] - shape[0]) * 0.5)
+        nw = int((oshape[1] - shape[1]) * 0.5)
+        new_batch = []
+        for i in range(len(batch)):
+            new_batch.append(batch[i][nh: nh + shape[0], nw: nw + shape[1]])
+        return new_batch
 
     # ----------------------------------------------
     #  Preprocessing Methods (Overwrited from Base)
