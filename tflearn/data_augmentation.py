@@ -45,9 +45,33 @@ class ImageAugmentation(DataAugmentation):
     #  Image Augmentation Methods
     # ----------------------------
 
-    def add_random_crop(self):
+    def add_random_crop(self, crop_shape, padding=None):
+        """ add_random_crop.
+
+        Randomly crop a picture according to 'crop_shape'. An optional padding
+        can be specified, for padding picture with 0s (To conserve original
+        image shape).
+
+        Examples:
+            ```python
+            # Example: pictures of 32x32
+            imgaug = tflearn.ImageAugmentation()
+            # Random crop of 24x24 into a 32x32 picture => output 24x24
+            imgaug.add_random_crop((24, 24))
+            # Random crop of 32x32 with image padding of 6 (to conserve original image shape) => output 32x32
+            imgaug.add_random_crop((32, 32), 6)
+            ```
+
+        Args:
+            crop_shape: `tuple` of `int`. The crop shape (height, width).
+            padding: `int`. If not None, the image is padded with 'padding' 0s.
+
+        Returns:
+            Nothing.
+
+        """
         self.methods.append(self._random_crop)
-        self.args.append(None)
+        self.args.append([crop_shape, padding])
 
     def add_random_flip_leftright(self):
         """ add_random_flip_leftright.
@@ -85,8 +109,20 @@ class ImageAugmentation(DataAugmentation):
     #  Augmentation Computation
     # --------------------------
 
-    def _random_crop(self, batch):
-        raise NotImplementedError
+    def _random_crop(self, batch, crop_shape, padding=None):
+        oshape = np.shape(batch[0])
+        new_batch = []
+        npad = ((padding, padding), (padding, padding), (0, 0))
+        for i in range(len(batch)):
+            new_batch.append(batch[i])
+            if padding:
+                new_batch[i] = np.lib.pad(batch[i], pad_width=npad,
+                                      mode='constant', constant_values=0)
+            nh = random.randint(0, oshape[0] - crop_shape[0])
+            nw = random.randint(0, oshape[1] - crop_shape[1])
+            new_batch[i] = new_batch[i][nh:nh + crop_shape[0],
+                                        nw:nw + crop_shape[1]]
+        return new_batch
 
     def _random_flip_leftright(self, batch):
         for i in range(len(batch)):

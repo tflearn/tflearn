@@ -612,7 +612,8 @@ class TrainOp(object):
                                                   dprep_dict=dprep_dict,
                                                   daug_dict=daug_dict,
                                                   index_array=self.index_array,
-                                                  num_threads=8)
+                                                  num_threads=8,
+                                                  shuffle=self.shuffle)
 
         self.n_batches = len(self.train_dflow.batches)
         self.train_dflow.start()
