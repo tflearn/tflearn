@@ -612,7 +612,7 @@ class TrainOp(object):
                                                   dprep_dict=dprep_dict,
                                                   daug_dict=daug_dict,
                                                   index_array=self.index_array,
-                                                  num_threads=8,
+                                                  num_threads=1,
                                                   shuffle=self.shuffle)
 
         self.n_batches = len(self.train_dflow.batches)
@@ -625,7 +625,7 @@ class TrainOp(object):
                                                      dprep_dict=dprep_dict,
                                                      daug_dict=None,
                                                      index_array=self.val_index_array,
-                                                     num_threads=8)
+                                                     num_threads=1)
 
         self.create_testing_summaries(show_metric, self.metric_summ_name,
                                       val_feed_dict)
@@ -641,7 +641,6 @@ class TrainOp(object):
             show_metric: `bool`. If True, display accuracy at every step.
 
         """
-        tflearn.is_training(True, self.session)
         self.loss_value, self.acc_value = None, None
         self.val_loss, self.val_acc = None, None
         train_summ_str, test_summ_str = None, None
@@ -649,13 +648,9 @@ class TrainOp(object):
         epoch = self.train_dflow.data_status.epoch
 
         feed_batch = self.train_dflow.next()
-
-        tflearn.is_training(True, self.session)
-        self.session.run([self.train], feed_batch)
-
-        tflearn.is_training(False, self.session)
-        if self.summ_op is not None:
-            train_summ_str = self.session.run(self.summ_op, feed_batch)
+        tflearn.is_training(True, session=self.session)
+        _, train_summ_str = self.session.run([self.train, self.summ_op],
+                                             feed_batch)
 
         # Retrieve loss value from summary string
         sname = "- Loss/" + self.scope_name
@@ -679,6 +674,7 @@ class TrainOp(object):
 
         # Calculate validation
         if snapshot and self.val_feed_dict:
+            tflearn.is_training(False, session=self.session)
             # Evaluation returns the mean over all batches.
             eval_ops = [self.loss]
             if show_metric and self.metric is not None:
