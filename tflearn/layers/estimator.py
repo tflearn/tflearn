@@ -14,7 +14,8 @@ from tflearn.helpers.trainer import TrainOp
 def regression(incoming, placeholder=None, optimizer='adam',
                loss='categorical_crossentropy', metric='default',
                learning_rate=0.001, dtype=tf.float32, batch_size=64,
-               shuffle_batches=True, op_name=None, name=None):
+               shuffle_batches=True, trainable_vars=None, op_name=None,
+               name=None):
     """ Regression.
 
     Input:
@@ -42,6 +43,9 @@ def regression(incoming, placeholder=None, optimizer='adam',
             supports different batch size for every optimizers. Default: 64.
         shuffle_batches: `bool`. Shuffle or not this optimizer batches at
             every epoch. Default: True.
+        trainable_vars: list of `Variable`. If specified, this regression will
+            only update given variable weights. Else, all trainale variable
+            are going to be updated.
         op_name: A name for this layer optimizer (optional).
             Default: optimizer op name.
         name: A name for this layer's placeholder scope.
@@ -106,10 +110,14 @@ def regression(incoming, placeholder=None, optimizer='adam',
     elif not isinstance(loss, tf.Tensor):
         raise ValueError("Invalid Loss type.")
 
+    tr_vars = trainable_vars
+    if not tr_vars:
+        tr_vars = tf.trainable_variables()
+
     tr_op = TrainOp(loss=loss,
                     optimizer=optimizer,
                     metric=metric,
-                    trainable_vars=tf.trainable_variables(),
+                    trainable_vars=tr_vars,
                     batch_size=batch_size,
                     shuffle=shuffle_batches,
                     step_tensor=step_tensor,
