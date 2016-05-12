@@ -43,7 +43,7 @@ def embedding(incoming, input_dim, output_dim, weights_init='truncated_normal',
 
     with tf.name_scope(name) as scope:
         with tf.device('/cpu:0'):
-            W = vs.variable("W", shape=[input_dim, output_dim],
+            W = vs.variable(scope + "W", shape=[input_dim, output_dim],
                             initializer=W_init, trainable=trainable,
                             restore=restore)
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
