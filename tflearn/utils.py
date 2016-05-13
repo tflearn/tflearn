@@ -322,6 +322,12 @@ def check_dir_name(dir_path):
         raise ValueError("Incorrect string format for directory path.")
 
 
+def check_restore_tensor(tensor_to_check, exclvars):
+    for exclvar in exclvars:
+        if exclvar.name.split(':')[0] in tensor_to_check.name:
+            return False
+    return True
+
 # ----------------------------
 # Parameter formatting helpers
 # ----------------------------

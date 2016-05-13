@@ -223,7 +223,7 @@ class DNN(object):
         self.session = self.trainer.session
         self.predictor = Evaluator([self.net],
                                    session=self.session,
-                                   model=model_file)
+                                   model=None)
 
     def get_weights(self, weight_tensor):
         """ Get Weights.

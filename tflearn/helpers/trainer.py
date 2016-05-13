@@ -9,7 +9,8 @@ import tflearn
 from .. import callbacks
 from ..config import init_training_mode
 from ..utils import to_list, id_generator, check_dir_name, standarize_dict, \
-    get_dict_first_element, make_batches, slice_array, check_scope_path
+    get_dict_first_element, make_batches, slice_array, check_scope_path, \
+    check_restore_tensor
 from .. import data_flow
 
 from .summarizer import summaries, summarize, summarize_gradients, \
@@ -116,7 +117,8 @@ class Trainer(object):
             # Saver for restoring a model (With exclude variable list)
             all_vars = tf.get_collection(tf.GraphKeys.VARIABLES)
             excl_vars = tf.get_collection(tf.GraphKeys.EXCL_RESTORE_VARS)
-            to_restore = [item for item in all_vars if item not in excl_vars]
+            to_restore = [item for item in all_vars
+                          if check_restore_tensor(item, excl_vars)]
             self.restorer = tf.train.Saver(
                 var_list=to_restore,
                 max_to_keep=max_checkpoints,
