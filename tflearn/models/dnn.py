@@ -165,10 +165,13 @@ class DNN(object):
         dprep_collection = tf.get_collection(tf.GraphKeys.DATA_PREP)
         daug_collection = tf.get_collection(tf.GraphKeys.DATA_AUG)
         for i in range(len(self.inputs)):
-            if dprep_collection[i] is not None:
-                dprep_dict[self.inputs[i]] = dprep_collection[i]
-            if daug_collection[i] is not None:
-                daug_dict[self.inputs[i]] = daug_collection[i]
+            # Support for custom inputs not using dprep/daug
+            if len(dprep_collection) > i:
+                if dprep_collection[i] is not None:
+                    dprep_dict[self.inputs[i]] = dprep_collection[i]
+            if len(daug_collection) > i:
+                if daug_collection[i] is not None:
+                    daug_dict[self.inputs[i]] = daug_collection[i]
         self.trainer.fit(feed_dicts, val_feed_dicts=val_feed_dicts,
                          n_epoch=n_epoch,
                          show_metric=show_metric,
