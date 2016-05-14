@@ -14,8 +14,8 @@ from tflearn.helpers.trainer import TrainOp
 def regression(incoming, placeholder=None, optimizer='adam',
                loss='categorical_crossentropy', metric='default',
                learning_rate=0.001, dtype=tf.float32, batch_size=64,
-               shuffle_batches=True, trainable_vars=None, op_name=None,
-               name=None):
+               shuffle_batches=True, trainable_vars=None, restore=True,
+               op_name=None, name=None):
     """ Regression.
 
     Input:
@@ -46,6 +46,9 @@ def regression(incoming, placeholder=None, optimizer='adam',
         trainable_vars: list of `Variable`. If specified, this regression will
             only update given variable weights. Else, all trainale variable
             are going to be updated.
+        restore: `bool`. If False, variables related to optimizers such
+            as moving averages will not be restored when loading a
+            pre-trained model.
         op_name: A name for this layer optimizer (optional).
             Default: optimizer op name.
         name: A name for this layer's placeholder scope.
@@ -113,6 +116,11 @@ def regression(incoming, placeholder=None, optimizer='adam',
     tr_vars = trainable_vars
     if not tr_vars:
         tr_vars = tf.trainable_variables()
+
+    if not restore:
+        tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, 'moving_avg')
+        tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS,
+                             optimizer._name + '/')
 
     tr_op = TrainOp(loss=loss,
                     optimizer=optimizer,

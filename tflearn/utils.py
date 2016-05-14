@@ -324,8 +324,11 @@ def check_dir_name(dir_path):
 
 def check_restore_tensor(tensor_to_check, exclvars):
     for exclvar in exclvars:
-        if exclvar.name.split(':')[0] in tensor_to_check.name:
-            return False
+        if isinstance(exclvar, str):
+            if exclvar.split(':')[0] in tensor_to_check.name:
+                return False
+        elif exclvar.name.split(':')[0] in tensor_to_check.name:
+                return False
     return True
 
 # ----------------------------

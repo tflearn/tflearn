@@ -322,6 +322,13 @@ class Trainer(object):
         del l1[:]
         del l2[:]
 
+        try: # Do not save exclude variables
+            l3 = tf.get_collection_ref(tf.GraphKeys.EXCL_RESTORE_VARS)
+        except Exception:
+            l3 = tf.get_collection(tf.GraphKeys.EXCL_RESTORE_VARS)
+        l3_tags = list(l3)
+        del l3[:]
+
         # Temp workaround for tensorflow 0.7.0 relative path issue
         if model_file[0] not in ['/', '~']: model_file = './' + model_file
 
@@ -334,6 +341,8 @@ class Trainer(object):
             tf.add_to_collection(tf.GraphKeys.DATA_PREP, t)
         for t in l2_dtags:
             tf.add_to_collection(tf.GraphKeys.DATA_AUG, t)
+        for t in l3_tags:
+            tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, t)
 
     def restore(self, model_file):
         """ restore.
