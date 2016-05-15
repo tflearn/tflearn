@@ -786,6 +786,12 @@ def duplicate_identical_ops(ops):
                 ops[j] = ops[i].duplicate()
 
 
+def get_current_batch_size(feed_batch, dataflow):
+    for k, v in feed_batch.iteritems():
+        if k.get_shape()[0].value == None:
+            return int(v.shape[0])
+    return dataflow.batch_size
+
 def evaluate_flow(session, ops_to_evaluate, dataflow):
         if not isinstance(ops_to_evaluate, list):
             ops_to_evaluate = [ops_to_evaluate]
@@ -795,11 +801,14 @@ def evaluate_flow(session, ops_to_evaluate, dataflow):
         res = [0. for i in ops_to_evaluate]
         feed_batch = dataflow.next()
         n_batches = len(dataflow.batches)
+        
         while feed_batch:
             r = session.run(ops_to_evaluate, feed_batch)
+            current_batch_size = get_current_batch_size(feed_batch, dataflow)
             for i in range(len(r)):
-                res[i] += r[i] / n_batches
+                res[i] += r[i] * current_batch_size
             feed_batch = dataflow.next()
+        res = [r / dataflow.n_samples for r in res]
         return res
 
 
