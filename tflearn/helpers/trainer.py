@@ -792,6 +792,7 @@ def get_current_batch_size(feed_batch, dataflow):
             return int(v.shape[0])
     return dataflow.batch_size
 
+
 def evaluate_flow(session, ops_to_evaluate, dataflow):
         if not isinstance(ops_to_evaluate, list):
             ops_to_evaluate = [ops_to_evaluate]
@@ -800,8 +801,7 @@ def evaluate_flow(session, ops_to_evaluate, dataflow):
         dataflow.start()
         res = [0. for i in ops_to_evaluate]
         feed_batch = dataflow.next()
-        n_batches = len(dataflow.batches)
-        
+
         while feed_batch:
             r = session.run(ops_to_evaluate, feed_batch)
             current_batch_size = get_current_batch_size(feed_batch, dataflow)

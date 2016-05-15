@@ -258,7 +258,7 @@ class DNN(object):
         op = tf.assign(tensor, weights)
         self.trainer.session.run(op)
 
-    def evaluate(self, X, Y, batch_size):
+    def evaluate(self, X, Y, batch_size=128):
         """ Evaluate.
 
         Evaluate model on given samples.
@@ -278,5 +278,5 @@ class DNN(object):
 
         """
         feed_dict = feed_dict_builder(X, Y, self.inputs, self.targets)
-        from tflearn.helpers.trainer import evaluate as ev
-        return ev(self.trainer.session, self.net, feed_dict, batch_size)
+        ops = [o.metric for o in self.train_ops]
+        return self.predictor.evaluate(feed_dict, ops, batch_size)

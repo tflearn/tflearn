@@ -4,8 +4,9 @@ import tensorflow as tf
 
 import tflearn
 from ..utils import to_list
+from .. import data_flow
 from .. import metrics
-from .trainer import evaluate as eval
+from .trainer import evaluate_flow
 
 
 class Evaluator(object):
@@ -59,5 +60,23 @@ class Evaluator(object):
                         prediction.append(val)
             return prediction
 
-    def evaluate(self, feed_dict, metric='accuracy', batch_size=128):
-        raise NotImplementedError
+    def evaluate(self, feed_dict, ops, batch_size=128):
+        coord = tf.train.Coordinator()
+        inputs = tf.get_collection(tf.GraphKeys.INPUTS)
+        # Data Preprocessing
+        dprep_dict = []
+        dprep_collection = tf.get_collection(tf.GraphKeys.DATA_PREP)
+        for i in range(len(inputs)):
+            # Support for custom inputs not using dprep/daug
+            if len(dprep_collection) > i:
+                if dprep_collection[i] is not None:
+                    dprep_dict[inputs[i]] = dprep_collection[i]
+        # Data Flow
+        df = data_flow.FeedDictFlow(feed_dict, coord,
+                                    batch_size=batch_size,
+                                    dprep_dict=dprep_dict,
+                                    daug_dict=None,
+                                    index_array=None,
+                                    num_threads=1)
+
+        return evaluate_flow(self.session, ops, df)
