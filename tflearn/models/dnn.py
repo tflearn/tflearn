@@ -261,7 +261,7 @@ class DNN(object):
     def evaluate(self, X, Y, batch_size=128):
         """ Evaluate.
 
-        Evaluate model on given samples.
+        Evaluate model metric(s) on given samples.
 
         Arguments:
             X: array, `list` of array (if multiple inputs) or `dict`
@@ -274,7 +274,7 @@ class DNN(object):
             batch_size: `int`. The batch size. Default: 128.
 
         Returns:
-            The metric score.
+            The metric(s) score.
 
         """
         feed_dict = feed_dict_builder(X, Y, self.inputs, self.targets)

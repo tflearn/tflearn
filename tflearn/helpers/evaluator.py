@@ -61,6 +61,20 @@ class Evaluator(object):
             return prediction
 
     def evaluate(self, feed_dict, ops, batch_size=128):
+        """ Evaluate.
+
+        Evaluate a list of tensors over a whole dataset. It is used to compute
+        a metric mean score over an entire dataset.
+
+        Arguments:
+            feed_dict: `dict`. The feed dictionary of data.
+            ops: list of `Tensors`. The tensors to evaluate.
+            batch_size: `int`. A batch size.
+
+        Returns:
+            The mean average result per tensor over the entire dataset.
+
+        """
         coord = tf.train.Coordinator()
         inputs = tf.get_collection(tf.GraphKeys.INPUTS)
         # Data Preprocessing
