@@ -151,7 +151,18 @@ class DataPreprocessing(object):
         self.args.append(None)
 
     def add_zca_whitening(self, pc=None):
-        """ ZCA Whitening."""
+        """ add_zca_whitening.
+
+        Apply ZCA Whitening to data.
+
+        Arguments:
+            pc: `array` (optional). Use the provided pre-computed principal
+                component instead of computing it.
+
+        Returns:
+            Nothing.
+
+        """
         self.global_pc.is_required = True
         self.global_pc.value = pc
         self.methods.append(self._zca_whitening)
