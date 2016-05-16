@@ -187,6 +187,39 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, strides=1,
     return inference
 
 
+def upsample_2d(incoming, kernel_size, name="UpSample2D"):
+    """ UpSample 2D.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        4-D Tensor [batch, pooled height, pooled width, in_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Layer to upsample.
+        kernel_size: 'int` or list of `ints`. Upsampling kernel size.
+        name: A name for this layer (optional). Default: 'UpSample2D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+
+    """
+    input_shape = utils.get_incoming_shape(incoming)
+    kernel = utils.autoformat_kernel_2d(kernel_size)
+
+    with tf.name_scope(name) as scope:
+        inference = tf.image.resize_nearest_neighbor(
+            incoming, size=input_shape[1:3] * tf.constant(kernel[1:3]))
+        inference.set_shape((None, input_shape[1] * kernel[1],
+                            input_shape[2] * kernel[2], None))
+
+    # Add attributes to Tensor to easy access weights
+    inference.scope = scope
+
+    return inference
+
+
 def max_pool_2d(incoming, kernel_size, strides=None, padding='same',
                 name="MaxPool2D"):
     """ Max Pooling 2D.
