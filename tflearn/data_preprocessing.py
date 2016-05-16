@@ -2,6 +2,7 @@
 from __future__ import division, print_function, absolute_import
 
 import numpy as np
+import pickle
 import tensorflow as tf
 
 _EPSILON = 1e-8
@@ -26,6 +27,7 @@ class DataPreprocessing(object):
             self.scope = scope
         self.global_mean = self.PersistentParameter(scope, name="mean")
         self.global_std = self.PersistentParameter(scope, name="std")
+        self.global_pc = self.PersistentParameter(scope, name="pc")
 
     def apply(self, batch):
         for i, m in enumerate(self.methods):
@@ -64,6 +66,21 @@ class DataPreprocessing(object):
                 print("STD: " + str(self.global_std.value) + " (To avoid "
                       "repetitive computation, add it to argument 'std' of "
                       "`add_featurewise_stdnorm`)")
+        if self.global_pc.is_required:
+            # If a value is already provided, it has priority
+            if self.global_pc.value is not None:
+                self.global_pc.assign(self.global_pc.value, session)
+            # Otherwise, if it has not been restored, compute it
+            if not self.global_pc.is_restored(session):
+                print("---------------------------------")
+                print("Preprocessing... PCA over all dataset "
+                      "(this may take long)...")
+                self._compute_global_pc(dataset, session, limit)
+                with open('PC.pkl', 'wb') as f:
+                    pickle.dump(self.global_pc.value, f)
+                print("PC saved to 'PC.pkl' (To avoid repetitive computation, "
+                      "load this pickle file and assign its value to 'pc' "
+                      "argument of `add_zca_whitening`)")
 
     # -----------------------
     #  Preprocessing Methods
@@ -133,9 +150,12 @@ class DataPreprocessing(object):
         self.methods.append(self._featurewise_stdnorm)
         self.args.append(None)
 
-    def add_zca_whitening(self):
+    def add_zca_whitening(self, pc=None):
         """ ZCA Whitening."""
-        raise NotImplementedError
+        self.global_pc.is_required = True
+        self.global_pc.value = pc
+        self.methods.append(self._zca_whitening)
+        self.args.append(None)
 
     # ---------------------------
     #  Preprocessing Calculation
@@ -159,6 +179,14 @@ class DataPreprocessing(object):
     def _featurewise_stdnorm(self, batch):
         for i in range(len(batch)):
             batch[i] /= (self.global_std.value + _EPSILON)
+        return batch
+
+    def _zca_whitening(self, batch):
+        for i in range(len(batch)):
+            flat = np.reshape(batch[i], batch[i].size)
+            white = np.dot(flat, self.global_pc.value)
+            s1, s2, s3 = batch[i].shape[0], batch[i].shape[1], batch[i].shape[2]
+            batch[i] = np.reshape(white, (s1, s2, s3))
         return batch
 
     # ---------------------------------------
@@ -195,6 +223,20 @@ class DataPreprocessing(object):
                 std += np.std(dataset[i]) / len(dataset)
         self.global_std.assign(std, session)
         return std
+
+    def _compute_global_pc(self, dataset, session, limit=None):
+        """ Compute the Principal Component. """
+        _dataset = dataset
+        if isinstance(limit, int):
+            _dataset = _dataset[:limit]
+        d = _dataset
+        s0, s1, s2, s3 = d.shape[0], d.shape[1], d.shape[2], d.shape[3]
+        flat = np.reshape(d, (s0, s1 * s2 * s3))
+        sigma = np.dot(flat.T, flat) / flat.shape[1]
+        U, S, V = np.linalg.svd(sigma)
+        pc = np.dot(np.dot(U, np.diag(1. / np.sqrt(S + _EPSILON))), U.T)
+        self.global_pc.assign(pc, session)
+        return pc
 
     # -----------------------
     #  Persistent Parameters
