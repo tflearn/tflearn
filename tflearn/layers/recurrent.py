@@ -41,8 +41,9 @@ def simple_rnn(incoming, n_units, activation='sigmoid', bias=True,
     Arguments:
         incoming: `Tensor`. Incoming 3-D Tensor.
         n_units: `int`, number of units for this layer.
-        activation: `str` (name) or `Tensor`. Activation applied to this layer.
-            (See tflearn.activations). Default: 'sigmoid'.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
         bias: `bool`. If True, a bias is used.
         weights_init: `str` (name) or `Tensor`. Weights initialization.
             (See tflearn.initializations) Default: 'truncated_normal'.
@@ -110,10 +111,11 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
     Arguments:
         incoming: `Tensor`. Incoming 3-D Tensor.
         n_units: `int`, number of units for this layer.
-        activation: `str` (name) or `Tensor`. Activation applied to this layer.
-            (See tflearn.activations). Default: 'sigmoid'.
-        inner_activation: `str` (name) or `Tensor`. LSTM inner activation.
-            Default: 'tanh'.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'sigmoid'.
+        inner_activation: `str` (name) or `function` (returning a `Tensor`).
+            LSTM inner activation. Default: 'tanh'.
         bias: `bool`. If True, a bias is used.
         weights_init: `str` (name) or `Tensor`. Weights initialization.
             (See tflearn.initializations) Default: 'truncated_normal'.
@@ -186,10 +188,11 @@ def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
     Arguments:
         incoming: `Tensor`. Incoming 3-D Tensor.
         n_units: `int`, number of units for this layer.
-        activation: `str` (name). Activation applied to this layer.
-            (See tflearn.activations). Default: 'sigmoid'.
-        inner_activation: `str` (name) or `Tensor`. GRU inner activation.
-            Default: 'tanh'.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'sigmoid'.
+        inner_activation: `str` (name) or `function` (returning a `Tensor`).
+            GRU inner activation. Default: 'tanh'.
         bias: `bool`. If True, a bias is used.
         weights_init: `str` (name) or `Tensor`. Weights initialization.
             (See tflearn.initializations) Default: 'truncated_normal'.
@@ -467,7 +470,12 @@ class BasicRNNCell(RNNCell):
     def __init__(self, num_units, activation='tanh', bias=True, W_init=None,
                  trainable=True, restore=True):
         self._num_units = num_units
-        self.activation = activations.get(activation)
+        if isinstance(activation, str):
+            self.activation = activations.get(activation)
+        elif hasattr(activation, '__call__'):
+            self.activation = activation
+        else:
+            raise ValueError("Invalid Activation.")
         self.W = None
         self.b = None
         if isinstance(W_init, str):
@@ -516,8 +524,18 @@ class BasicLSTMCell(RNNCell):
                  forget_bias=1.0, trainable=True, restore=True):
         self._num_units = num_units
         self._forget_bias = forget_bias
-        self.activation = activations.get(activation)
-        self.inner_activation = activations.get(inner_activation)
+        if isinstance(activation, str):
+            self.activation = activations.get(activation)
+        elif hasattr(activation, '__call__'):
+            self.activation = activation
+        else:
+            raise ValueError("Invalid Activation.")
+        if isinstance(inner_activation, str):
+            self.inner_activation = activations.get(inner_activation)
+        elif hasattr(inner_activation, '__call__'):
+            self.inner_activation = inner_activation
+        else:
+            raise ValueError("Invalid Activation.")
         self.W = None
         self.b = None
         if isinstance(W_init, str):
@@ -566,8 +584,18 @@ class GRUCell(RNNCell):
                  input_size=None, trainable=True, restore=True):
         self._num_units = num_units
         self._input_size = num_units if input_size is None else input_size
-        self.activation = activations.get(activation)
-        self.inner_activation = activations.get(inner_activation)
+        if isinstance(activation, str):
+            self.activation = activations.get(activation)
+        elif hasattr(activation, '__call__'):
+            self.activation = activation
+        else:
+            raise ValueError("Invalid Activation.")
+        if isinstance(inner_activation, str):
+            self.inner_activation = activations.get(inner_activation)
+        elif hasattr(inner_activation, '__call__'):
+            self.inner_activation = inner_activation
+        else:
+            raise ValueError("Invalid Activation.")
         self.W = [None, None]
         self.b = [None, None]
         if isinstance(W_init, str):

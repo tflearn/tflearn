@@ -31,8 +31,9 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
-        activation: `str` (name) or `Tensor`. Activation applied to this layer.
-            (see tflearn.activations). Default: 'linear'.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
         bias: `bool`. If True, a bias is used.
         weights_init: `str` (name) or `Tensor`. Weights initialization.
             (see tflearn.initializations) Default: 'truncated_normal'.
@@ -84,7 +85,13 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
         inference = tf.nn.conv2d(incoming, W, strides, padding)
         if b: inference = tf.nn.bias_add(inference, b)
-        inference = activations.get(activation)(inference)
+
+        if isinstance(activation, str):
+            inference = activations.get(activation)(inference)
+        elif hasattr(activation, '__call__'):
+            inference = activation(inference)
+        else:
+            raise ValueError("Invalid Activation.")
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
@@ -123,8 +130,9 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, strides=1,
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
-        activation: `str` (name) or `Tensor`. Activation applied to this layer.
-            (see tflearn.activations). Default: 'linear'.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
         bias: `bool`. If True, a bias is used.
         weights_init: `str` (name) or `Tensor`. Weights initialization.
             (see tflearn.initializations) Default: 'truncated_normal'.
@@ -174,7 +182,13 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, strides=1,
 
         inference = tf.nn.conv2d_transpose(incoming, W, strides, padding)
         if b: inference = tf.nn.bias_add(inference, b)
-        inference = activations.get(activation)(inference)
+
+        if isinstance(activation, str):
+            inference = activations.get(activation)(inference)
+        elif hasattr(activation, '__call__'):
+            inference = activation(inference)
+        else:
+            raise ValueError("Invalid Activation.")
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
@@ -320,8 +334,9 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
-        activation: `str` (name) or `Tensor`. Activation applied to this layer.
-            (see tflearn.activations). Default: 'linear'.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
         bias: `bool`. If True, a bias is used.
         weights_init: `str` (name) or `Tensor`. Weights initialization.
             (see tflearn.initializations) Default: 'truncated_normal'.
@@ -378,7 +393,13 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         inference = tf.nn.conv2d(inference, W, strides, padding)
         if b: inference = tf.nn.bias_add(inference, b)
         inference = tf.squeeze(inference, [2])
-        inference = activations.get(activation)(inference)
+
+        if isinstance(activation, str):
+            inference = activations.get(activation)(inference)
+        elif hasattr(activation, '__call__'):
+            inference = activation(inference)
+        else:
+            raise ValueError("Invalid Activation.")
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
@@ -526,8 +547,9 @@ def deep_residual_block(incoming, nb_blocks, bottleneck_size, out_channels,
             layers surrounding the bottleneck layer.
         downsample:
         downsample_strides:
-        activation: `str` (name) or `Tensor`. Activation applied to this layer.
-            (see tflearn.activations). Default: 'linear'.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
         batch_norm: `bool`. If True, apply batch normalization.
         bias: `bool`. If True, a bias is used.
         weights_init: `str` (name) or `Tensor`. Weights initialization.
@@ -642,8 +664,9 @@ def shallow_residual_block(incoming, nb_blocks, out_channels,
         downsample: `bool`. If True, apply downsampling using
             'downsample_strides' for strides.
         downsample_strides: `int`. The strides to use when downsampling.
-        activation: `str` (name) or `Tensor`. Activation applied to this layer.
-            (see tflearn.activations). Default: 'linear'.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
         batch_norm: `bool`. If True, apply batch normalization.
         bias: `bool`. If True, a bias is used.
         weights_init: `str` (name) or `Tensor`. Weights initialization.

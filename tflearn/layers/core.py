@@ -91,8 +91,9 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
     Arguments:
         incoming: `Tensor`. Incoming (2+)D Tensor.
         n_units: `int`, number of units for this layer.
-        activation: `str` (name) or `Tensor`. Activation applied to this layer.
-            (see tflearn.activations). Default: 'linear'.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
         bias: `bool`. If True, a bias is used.
         weights_init: `str` (name) or `Tensor`. Weights initialization.
             (see tflearn.initializations) Default: 'truncated_normal'.
@@ -144,7 +145,13 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
 
         inference = tf.matmul(inference, W)
         if b: inference = tf.nn.bias_add(inference, b)
-        inference = activations.get(activation)(inference)
+
+        if isinstance(activation, str):
+            inference = activations.get(activation)(inference)
+        elif hasattr(activation, '__call__'):
+            inference = activation(inference)
+        else:
+            raise ValueError("Invalid Activation.")
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
@@ -272,8 +279,9 @@ def activation(incoming, activation='linear'):
 
     Arguments:
         incoming: A `Tensor`. The incoming tensor.
-        activation: `str` (name) or `Tensor`. Activation applied to this layer.
-            (see tflearn.activations). Default: 'linear'.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
 
     """
 
@@ -299,8 +307,8 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
 
     Arguments:
         incoming: `Tensor`. Incoming Tensor.
-        activation: `str` (name) or `Tensor`. Activation applied to this layer.
-            (see tflearn.activations). Default: 'linear'.
+        activation: `str` (name) or `function`. Activation applied to this
+            layer (see tflearn.activations). Default: 'linear'.
         bias: `bool`. If True, a bias is used.
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
@@ -337,7 +345,13 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
 
         inference = tf.mul(inference, W)
         if b: inference = tf.add(inference, b)
-        inference = activations.get(activation)(inference)
+
+        if isinstance(activation, str):
+            inference = activations.get(activation)(inference)
+        elif hasattr(activation, '__call__'):
+            inference = activation(inference)
+        else:
+            raise ValueError("Invalid Activation.")
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
