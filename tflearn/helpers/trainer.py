@@ -787,6 +787,7 @@ def duplicate_identical_ops(ops):
 
 
 def get_current_batch_size(feed_batch, dataflow):
+    iterator = feed_batch.iteritems or feed_batch.items
     for k, v in feed_batch.iteritems():
         if k.get_shape()[0].value == None:
             return int(v.shape[0])
