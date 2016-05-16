@@ -30,11 +30,11 @@ def regression(incoming, placeholder=None, optimizer='adam',
             If 'None' provided, a placeholder will be added automatically.
             You can retrieve that placeholder through graph key: 'TARGETS',
             or the 'placeholder' attribute of this function's returned tensor.
-        optimizer: `str` (name) or `Optimizer`. Optimizer to use.
+        optimizer: `str` (name), `Optimizer` or `function`. Optimizer to use.
             Default: 'sgd' (Stochastic Descent Gradient).
-        loss: `str` (name) or `Tensor`. Loss function used by this layer
+        loss: `str` (name) or `function`. Loss function used by this layer
             optimizer. Default: 'categorical_crossentropy'.
-        metric: `str`, `Metric` or `Tensor`. The metric to be used.
+        metric: `str`, `Metric` or `function`. The metric to be used.
             Default: 'default' metric is 'accuracy'. To disable metric
             calculation, set it to 'None'.
         learning_rate: `float`. This layer optimizer's learning rate.
@@ -81,6 +81,15 @@ def regression(incoming, placeholder=None, optimizer='adam',
                                       trainable=False)
         optimizer.build(step_tensor)
         optimizer = optimizer.get_tensor()
+    elif hasattr(optimizer, '__call__'):
+        try:
+            optimizer, step_tensor = optimizer(learning_rate)
+        except Exception as e:
+            print(e.message)
+            print("Reminder: Custom Optimizer function must return (optimizer, "
+                  "step_tensor) and take one argument: 'learning_rate'. "
+                  "Note that returned step_tensor can be 'None' if no decay.")
+            exit()
     elif not isinstance(optimizer, tf.train.Optimizer):
         raise ValueError("Invalid Optimizer type.")
 
@@ -101,12 +110,29 @@ def regression(incoming, placeholder=None, optimizer='adam',
         elif isinstance(metric, metrics.Metric):
             metric.build(incoming, placeholder, inputs)
             metric = metric.get_tensor()
+        elif hasattr(metric, '__call__'):
+            try:
+                metric = metric(incoming, placeholder, inputs)
+            except Exception as e:
+                print(e.message)
+                print('Reminder: Custom metric function arguments must be '
+                      'define as follow: custom_metric(y_pred, y_true, x).')
+                exit()
         elif not isinstance(metric, tf.Tensor):
             ValueError("Invalid Metric type.")
 
     # Building other ops (loss, training ops...)
     if isinstance(loss, str):
         loss = objectives.get(loss)(incoming, placeholder)
+    # Check if function
+    elif hasattr(loss, '__call__'):
+        try:
+            loss = loss(incoming, placeholder)
+        except Exception as e:
+            print(e.message)
+            print('Reminder: Custom loss function arguments must be define as '
+                  'follow: custom_loss(y_pred, y_true).')
+            exit()
     elif not isinstance(loss, tf.Tensor):
         raise ValueError("Invalid Loss type.")
 
