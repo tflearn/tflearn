@@ -16,7 +16,7 @@ from __future__ import division, print_function, absolute_import
 
 import tflearn
 from tflearn.layers.core import input_data, dropout, fully_connected
-from tflearn.layers.conv import conv_2d, max_pool_2d
+from tflearn.layers.conv import highway_conv_2d, max_pool_2d
 from tflearn.layers.normalization import local_response_normalization
 from tflearn.layers.estimator import regression
 
@@ -28,22 +28,22 @@ testX = testX.reshape([-1, 28, 28, 1])
 
 # Building convolutional network
 network = input_data(shape=[None, 28, 28, 1], name='input')
-network = conv_2d(network, 32, 3, activation='relu', regularizer="L2")
-network = max_pool_2d(network, 2)
-network = local_response_normalization(network)
-network = conv_2d(network, 64, 3, activation='relu', regularizer="L2")
-network = max_pool_2d(network, 2)
-network = local_response_normalization(network)
-network = fully_connected(network, 128, activation='tanh')
-network = dropout(network, 0.8)
-network = fully_connected(network, 256, activation='tanh')
-network = dropout(network, 0.8)
+#highway convolutions with pooling and dropout
+for i in range(3):
+    for j in range(3): 
+        network = highway_conv_2d(network, 32, 3, activation='elu', regularizer="L2")
+    network = max_pool_2d(network, 2)
+    network = dropout(network, 0.5)
+    
+network = fully_connected(network, 128, activation='elu')
+network = dropout(network, 0.5)
+network = fully_connected(network, 256, activation='elu')
+network = dropout(network, 0.5)
 network = fully_connected(network, 10, activation='softmax')
 network = regression(network, optimizer='adam', learning_rate=0.01,
                      loss='categorical_crossentropy', name='target')
 
 # Training
 model = tflearn.DNN(network, tensorboard_verbose=0)
-model.fit({'input': X}, {'target': Y}, n_epoch=20,
-          validation_set=({'input': testX}, {'target': testY}),
-          show_metric=True, run_id='convnet_mnist')
+model.fit(X, Y, n_epoch=20, validation_set=(testX, testY),
+          show_metric=True, run_id='convnet_highway_mnist')
