@@ -29,15 +29,16 @@ testX = testX.reshape([-1, 28, 28, 1])
 # Building convolutional network
 network = input_data(shape=[None, 28, 28, 1], name='input')
 #highway convolutions with pooling and dropout
-for i in range(1):
+for i in range(3):
     for j in range(3): 
-        network = highway_conv_2d(network, 8*(j+1), 3, activation='elu', regularizer="L2")
-    network = max_pool_2d(network, 2)
+        network = highway_conv_2d(network, 2*(i*j+1), 3, activation='elu', regularizer="L2")
+    network = max_pool_2d(network, i+1)
+    network = local_response_normalization(network)
     
-network = fully_connected(network, 128, activation='elu')
-network = dropout(network, 0.5)
-network = fully_connected(network, 256, activation='elu')
-network = dropout(network, 0.5)
+network = fully_connected(network, 128, activation='tanh')
+network = dropout(network, 0.8)
+network = fully_connected(network, 256, activation='tanh')
+network = dropout(network, 0.8)
 network = fully_connected(network, 10, activation='softmax')
 network = regression(network, optimizer='adam', learning_rate=0.01,
                      loss='categorical_crossentropy', name='target')

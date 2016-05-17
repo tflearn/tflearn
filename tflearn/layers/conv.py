@@ -837,14 +837,11 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         else:
             raise ValueError("Invalid Activation.")
             
-        print(incoming)
+        #shared convolution for gating
         convolved = tf.nn.conv2d(incoming, W, strides, padding)
         H = activation(convolved + b)
-        print(H)
         T = tf.sigmoid(tf.nn.conv2d(incoming, W_T, strides, padding) + b_T)
-        print(T)
         C = tf.sub(1.0, T)
-        print(C)
         inference = tf.add(tf.mul(H, T), tf.mul(convolved, C))
 
         # Track activations.
@@ -955,22 +952,15 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
             raise ValueError("Invalid Activation.")
             
         # Adding dummy dimension to fit with Tensorflow conv2d
-        print(incoming) 
         inference = tf.expand_dims(incoming, 2)
-        print(inference)
+        #shared convolution for gating
         convolved = tf.nn.conv2d(inference, W, strides, padding)
         H = activation(tf.squeeze(convolved + b, [2]))
-        print(H)
         T = tf.sigmoid(tf.squeeze(tf.nn.conv2d(inference, W_T, strides, padding) + b_T, [2]))
-        print(T)
         C = tf.sub(1.0, T)
-        print(C)
         Q = tf.mul(H, T)
-        print(Q)
         R = tf.mul(tf.squeeze(convolved, [2]), C)
-        print(R)
         inference = tf.add(Q, R)
-        print(inference)
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
