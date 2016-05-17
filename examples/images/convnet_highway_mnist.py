@@ -31,8 +31,8 @@ network = input_data(shape=[None, 28, 28, 1], name='input')
 #highway convolutions with pooling and dropout
 for i in range(3):
     for j in range(3): 
-        network = highway_conv_2d(network, 2*(i*j+1), 3, activation='elu', regularizer="L2")
-    network = max_pool_2d(network, i+1)
+        network = highway_conv_2d(network, 16, 3, activation='elu')
+    network = max_pool_2d(network, 2)
     network = local_response_normalization(network)
     
 network = fully_connected(network, 128, activation='tanh')

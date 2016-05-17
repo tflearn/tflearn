@@ -820,7 +820,7 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
         #weight and bias for the transform gate
         with tf.name_scope('transform_gate') as transform_gate:
-            W_T = vs.variable(transform_gate + 'W', shape=filter_size,
+            W_T = vs.variable(transform_gate + 'W', shape=nb_filter,
                             regularizer=None, initializer=W_init,
                             trainable=trainable, restore=restore)
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + transform_gate, W_T) 
@@ -840,7 +840,7 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         #shared convolution for gating
         convolved = tf.nn.conv2d(incoming, W, strides, padding)
         H = activation(convolved + b)
-        T = tf.sigmoid(tf.nn.conv2d(incoming, W_T, strides, padding) + b_T)
+        T = tf.sigmoid(tf.mul(convolved, W_T) + b_T)
         C = tf.sub(1.0, T)
         inference = tf.add(tf.mul(H, T), tf.mul(convolved, C))
 
@@ -934,7 +934,7 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
         #weight and bias for the transform gate
         with tf.name_scope('transform_gate') as transform_gate:
-            W_T = vs.variable(transform_gate + 'W', shape=filter_size,
+            W_T = vs.variable(transform_gate + 'W', shape=nb_filter,
                             regularizer=None, initializer=W_init,
                             trainable=trainable, restore=restore)
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + transform_gate, W_T) 
@@ -956,12 +956,12 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         #shared convolution for gating
         convolved = tf.nn.conv2d(inference, W, strides, padding)
         H = activation(tf.squeeze(convolved + b, [2]))
-        T = tf.sigmoid(tf.squeeze(tf.nn.conv2d(inference, W_T, strides, padding) + b_T, [2]))
+        T = tf.sigmoid(tf.squeeze(tf.mul(convolved, W_T) + b_T, [2]))
         C = tf.sub(1.0, T)
         Q = tf.mul(H, T)
         R = tf.mul(tf.squeeze(convolved, [2]), C)
         inference = tf.add(Q, R)
-
+        
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
 
