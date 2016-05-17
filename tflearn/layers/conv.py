@@ -366,6 +366,8 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     # strides = [1, strides[1], 1, 1]
     strides[1] = 1
     padding = utils.autoformat_padding(padding)
+    
+    
 
     with tf.name_scope(name) as scope:
 
@@ -835,10 +837,15 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         else:
             raise ValueError("Invalid Activation.")
             
-        H = activation(tf.nn.conv2d(incoming, W, strides, padding) + b)
+        print(incoming)
+        convolved = tf.nn.conv2d(incoming, W, strides, padding)
+        H = activation(convolved + b)
+        print(H)
         T = tf.sigmoid(tf.nn.conv2d(incoming, W_T, strides, padding) + b_T)
+        print(T)
         C = tf.sub(1.0, T)
-        inference = tf.add(tf.mul(H, T), tf.mul(incoming, C))
+        print(C)
+        inference = tf.add(tf.mul(H, T), tf.mul(convolved, C))
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
@@ -851,3 +858,129 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     inference.b_T = b_T
 
     return inference
+    
+def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
+            activation='linear', weights_init='uniform_scaling',
+            bias_init='zeros', regularizer=None, weight_decay=0.001,
+            trainable=True, restore=True, name="HighwayConv1D"):
+    """ Highway Convolution 1D.
+
+    Input:
+        3-D Tensor [batch, steps, in_channels].
+
+    Output:
+        3-D Tensor [batch, new steps, nb_filters].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 3-D Tensor.
+        nb_filter: `int`. The number of convolutional filters.
+        filter_size: 'int` or list of `ints`. Size of filters.
+        strides: 'int` or list of `ints`. Strides of conv operation.
+            Default: [1 1 1 1].
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
+        weights_init: `str` (name) or `Tensor`. Weights initialization.
+            (see tflearn.initializations) Default: 'truncated_normal'.
+        bias_init: `str` (name) or `Tensor`. Bias initialization.
+            (see tflearn.initializations) Default: 'zeros'.
+        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
+            layer weights (see tflearn.regularizers). Default: None.
+        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model
+        name: A name for this layer (optional). Default: 'HighwayConv1D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+        W: `Variable`. Variable representing filter weights.
+        W_T: `Variable`. Variable representing gate weights.
+        b: `Variable`. Variable representing biases.
+        b_T: `Variable`. Variable representing gate biases.
+
+    """
+    input_shape = utils.get_incoming_shape(incoming)
+    filter_size = utils.autoformat_filter_conv2d(filter_size,
+                                                 input_shape[-1],
+                                                 nb_filter)
+    # filter_size = [1, filter_size[1], 1, 1]
+    filter_size[1] = 1
+    strides = utils.autoformat_kernel_2d(strides)
+    # strides = [1, strides[1], 1, 1]
+    strides[1] = 1
+    padding = utils.autoformat_padding(padding)
+
+    with tf.name_scope(name) as scope:
+
+        W_init = weights_init
+        if isinstance(weights_init, str):
+            W_init = initializations.get(weights_init)()
+        W_regul = None
+        if regularizer:
+            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        W = vs.variable(scope + 'W', shape=filter_size,
+                        regularizer=W_regul, initializer=W_init,
+                        trainable=trainable, restore=restore)
+        # Track per layer variables
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
+        
+        
+
+        b_init = initializations.get(bias_init)()
+        b = vs.variable(scope + 'b', shape=nb_filter,
+                        initializer=b_init, trainable=trainable,
+                        restore=restore)
+        # Track per layer variables
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
+        #weight and bias for the transform gate
+        with tf.name_scope('transform_gate') as transform_gate:
+            W_T = vs.variable(transform_gate + 'W', shape=filter_size,
+                            regularizer=None, initializer=W_init,
+                            trainable=trainable, restore=restore)
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + transform_gate, W_T) 
+            
+            b_T = vs.variable(transform_gate + 'b', shape=nb_filter,
+                            initializer=tf.constant_initializer(-1), trainable=trainable,
+                            restore=restore)
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + transform_gate, b_T)
+
+        if isinstance(activation, str):
+            activation = activations.get(activation)
+        elif hasattr(activation, '__call__'):
+            activation = activation
+        else:
+            raise ValueError("Invalid Activation.")
+            
+        # Adding dummy dimension to fit with Tensorflow conv2d
+        print(incoming) 
+        inference = tf.expand_dims(incoming, 2)
+        print(inference)
+        convolved = tf.nn.conv2d(inference, W, strides, padding)
+        H = activation(tf.squeeze(convolved + b, [2]))
+        print(H)
+        T = tf.sigmoid(tf.squeeze(tf.nn.conv2d(inference, W_T, strides, padding) + b_T, [2]))
+        print(T)
+        C = tf.sub(1.0, T)
+        print(C)
+        Q = tf.mul(H, T)
+        print(Q)
+        R = tf.mul(tf.squeeze(convolved, [2]), C)
+        print(R)
+        inference = tf.add(Q, R)
+        print(inference)
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights.
+    inference.scope = scope
+    inference.W = W
+    inference.W_T = W_T
+    inference.b = b
+    inference.b_T = b_T
+
+    return inference
+
