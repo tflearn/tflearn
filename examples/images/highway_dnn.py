@@ -20,14 +20,14 @@ X, Y, testX, testY = mnist.load_data(one_hot=True)
 
 # Building deep neural network
 input_layer = tflearn.input_data(shape=[None, 784])
-dense1 = tflearn.fully_connected(input_layer, 64, activation='tanh',
+dense1 = tflearn.fully_connected(input_layer, 64, activation='elu',
                                  regularizer='L2', weight_decay=0.001)
                  
                  
 #install a deep network of highway layers
 highway = dense1                              
 for i in range(10):
-    highway = tflearn.highway(highway, 64, activation='tanh',
+    highway = tflearn.highway(highway, 64, activation='elu',
                               regularizer='L2', weight_decay=0.001)
                               
                               
