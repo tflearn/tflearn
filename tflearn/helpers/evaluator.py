@@ -26,6 +26,8 @@ class Evaluator(object):
         self.tensors = to_list(tensors)
         self.graph = self.tensors[0].graph
         self.model = model
+        self.dprep_collection = tf.get_collection(tf.GraphKeys.DATA_PREP)
+        self.inputs = tf.get_collection(tf.GraphKeys.INPUTS)
 
         with self.graph.as_default():
             self.session = tf.Session()
@@ -48,6 +50,19 @@ class Evaluator(object):
 
         """
         with self.graph.as_default():
+            # Data Preprocessing
+            dprep_dict = dict()
+            for i in range(len(self.inputs)):
+                # Support for custom inputs not using dprep/daug
+                if len(self.dprep_collection) > i:
+                    if self.dprep_collection[i] is not None:
+                        dprep_dict[self.inputs[i]] = self.dprep_collection[i]
+            # Apply pre-processing
+            if len(dprep_dict) > 0:
+                for k in dprep_dict:
+                    feed_dict[k] = dprep_dict[k].apply(feed_dict[k])
+
+            # Prediction for each tensor
             tflearn.is_training(False, self.session)
             prediction = []
             for output in self.tensors:
@@ -75,6 +90,7 @@ class Evaluator(object):
             The mean average result per tensor over the entire dataset.
 
         """
+        tflearn.is_training(False, self.session)
         coord = tf.train.Coordinator()
         inputs = tf.get_collection(tf.GraphKeys.INPUTS)
         # Data Preprocessing
