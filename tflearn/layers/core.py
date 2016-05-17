@@ -367,8 +367,8 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
 def highway(incoming, n_units, activation='linear',
                     weights_init='truncated_normal', bias_init='zeros',
                     regularizer=None, weight_decay=0.001, trainable=True,
-                    restore=True, name="Highway"):
-    """ Fully Connected.
+                    restore=True, name="FullyConnectedHighway"):
+    """ Fully Connected Highway.
 
     A fully connected highway network layer, with some inspiration from
     [https://github.com/fomorians/highway-fcn](https://github.com/fomorians/highway-fcn).
@@ -395,7 +395,7 @@ def highway(incoming, n_units, activation='linear',
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
             loading a model
-         name: A name for this layer (optional). Default: 'FullyCoHighwaynnected'.
+         name: A name for this layer (optional). Default: 'FullyConnectedHighway'.
 
     Attributes:
         scope: `Scope`. This layer scope.
