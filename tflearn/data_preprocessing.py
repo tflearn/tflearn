@@ -37,6 +37,11 @@ class DataPreprocessing(object):
                 batch = m(batch)
         return batch
 
+    def restore_params(self, session):
+        self.global_mean.is_restored(session)
+        self.global_std.is_restored(session)
+        self.global_pc.is_restored(session)
+
     def initialize(self, dataset, session, limit=None):
         """ Initialize preprocessing methods that pre-requires
         calculation over entire dataset. """

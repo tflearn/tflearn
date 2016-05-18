@@ -248,7 +248,9 @@ class SequenceGenerator(object):
         self.session = self.trainer.session
         self.predictor = Evaluator([self.net],
                                    session=self.session,
-                                   model=model_file)
+                                   model=None)
+        for d in tf.get_collection(tf.GraphKeys.DATA_PREP):
+            if d: d.restore_params(self.session)
 
     def get_weights(self, weight_tensor):
         """ Get weights.

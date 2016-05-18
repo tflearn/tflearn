@@ -224,6 +224,8 @@ class DNN(object):
         self.predictor = Evaluator([self.net],
                                    session=self.session,
                                    model=None)
+        for d in tf.get_collection(tf.GraphKeys.DATA_PREP):
+            if d: d.restore_params(self.session)
 
     def get_weights(self, weight_tensor):
         """ Get Weights.
