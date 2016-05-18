@@ -32,6 +32,7 @@ testX, testY = test
 # Data preprocessing
 # Sequence padding
 trainX = pad_sequences(trainX, maxlen=200, value=0.)
+valX = pad_sequences(valX, maxlen=200, value=0.)
 testX = pad_sequences(testX, maxlen=200, value=0.)
 # Converting labels to binary vectors
 trainY = to_categorical(trainY, nb_classes=2)
