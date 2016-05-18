@@ -17,7 +17,7 @@ from __future__ import division, print_function, absolute_import
 import tflearn
 from tflearn.layers.core import input_data, dropout, fully_connected
 from tflearn.layers.conv import highway_conv_2d, max_pool_2d
-from tflearn.layers.normalization import local_response_normalization
+from tflearn.layers.normalization import local_response_normalization, batch_normalization
 from tflearn.layers.estimator import regression
 
 # Data loading and preprocessing
@@ -30,15 +30,14 @@ testX = testX.reshape([-1, 28, 28, 1])
 network = input_data(shape=[None, 28, 28, 1], name='input')
 #highway convolutions with pooling and dropout
 for i in range(3):
-    for j in range(3): 
-        network = highway_conv_2d(network, 16, 3, activation='elu')
+    for j in [3, 2, 1]: 
+        network = highway_conv_2d(network, 16, j, activation='elu')
     network = max_pool_2d(network, 2)
-    network = local_response_normalization(network)
+    network = batch_normalization(network)
+    print(network)
     
-network = fully_connected(network, 128, activation='tanh')
-network = dropout(network, 0.8)
-network = fully_connected(network, 256, activation='tanh')
-network = dropout(network, 0.8)
+network = fully_connected(network, 128, activation='elu')
+network = fully_connected(network, 256, activation='elu')
 network = fully_connected(network, 10, activation='softmax')
 network = regression(network, optimizer='adam', learning_rate=0.01,
                      loss='categorical_crossentropy', name='target')
