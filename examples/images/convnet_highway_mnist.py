@@ -34,7 +34,6 @@ for i in range(3):
         network = highway_conv_2d(network, 16, j, activation='elu')
     network = max_pool_2d(network, 2)
     network = batch_normalization(network)
-    print(network)
     
 network = fully_connected(network, 128, activation='elu')
 network = fully_connected(network, 256, activation='elu')
