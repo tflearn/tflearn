@@ -451,7 +451,7 @@ def highway(incoming, n_units, activation='linear',
         if isinstance(activation, str):
             activation = activations.get(activation)
         elif hasattr(activation, '__call__'):
-            activation = activation(inference)
+            activation = activation
         else:
             raise ValueError("Invalid Activation.")
             
