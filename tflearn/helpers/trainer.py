@@ -191,8 +191,12 @@ class Trainer(object):
 
         with self.graph.as_default():
 
-            self.summ_writer = tf.train.SummaryWriter(
-                self.tensorboard_dir + run_id, self.session.graph)
+            try:
+                self.summ_writer = tf.train.SummaryWriter(
+                    self.tensorboard_dir + run_id, self.session.graph)
+            except Exception: # TF 0.7
+                self.summ_writer = tf.train.SummaryWriter(
+                    self.tensorboard_dir + run_id, self.session.graph_def)
 
             feed_dicts = to_list(feed_dicts)
             for d in feed_dicts: standarize_dict(d)
