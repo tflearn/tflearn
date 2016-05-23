@@ -185,11 +185,12 @@ class FeedDictFlow(DataFlow):
             if self.daug_dict:
                 for k in self.daug_dict:
                     data[k] = self.daug_dict[k].apply(data[k])
-            self.feed_dict_queue.put(data)
             # Apply preprocessing according to dprep dict
             if self.dprep_dict:
                 for k in self.dprep_dict:
                     data[k] = self.dprep_dict[k].apply(data[k])
+            #all prepped, put the data into the queue
+            self.feed_dict_queue.put(data)
 
     def fill_batch_ids_queue(self):
         while not self.coord.should_stop() and not self.interrupted:
