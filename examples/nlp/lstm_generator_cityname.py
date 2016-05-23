@@ -15,7 +15,7 @@ if not os.path.isfile(path):
 maxlen = 20
 
 X, Y, char_idx = \
-    textfile_to_semi_redundant_sequences(path, seq_maxlen=maxlen, redun_step=3, to_lower_case=True)
+    textfile_to_semi_redundant_sequences(path, seq_maxlen=maxlen, redun_step=3)
 
 g = tflearn.input_data(shape=[None, maxlen, len(char_idx)])
 g = tflearn.lstm(g, 512, return_seq=True)
