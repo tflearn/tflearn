@@ -3,6 +3,10 @@ from __future__ import division, print_function, absolute_import
 
 import random
 import numpy as np
+try:
+    import scipy.ndimage
+except Exception:
+    print("Scipy not supported!")
 
 
 class DataAugmentation(object):
@@ -97,13 +101,39 @@ class ImageAugmentation(DataAugmentation):
         self.methods.append(self._random_flip_leftright)
         self.args.append(None)
 
-    def add_random_rotation(self):
-        self.methods.append(self._random_rotation)
-        self.args.append(None)
+    def add_random_rotation(self, max_angle=20.):
+        """ add_random_rotation.
 
-    def add_random_blur(self):
+        Randomly rotate an image by a random angle (-`max_angle`, `max_angle`).
+
+        Arguments:
+            max_angle: `float`. The maximum rotation angle.
+
+        Returns:
+            Nothing.
+
+        """
+        self.methods.append(self._random_rotation)
+        self.args.append([max_angle])
+
+    def add_random_blur(self, sigma_max=5.):
+        """ add_random_blur.
+
+        Randomly blur an image by applying a gaussian filter with a random
+        sigma (0., `sigma_max`).
+
+        Arguments:
+            sigma: `float` or list of `float`. Standard deviation for Gaussian
+                kernel. The standard deviations of the Gaussian filter are
+                given for each axis as a sequence, or as a single number,
+                in which case it is equal for all axes.
+
+        Returns:
+            Nothing.
+
+        """
         self.methods.append(self._random_blur)
-        self.args.append(None)
+        self.args.append([sigma_max])
 
     # --------------------------
     #  Augmentation Computation
@@ -136,11 +166,23 @@ class ImageAugmentation(DataAugmentation):
                 batch[i] = np.flipud(batch[i])
         return batch
 
-    def _random_rotation(self, batch):
-        raise NotImplementedError
+    def _random_rotation(self, batch, max_angle):
+        for i in range(len(batch)):
+            if bool(random.getrandbits(1)):
+                # Random angle
+                angle = random.uniform(-max_angle, max_angle)
+                batch[i] = scipy.ndimage.interpolation.rotate(batch[i], angle,
+                                                              reshape=False)
+        return batch
 
-    def _random_blur(self, batch):
-        raise NotImplementedError
+    def _random_blur(self, batch, sigma_max):
+        for i in range(len(batch)):
+            if bool(random.getrandbits(1)):
+                # Random sigma
+                sigma = random.uniform(0., sigma_max)
+                batch[i] = \
+                    scipy.ndimage.filters.gaussian_filter(batch[i], sigma)
+        return batch
 
 
 class SequenceAugmentation(DataAugmentation):
