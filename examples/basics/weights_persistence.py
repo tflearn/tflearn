@@ -73,4 +73,4 @@ print(model.get_weights(dense2.W))
 # Or using generic tflearn function:
 print("Dense2 layer biases:")
 with model.session.as_default():
-    print(tflearn.variables.get_value(dense2.W))
+    print(tflearn.variables.get_value(dense2.b))
