@@ -59,13 +59,12 @@ def build_class_directories(dir):
     if not os.path.exists(class_dir):
         os.mkdir(class_dir)
     for i in range(1, 1361):
+        fname = "image_" + ("%.4i" % i) + ".jpg"
+        os.rename(os.path.join(dir, fname), os.path.join(class_dir, fname))
         if i % 80 == 0 and dir_id < 16:
             dir_id += 1
             class_dir = os.path.join(dir, str(dir_id))
             os.mkdir(class_dir)
-        fname = "image_" + ("%.4i" % i) + ".jpg"
-        os.rename(os.path.join(dir, fname),
-                  os.path.join(class_dir, fname))
 
 
 def untar(fname, extract_dir):
