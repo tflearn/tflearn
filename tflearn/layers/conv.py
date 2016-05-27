@@ -104,11 +104,12 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     return inference
 
 
-def conv_2d_transpose(incoming, nb_filter, filter_size, strides=1,
-                      padding='same', activation='linear', bias=True,
-                      weights_init='uniform_scaling', bias_init='zeros',
-                      regularizer=None, weight_decay=0.001, trainable=True,
-                      restore=True, name="Conv2DTranspose"):
+def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
+                      strides=1, padding='same', activation='linear',
+                      bias=True, weights_init='uniform_scaling',
+                      bias_init='zeros', regularizer=None,
+                      weight_decay=0.001, trainable=True, restore=True,
+                      name="Conv2DTranspose"):
     """ Convolution 2D Transpose.
 
     This operation is sometimes called "deconvolution" after (Deconvolutional
@@ -125,8 +126,10 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, strides=1,
     Arguments:
         incoming: `Tensor`. Incoming 4-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
-        filter_size: 'int` or list of `ints`. Size of filters.
-        strides: 'int` or list of `ints`. Strides of conv operation.
+        filter_size: `int` or list of `ints`. Size of filters.
+        output_shape: `Tensor`. Shape of 3-D output tensor 
+            [new height, new width, nb_filter].
+        strides: `int` or list of `ints`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -154,8 +157,8 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, strides=1,
     """
     input_shape = utils.get_incoming_shape(incoming)
     filter_size = utils.autoformat_filter_conv2d(filter_size,
-                                                 input_shape[-1],
-                                                 nb_filter)
+                                                 nb_filter,
+                                                 input_shape[-1])
     strides = utils.autoformat_kernel_2d(strides)
     padding = utils.autoformat_padding(padding)
 
@@ -180,7 +183,17 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, strides=1,
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
 
-        inference = tf.nn.conv2d_transpose(incoming, W, strides, padding)
+        # Determine the complete shape of the output tensor.
+        batch_size = tf.gather(tf.shape(incoming), tf.constant([0]))
+        complete_out_shape = tf.concat(0,
+                                       [batch_size, tf.constant(output_shape)])
+ 
+        inference = tf.nn.conv2d_transpose(incoming, W, complete_out_shape,
+                                           strides, padding)
+        
+        # Reshape tensor so its shape is correct.
+        inference.set_shape([None] + output_shape)
+
         if b: inference = tf.nn.bias_add(inference, b)
 
         if isinstance(activation, str):
