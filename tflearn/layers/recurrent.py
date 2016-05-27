@@ -25,8 +25,8 @@ from .. import initializations
 
 def simple_rnn(incoming, n_units, activation='sigmoid', bias=True,
                weights_init='truncated_normal', return_seq=False,
-               return_states=False, initial_state=None, trainable=True,
-               restore=True, name="SimpleRNN"):
+               return_states=False, initial_state=None, sequence_length=None,
+               trainable=True, restore=True, name="SimpleRNN"):
     """ Simple RNN.
 
     Simple Recurrent Layer.
@@ -53,6 +53,11 @@ def simple_rnn(incoming, n_units, activation='sigmoid', bias=True,
             states: (output, states).
         initial_state: `Tensor`. An initial state for the RNN.  This must be
             a tensor of appropriate type and shape [batch_size x cell.state_size].
+        sequence_length: Specifies the length of each sequence in inputs.
+            An int32 or int64 vector (tensor) size `[batch_size]`.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model.
         name: `str`. A name for this layer (optional).
 
     """
@@ -82,7 +87,8 @@ def simple_rnn(incoming, n_units, activation='sigmoid', bias=True,
                                  cell.b)
 
         outputs, states = _rnn(cell, inference, dtype=tf.float32,
-                               initial_state=initial_state, scope=scope[:-1])
+                               initial_state=initial_state, scope=scope[:-1],
+                               sequence_length=sequence_length)
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, outputs[-1])
@@ -96,7 +102,7 @@ def simple_rnn(incoming, n_units, activation='sigmoid', bias=True,
 def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
          bias=True, weights_init='truncated_normal', forget_bias=1.0,
          return_seq=False, return_states=False, initial_state=None,
-         trainable=True, restore=True, name="LSTM"):
+         sequence_length=None, trainable=True, restore=True, name="LSTM"):
     """ LSTM.
 
     Long Short Term Memory Recurrent Layer.
@@ -126,6 +132,11 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
             states: (output, states).
         initial_state: `Tensor`. An initial state for the RNN.  This must be
             a tensor of appropriate type and shape [batch_size x cell.state_size].
+        sequence_length: Specifies the length of each sequence in inputs.
+            An int32 or int64 vector (tensor) size `[batch_size]`.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model.
         name: `str`. A name for this layer (optional).
 
     References:
@@ -155,7 +166,8 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
             inference = tf.unpack(inference)
 
         outputs, states = _rnn(cell, inference, dtype=tf.float32,
-                               initial_state=initial_state, scope=scope[:-1])
+                               initial_state=initial_state, scope=scope[:-1],
+                               sequence_length=sequence_length)
         # Track per layer variables
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, cell.W)
         if bias:
@@ -172,8 +184,8 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
 
 def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
         bias=True, weights_init='truncated_normal', return_seq=False,
-        return_states=False, initial_state=None, trainable=True,
-        restore=True, name="GRU"):
+        return_states=False, initial_state=None, sequence_length=None,
+        trainable=True, restore=True, name="GRU"):
     """ GRU.
 
     Gated Recurrent Unit Layer.
@@ -202,6 +214,11 @@ def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
             states: (output, states).
         initial_state: `Tensor`. An initial state for the RNN.  This must be
             a tensor of appropriate type and shape [batch_size x cell.state_size].
+        sequence_length: Specifies the length of each sequence in inputs.
+            An int32 or int64 vector (tensor) size `[batch_size]`.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model.
         name: `str`. A name for this layer (optional).
 
     References:
@@ -231,7 +248,8 @@ def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
             inference = tf.unpack(inference)
 
         outputs, states = _rnn(cell, inference, dtype=tf.float32,
-                               initial_state=initial_state, scope=scope[:-1])
+                               initial_state=initial_state, scope=scope[:-1],
+                               sequence_length=sequence_length)
 
         # Track per layer variables
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
@@ -254,7 +272,8 @@ def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
 
 def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
                       return_states=False, initial_state_fw=None,
-                      initial_state_bw=None, name="BidirectionalRNN"):
+                      initial_state_bw=None, sequence_length=None,
+                      name="BidirectionalRNN"):
     """ Bidirectional RNN.
 
     Build a bidirectional recurrent neural network, it requires 2 RNN Cells
@@ -283,6 +302,8 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
         initial_state_bw: `Tensor`. An initial state for the backward RNN.
             This must be a tensor of appropriate type and shape [batch_size
             x cell.state_size].
+        sequence_length: Specifies the length of each sequence in inputs.
+            An int32 or int64 vector (tensor) size `[batch_size]`.
         name: `str`. A name for this layer (optional).
 
     """
@@ -305,6 +326,7 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
             rnncell_fw, rnncell_bw, inference,
             initial_state_fw=initial_state_fw,
             initial_state_bw=initial_state_bw,
+            sequence_length=sequence_length,
             scope="BiRNN")
 
         c = tf.GraphKeys.LAYER_VARIABLES

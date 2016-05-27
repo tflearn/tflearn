@@ -104,7 +104,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
        trainable: `bool`. If True, weights will be trainable.
        restore: `bool`. If True, this layer weights will be restored when
-            loading a model
+            loading a model.
        name: A name for this layer (optional). Default: 'FullyConnected'.
 
     Attributes:
