@@ -104,11 +104,11 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     return inference
 
 
-def conv_2d_transpose(incoming, nb_filter, filter_size, strides=1,
-                      padding='same', activation='linear', bias=True,
-                      weights_init='uniform_scaling', bias_init='zeros',
-                      regularizer=None, weight_decay=0.001, trainable=True,
-                      restore=True, name="Conv2DTranspose"):
+def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
+                      strides=1, padding='same', activation='linear',
+                      bias=True, weights_init='uniform_scaling',
+                      bias_init='zeros', regularizer=None, weight_decay=0.001,
+                      trainable=True, restore=True, name="Conv2DTranspose"):
     """ Convolution 2D Transpose.
 
     This operation is sometimes called "deconvolution" after (Deconvolutional
@@ -126,6 +126,8 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, strides=1,
         incoming: `Tensor`. Incoming 4-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
         filter_size: 'int` or list of `ints`. Size of filters.
+        output_shape: 'int` or list of `ints`. Represents the output shape of
+            the deconvolution op.
         strides: 'int` or list of `ints`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
@@ -154,8 +156,8 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, strides=1,
     """
     input_shape = utils.get_incoming_shape(incoming)
     filter_size = utils.autoformat_filter_conv2d(filter_size,
-                                                 input_shape[-1],
-                                                 nb_filter)
+                                                 nb_filter,
+                                                 input_shape[-1])
     strides = utils.autoformat_kernel_2d(strides)
     padding = utils.autoformat_padding(padding)
 
@@ -180,7 +182,8 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, strides=1,
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
 
-        inference = tf.nn.conv2d_transpose(incoming, W, strides, padding)
+        inference = tf.nn.conv2d_transpose(incoming, W, output_shape, strides,
+                                           padding)
         if b: inference = tf.nn.bias_add(inference, b)
 
         if isinstance(activation, str):
@@ -366,8 +369,8 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     # strides = [1, strides[1], 1, 1]
     strides[1] = 1
     padding = utils.autoformat_padding(padding)
-    
-    
+
+
 
     with tf.name_scope(name) as scope:
 
@@ -622,7 +625,7 @@ def deep_residual_block(incoming, nb_blocks, bottleneck_size, out_channels,
                     # accept kernel size < strides.
                     identity = avg_pool_2d(identity, downsample_strides,
                                            downsample_strides)
-                    
+
                 # Projection to new dimension
                 if in_channels != out_channels:
                     in_channels = out_channels
@@ -823,8 +826,8 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
             W_T = vs.variable(transform_gate + 'W', shape=nb_filter,
                             regularizer=None, initializer=W_init,
                             trainable=trainable, restore=restore)
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + transform_gate, W_T) 
-            
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + transform_gate, W_T)
+
             b_T = vs.variable(transform_gate + 'b', shape=nb_filter,
                             initializer=tf.constant_initializer(-1), trainable=trainable,
                             restore=restore)
@@ -836,7 +839,7 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
             activation = activation
         else:
             raise ValueError("Invalid Activation.")
-            
+
         #shared convolution for gating
         convolved = tf.nn.conv2d(incoming, W, strides, padding)
         H = activation(convolved + b)
@@ -855,7 +858,7 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     inference.b_T = b_T
 
     return inference
-    
+
 def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
             activation='linear', weights_init='uniform_scaling',
             bias_init='zeros', regularizer=None, weight_decay=0.001,
@@ -923,8 +926,8 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
                         trainable=trainable, restore=restore)
         # Track per layer variables
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
-        
-        
+
+
 
         b_init = initializations.get(bias_init)()
         b = vs.variable(scope + 'b', shape=nb_filter,
@@ -937,8 +940,8 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
             W_T = vs.variable(transform_gate + 'W', shape=nb_filter,
                             regularizer=None, initializer=W_init,
                             trainable=trainable, restore=restore)
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + transform_gate, W_T) 
-            
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + transform_gate, W_T)
+
             b_T = vs.variable(transform_gate + 'b', shape=nb_filter,
                             initializer=tf.constant_initializer(-1), trainable=trainable,
                             restore=restore)
@@ -950,7 +953,7 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
             activation = activation
         else:
             raise ValueError("Invalid Activation.")
-            
+
         # Adding dummy dimension to fit with Tensorflow conv2d
         inference = tf.expand_dims(incoming, 2)
         #shared convolution for gating
@@ -961,7 +964,7 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         Q = tf.mul(H, T)
         R = tf.mul(tf.squeeze(convolved, [2]), C)
         inference = tf.add(Q, R)
-        
+
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
 
