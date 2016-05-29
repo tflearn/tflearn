@@ -61,7 +61,6 @@ class TestLayers(unittest.TestCase):
         Y = [[1., 0.], [0., 1.], [1., 0.], [0., 1.]]
 
         with tf.Graph().as_default():
-            from tflearn import utils
             g = tflearn.input_data(shape=[None, 4])
             g = tflearn.reshape(g, new_shape=[-1, 2, 2, 1])
             g = tflearn.conv_2d(g, 4, 2)
