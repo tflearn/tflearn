@@ -26,7 +26,7 @@ def load_data(dirname="17flowers", resize_pics=(224, 224), shuffle=True,
                                  dirname)
 
     X, Y = build_image_dataset_from_dir('17flowers/jpg/',
-                                        dataset_file="17flowers.pkl",
+                                        dataset_file=dataset_file,
                                         resize=resize_pics,
                                         filetypes=['.jpg', '.jpeg'],
                                         convert_gray=False,

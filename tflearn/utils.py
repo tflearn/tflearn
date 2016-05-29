@@ -346,11 +346,10 @@ def autoformat_kernel_2d(strides):
         elif len(strides) == 4:
             return [strides[0], strides[1], strides[2], strides[3]]
         else:
-            if type(strides) in [tuple, list]:
-                raise Exception("strides length error: " + str(len(strides))
-                                + ", only a length of 2 or 4 is supported.")
-            else:
-                raise Exception("strides format error: " + str(type(strides)))
+            raise Exception("strides length error: " + str(len(strides))
+                            + ", only a length of 2 or 4 is supported.")
+    else:
+        raise Exception("strides format error: " + str(type(strides)))
 
 
 # Auto format filter size
@@ -362,11 +361,10 @@ def autoformat_filter_conv2d(fsize, in_depth, out_depth):
         if len(fsize) == 2:
             return [fsize[0], fsize[1], in_depth, out_depth]
         else:
-            if type(fsize) in [tuple, list]:
-                raise Exception("filter length error: " + str(len(fsize))
-                                + ", only a length of 2 or 4 is supported.")
-            else:
-                raise Exception("filter format error: " + str(type(fsize)))
+            raise Exception("filter length error: " + str(len(fsize))
+                            + ", only a length of 2 is supported.")
+    else:
+        raise Exception("filter format error: " + str(type(fsize)))
 
 
 # Auto format padding
