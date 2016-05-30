@@ -65,14 +65,22 @@ class TestLayers(unittest.TestCase):
             g = tflearn.reshape(g, new_shape=[-1, 2, 2, 1])
             g = tflearn.conv_2d(g, 4, 2)
             g = tflearn.conv_2d(g, 4, 1)
-            g = tflearn.conv_2d_transpose(g, 4, 2, [2, 2, 4])
             g = tflearn.max_pool_2d(g, 2)
             g = tflearn.fully_connected(g, 2, activation='softmax')
             g = tflearn.regression(g, optimizer='sgd', learning_rate=1.)
 
             m = tflearn.DNN(g)
-            m.fit(X, Y, n_epoch=500, snapshot_epoch=False)
+            m.fit(X, Y, n_epoch=300, snapshot_epoch=False)
             self.assertGreater(m.predict([[1., 0., 0., 0.]])[0][0], 0.9)
+
+        # Bulk Tests
+        with tf.Graph().as_default():
+            g = tflearn.input_data(shape=[None, 4])
+            g = tflearn.reshape(g, new_shape=[-1, 2, 2, 1])
+            g = tflearn.conv_2d(g, 4, 2)
+            g = tflearn.conv_2d(g, 4, 1)
+            g = tflearn.conv_2d_transpose(g, 4, 2, [2, 2, 4])
+            g = tflearn.max_pool_2d(g, 2)
 
     def test_recurrent_layers(self):
 
@@ -87,7 +95,7 @@ class TestLayers(unittest.TestCase):
             g = tflearn.regression(g, optimizer='sgd', learning_rate=1.)
 
             m = tflearn.DNN(g)
-            m.fit(X, Y, n_epoch=500, snapshot_epoch=False)
+            m.fit(X, Y, n_epoch=300, snapshot_epoch=False)
             self.assertGreater(m.predict([[5, 9, 11, 1]])[0][1], 0.9)
 
 if __name__ == "__main__":
