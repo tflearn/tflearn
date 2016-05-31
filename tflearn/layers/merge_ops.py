@@ -36,8 +36,7 @@ def merge(tensors_list, mode, axis=1, name="Merge"):
 
     """
 
-    if len(tensors_list) < 2:
-        raise Exception("Merge required 2 or more tensors.")
+    assert len(tensors_list) > 1, "Merge required 2 or more tensors."
 
     with tf.name_scope(name) as scope:
         tensors = [l for l in tensors_list]

@@ -114,6 +114,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
 
     """
     input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) > 1, "Incoming Tensor shape must be at least 2-D"
     n_inputs = int(np.prod(input_shape[1:]))
 
     # Build variables and inference.
@@ -266,7 +267,8 @@ def flatten(incoming, name="Flatten"):
         incoming: `Tensor`. The incoming tensor.
 
     """
-    input_shape = tflearn.utils.get_incoming_shape(incoming)
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) > 1, "Incoming Tensor shape must be at least 2-D"
     dims = int(np.prod(input_shape[1:]))
     return reshape(incoming, [-1, dims], name)
 
@@ -365,9 +367,9 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
     
     
 def highway(incoming, n_units, activation='linear',
-                    weights_init='truncated_normal', bias_init='zeros',
-                    regularizer=None, weight_decay=0.001, trainable=True,
-                    restore=True, name="FullyConnectedHighway"):
+            weights_init='truncated_normal', bias_init='zeros',
+            regularizer=None, weight_decay=0.001, trainable=True,
+            restore=True, name="FullyConnectedHighway"):
     """ Fully Connected Highway.
 
     A fully connected highway network layer, with some inspiration from
@@ -409,6 +411,7 @@ def highway(incoming, n_units, activation='linear',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) > 1, "Incoming Tensor shape must be at least 2-D"
     n_inputs = int(np.prod(input_shape[1:]))
 
     # Build variables and inference.

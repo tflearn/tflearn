@@ -53,7 +53,11 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         b: `Variable`. Variable representing biases.
 
     """
+    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
+        "Padding must be same' or 'valid'"
+
     input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
@@ -155,7 +159,12 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
         b: `Variable`. Variable representing biases.
 
     """
+    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
+        "Padding must be same' or 'valid'"
+
     input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  nb_filter,
                                                  input_shape[-1])
@@ -233,6 +242,7 @@ def upsample_2d(incoming, kernel_size, name="UpSample2D"):
 
     """
     input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
     kernel = utils.autoformat_kernel_2d(kernel_size)
 
     with tf.name_scope(name) as scope:
@@ -270,6 +280,11 @@ def max_pool_2d(incoming, kernel_size, strides=None, padding='same',
         scope: `Scope`. This layer scope.
 
     """
+    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
+        "Padding must be same' or 'valid'"
+
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
 
     kernel = utils.autoformat_kernel_2d(kernel_size)
     strides = utils.autoformat_kernel_2d(strides) if strides else kernel
@@ -310,6 +325,11 @@ def avg_pool_2d(incoming, kernel_size, strides=None, padding='same',
         scope: `Scope`. This layer scope.
 
     """
+    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
+        "Padding must be same' or 'valid'"
+
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
 
     kernel = utils.autoformat_kernel_2d(kernel_size)
     strides = utils.autoformat_kernel_2d(strides) if strides else kernel
@@ -369,7 +389,11 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         b: `Variable`. Variable representing biases.
 
     """
+    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
+        "Padding must be same' or 'valid'"
+
     input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D"
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
@@ -379,8 +403,6 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     # strides = [1, strides[1], 1, 1]
     strides[1] = 1
     padding = utils.autoformat_padding(padding)
-
-
 
     with tf.name_scope(name) as scope:
 
@@ -450,6 +472,11 @@ def max_pool_1d(incoming, kernel_size, strides=None, padding='same',
         scope: `Scope`. This layer scope.
 
     """
+    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
+        "Padding must be same' or 'valid'"
+
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D"
 
     kernel = utils.autoformat_kernel_2d(kernel_size)
     kernel = [1, kernel[1], 1, 1]
@@ -494,6 +521,11 @@ def avg_pool_1d(incoming, kernel_size, strides=None, padding='same',
         scope: `Scope`. This layer scope.
 
     """
+    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
+        "Padding must be same' or 'valid'"
+
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D"
 
     kernel = utils.autoformat_kernel_2d(kernel_size)
     kernel = [1, kernel[1], 1, 1]
@@ -528,7 +560,8 @@ def global_avg_pool(incoming, name="GlobalAvgPool"):
         name: A name for this layer (optional). Default: 'GlobalAvgPool'.
 
     """
-    assert len(utils.get_incoming_shape(incoming)) == 4
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
 
     with tf.name_scope(name):
         return tf.reduce_mean(incoming, [1, 2])
@@ -761,10 +794,11 @@ def shallow_residual_block(incoming, nb_blocks, out_channels,
 
     return resnet
 
+
 def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
-            activation='linear', weights_init='uniform_scaling',
-            bias_init='zeros', regularizer=None, weight_decay=0.001,
-            trainable=True, restore=True, name="HighwayConv2D"):
+                    activation='linear', weights_init='uniform_scaling',
+                    bias_init='zeros', regularizer=None, weight_decay=0.001,
+                    trainable=True, restore=True, name="HighwayConv2D"):
     """ Highway Network Convolution 2D.
 
     Input:
@@ -804,7 +838,11 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         b_T: `Variable`. Variable representing gate biases.
 
     """
+    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
+        "Padding must be same' or 'valid'"
+
     input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
@@ -869,10 +907,11 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
     return inference
 
+
 def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
-            activation='linear', weights_init='uniform_scaling',
-            bias_init='zeros', regularizer=None, weight_decay=0.001,
-            trainable=True, restore=True, name="HighwayConv1D"):
+                    activation='linear', weights_init='uniform_scaling',
+                    bias_init='zeros', regularizer=None, weight_decay=0.001,
+                    trainable=True, restore=True, name="HighwayConv1D"):
     """ Highway Convolution 1D.
 
     Input:
@@ -912,7 +951,11 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         b_T: `Variable`. Variable representing gate biases.
 
     """
+    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
+        "Padding must be same' or 'valid'"
+
     input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D"
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
@@ -986,4 +1029,3 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     inference.b_T = b_T
 
     return inference
-

@@ -16,13 +16,13 @@ def embedding(incoming, input_dim, output_dim, weights_init='truncated_normal',
     Embedding layer for a sequence of ids.
 
     Input:
-        2-D Tensor (List of ids).
+        2-D Tensor [samples, ids].
 
     Output:
-        2-D Tensor.
+        3-D Tensor [samples, embedded_ids, features].
 
     Arguments:
-        incoming: Incoming 2D Tensor.
+        incoming: Incoming 2-D Tensor.
         input_dim: list of `int`. Vocabulary size (number of ids).
         output_dim: list of `int`. Embedding size.
         weights_init: `str` (name) or `Tensor`. Weights initialization.
@@ -35,6 +35,7 @@ def embedding(incoming, input_dim, output_dim, weights_init='truncated_normal',
     """
 
     input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 2, "Incoming Tensor shape must be 2-D"
     n_inputs = int(np.prod(input_shape[1:]))
 
     W_init = weights_init
