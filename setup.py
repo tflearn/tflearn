@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 from setuptools import setup, find_packages
 
-setup(name='TFLearn',
-      version='0.1',
+setup(name='tflearn',
+      version='0.2.0',
       description='Deep Learning Library featuring a higher-level API for '
                   'Tensorflow',
       author='TFLearn contributors',
       author_email='aymeric.damien@gmail.com',
       url='https://github.com/tflearn/tflearn',
-      download_url='https://github.com/tflearn/tflearn/tarball/0.1.0',
+      download_url='https://github.com/tflearn/tflearn/tarball/0.2.0',
       license='MIT',
       packages=find_packages(),
       install_requires=[
