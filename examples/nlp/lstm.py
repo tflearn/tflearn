@@ -42,7 +42,7 @@ testY = to_categorical(testY, nb_classes=2)
 # Network building
 net = tflearn.input_data([None, 200])
 net = tflearn.embedding(net, input_dim=20000, output_dim=128)
-net = tflearn.lstm(net, 128)
+net = tflearn.lstm(net, 128, dropout=0.8)
 net = tflearn.dropout(net, 0.5)
 net = tflearn.fully_connected(net, 2, activation='softmax')
 net = tflearn.regression(net, optimizer='adam',
