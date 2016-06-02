@@ -395,7 +395,7 @@ summary_op = s.summarize_activations(collection='my_summaries')
 
 ### Regularizers
 
-Add regularization to a model can be completed using TFLearn [regularizer](http://tflearn.org/helpers/regularizers). It currently supports weights and activation regularization. Available regularization losses can be found in [here](http://tflearn.org/losses). All regularization losses are stored into tf.GraphKeys.REGULARIZATION_LOSSES collection.
+Add regularization to a model can be completed using TFLearn [regularizer](http://tflearn.org/helpers/regularizer). It currently supports weights and activation regularization. Available regularization losses can be found in [here](http://tflearn.org/losses). All regularization losses are stored into tf.GraphKeys.REGULARIZATION_LOSSES collection.
 
 ```python
 # Add L2 regularization to a variable
