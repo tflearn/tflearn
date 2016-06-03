@@ -70,7 +70,7 @@ MODULES = [(activations, 'tflearn.activations'),
            (trainer, 'tflearn.helpers.trainer')]
 
 KEYWORDS = ['Input', 'Output', 'Examples', 'Arguments', 'Attributes',
-            'Returns', 'Raises', 'References', 'Links']
+            'Returns', 'Raises', 'References', 'Links', 'Yields']
 
 SKIP = ['get_from_module', 'leakyrelu', 'RNNCell', 'resize_image']
 

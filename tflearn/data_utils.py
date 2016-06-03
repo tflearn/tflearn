@@ -154,6 +154,120 @@ def random_sequence_from_textfile(path, seq_maxlen):
     text = open(path).read()
     return random_sequence_from_string(text, seq_maxlen)
 
+try:
+    from tensorflow.contrib.learn.python.learn.preprocessing.text import \
+        VocabularyProcessor as _VocabularyProcessor
+except Exception:
+    _VocabularyProcessor = object
+
+# Mirroring TensorFLow `VocabularyProcessor`
+class VocabularyProcessor(_VocabularyProcessor):
+    """ VocabularyProcessor.
+
+    Maps documents to sequences of word ids.
+
+    Arguments:
+        max_document_length: Maximum length of documents.
+            if documents are longer, they will be trimmed, if shorter - padded.
+        min_frequency: Minimum frequency of words in the vocabulary.
+        vocabulary: CategoricalVocabulary object.
+
+    Attributes:
+        vocabulary_: CategoricalVocabulary object.
+
+    """
+
+    def __init__(self,
+                 max_document_length,
+                 min_frequency=0,
+                 vocabulary=None,
+                 tokenizer_fn=None):
+        super(VocabularyProcessor, self).__init__(max_document_length,
+                                                  min_frequency,
+                                                  vocabulary,
+                                                  tokenizer_fn)
+
+    def fit(self, raw_documents, unused_y=None):
+        """ fit.
+
+        Learn a vocabulary dictionary of all tokens in the raw documents.
+
+        Arguments:
+            raw_documents: An iterable which yield either str or unicode.
+            unused_y: to match fit format signature of estimators.
+
+        Returns:
+            self
+        """
+        return super(VocabularyProcessor, self).fit(raw_documents, unused_y)
+
+    def fit_transform(self, raw_documents, unused_y=None):
+        """ fit_transform.
+
+        Learn the vocabulary dictionary and return indexies of words.
+
+        Arguments:
+            raw_documents: An iterable which yield either str or unicode.
+            unused_y: to match fit_transform signature of estimators.
+
+        Returns:
+            X: iterable, [n_samples, max_document_length] Word-id matrix.
+        """
+        return super(VocabularyProcessor, self).fit_transform(raw_documents,
+                                                              unused_y)
+
+    def transform(self, raw_documents):
+        """
+
+        Transform documents to word-id matrix.
+
+        Convert words to ids with vocabulary fitted with fit or the one
+        provided in the constructor.
+
+        Arguments:
+            raw_documents: An iterable which yield either str or unicode.
+
+        Yields:
+            X: iterable, [n_samples, max_document_length] Word-id matrix.
+        """
+        return super(VocabularyProcessor, self).transform(raw_documents)
+
+    def reverse(self, documents):
+        """ reverse.
+
+        Reverses output of vocabulary mapping to words.
+
+        Arguments:
+            documents: iterable, list of class ids.
+
+        Returns:
+            Iterator over mapped in words documents.
+        """
+        return super(VocabularyProcessor, self).reverse(documents)
+
+    def save(self, filename):
+        """ save.
+
+        Saves vocabulary processor into given file.
+
+        Arguments:
+            filename: Path to output file.
+        """
+        super(VocabularyProcessor, self).save(filename)
+
+    @classmethod
+    def restore(cls, filename):
+        """ restor.
+
+        Restores vocabulary processor from given file.
+
+        Arguments:
+            filename: Path to file to load from.
+
+        Returns:
+            VocabularyProcessor object.
+        """
+        return super(VocabularyProcessor, cls).restore(filename)
 
 # --------------------
 # IMAGES PREPROCESSING

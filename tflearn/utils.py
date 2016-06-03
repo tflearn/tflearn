@@ -241,20 +241,26 @@ def feed_dict_builder(X, Y, net_inputs, net_targets):
         # If input data are not a dict, we match them by creation order
         if not isinstance(X, dict):
             # If validation split, copy that value to the whole placeholders
-            if isinstance(X, float): X = [X for _i in net_inputs]
+            if isinstance(X, float):
+                X = [X for _i in net_inputs]
             elif len(net_inputs) > 1:
-                if np.ndim(X) < 2:
-                    raise ValueError("Multiple inputs but only one data "
-                                     "feeded. Please verify number of inputs "
-                                     "and data provided match.")
-                elif len(X) != len(net_inputs):
-                    raise Exception(str(len(X)) + " inputs feeded, "
+                try: #TODO: Fix brodcast issue if different
+                    if np.ndim(X) < 2:
+                        raise ValueError("Multiple inputs but only one data "
+                                         "feeded. Please verify number of "
+                                         "inputs and data provided match.")
+                    elif len(X) != len(net_inputs):
+                        raise Exception(str(len(X)) + " inputs feeded, "
                                     "but expected: " + str(len(net_inputs)) +
                                     ". If you are using notebooks, please "
                                     "make sure that you didn't run graph "
                                     "construction cell multiple time, "
                                     "or try to enclose your graph within "
                                     "`with tf.Graph().as_default():`")
+                except Exception:
+                    # Skip verif
+                    pass
+
             else:
                 X = [X]
             for i, x in enumerate(X):
@@ -277,14 +283,19 @@ def feed_dict_builder(X, Y, net_inputs, net_targets):
             if isinstance(Y, float):
                 Y = [Y for _t in net_targets]
             elif len(net_targets) > 1:
-                if np.ndim(Y) < 2:
-                    raise ValueError("Multiple outputs but only one data "
-                                     "feeded. Please verify number of outputs "
-                                     "and data provided match.")
-                elif len(Y) != len(net_targets):
-                    raise Exception(str(len(Y)) + " outputs feeded, "
-                                    "but expected: " + str(len(net_targets)))
-            else: Y = [Y]
+                try: #TODO: Fix brodcast issue if different
+                    if np.ndim(Y) < 2:
+                        raise ValueError("Multiple outputs but only one data "
+                                         "feeded. Please verify number of outputs "
+                                         "and data provided match.")
+                    elif len(Y) != len(net_targets):
+                        raise Exception(str(len(Y)) + " outputs feeded, "
+                                        "but expected: " + str(len(net_targets)))
+                except Exception:
+                    # skip verif
+                    pass
+            else:
+                Y = [Y]
             for i, y in enumerate(Y):
                 feed_dict[net_targets[i]] = y
         else:
