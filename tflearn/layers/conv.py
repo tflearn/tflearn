@@ -799,7 +799,7 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
                     activation='linear', weights_init='uniform_scaling',
                     bias_init='zeros', regularizer=None, weight_decay=0.001,
                     trainable=True, restore=True, name="HighwayConv2D"):
-    """ Highway Network Convolution 2D.
+    """ Highway Convolution 2D.
 
     Input:
         4-D Tensor [batch, height, width, in_channels].

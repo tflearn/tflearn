@@ -45,7 +45,7 @@ def simple_rnn(incoming, n_units, activation='sigmoid', dropout=None,
         activation: `str` (name) or `function` (returning a `Tensor`).
             Activation applied to this layer (see tflearn.activations).
             Default: 'linear'.
-        dropout: `tuple` of `float`: (input_keep_prob, out_keep_prob). The
+        dropout: `tuple` of `float`: (input_keep_prob, output_keep_prob). The
             input and output keep probability.
         bias: `bool`. If True, a bias is used.
         weights_init: `str` (name) or `Tensor`. Weights initialization.
@@ -138,7 +138,7 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
             Default: 'sigmoid'.
         inner_activation: `str` (name) or `function` (returning a `Tensor`).
             LSTM inner activation. Default: 'tanh'.
-        dropout: `tuple` of `float`: (input_keep_prob, out_keep_prob). The
+        dropout: `tuple` of `float`: (input_keep_prob, output_keep_prob). The
             input and output keep probability.
         bias: `bool`. If True, a bias is used.
         weights_init: `str` (name) or `Tensor`. Weights initialization.
@@ -236,7 +236,7 @@ def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
             Default: 'sigmoid'.
         inner_activation: `str` (name) or `function` (returning a `Tensor`).
             GRU inner activation. Default: 'tanh'.
-        dropout: `tuple` of `float`: (input_keep_prob, out_keep_prob). The
+        dropout: `tuple` of `float`: (input_keep_prob, output_keep_prob). The
             input and output keep probability.
         bias: `bool`. If True, a bias is used.
         weights_init: `str` (name) or `Tensor`. Weights initialization.
