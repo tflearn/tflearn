@@ -131,8 +131,9 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
         incoming: `Tensor`. Incoming 4-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
         filter_size: `int` or list of `ints`. Size of filters.
-        output_shape: `Tensor`. Shape of 3-D output tensor 
-            [new height, new width, nb_filter].
+        output_shape: `list of ints`. Dimensions of the output tensor.
+            Can optionally include the number of conv filters.
+            [new height, new width, nb_filter] or [new height, new width].
         strides: `int` or list of `ints`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
@@ -194,8 +195,13 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
 
         # Determine the complete shape of the output tensor.
         batch_size = tf.gather(tf.shape(incoming), tf.constant([0]))
-        complete_out_shape = tf.concat(0,
-                                       [batch_size, tf.constant(output_shape)])
+        if len(output_shape) == 2:
+            output_shape = output_shape + [nb_filter]
+        elif len(output_shape) != 3:
+            raise Exception("output_shape length error: " 
+                            + str(len(output_shape))
+                            + ", only a length of 2 or 3 is supported.")
+        complete_out_shape = tf.concat(0, [batch_size, tf.constant(output_shape)])
  
         inference = tf.nn.conv2d_transpose(incoming, W, complete_out_shape,
                                            strides, padding)

@@ -79,7 +79,7 @@ class TestLayers(unittest.TestCase):
             g = tflearn.reshape(g, new_shape=[-1, 2, 2, 1])
             g = tflearn.conv_2d(g, 4, 2)
             g = tflearn.conv_2d(g, 4, 1)
-            g = tflearn.conv_2d_transpose(g, 4, 2, [2, 2, 4])
+            g = tflearn.conv_2d_transpose(g, 4, 2, [2, 2])
             g = tflearn.max_pool_2d(g, 2)
 
     def test_recurrent_layers(self):
