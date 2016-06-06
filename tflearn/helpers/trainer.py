@@ -132,7 +132,7 @@ class Trainer(object):
 
     def fit(self, feed_dicts, n_epoch=10, val_feed_dicts=None, show_metric=False,
             snapshot_step=None, snapshot_epoch=True, shuffle_all=None,
-            dprep_dict=None, daug_dict=None, run_id=None):
+            dprep_dict=None, daug_dict=None, excl_trainops=None, run_id=None):
         """ fit.
 
         Train network with feeded data dicts.
@@ -171,8 +171,16 @@ class Trainer(object):
                 of every epoch.
             shuffle_all: `bool`. If True, shuffle all data batches (overrides
                 `TrainOp` shuffle parameter behavior).
-            dprep_dict
-            daug_dict
+            dprep_dict: `dict` with `Placeholder` as key and
+                `DataPreprocessing` as value. Apply realtime data
+                preprocessing to the given placeholders (Applied at training
+                and testing time).
+            daug_dict: `dict` with `Placeholder` as key and
+                `DataAugmentation` as value. Apply realtime data
+                augmentation to the given placeholders (Only applied at
+                training time).
+            excl_trainops: `list` of `TrainOp`. A list of train ops to
+                exclude from training process.
             run_id: `str`. A name for the current run. Used for Tensorboard
                 display. If no name provided, a random one will be generated.
 
@@ -183,6 +191,12 @@ class Trainer(object):
         print("---------------------------------")
         print("Run id: " + run_id)
         print("Log directory: " + self.tensorboard_dir)
+
+        original_train_ops = list(self.train_ops)
+        # Remove excluded train_ops
+        for t in self.train_ops:
+            if excl_trainops and t in excl_trainops:
+                self.train_ops.remove(t)
 
         # shuffle is an override for simplicty, it will overrides every
         # training op batch shuffling
@@ -293,6 +307,8 @@ class Trainer(object):
                 modelsaver.on_train_end()
                 for t in self.train_ops:
                     t.train_dflow.interrupt()
+                # Set back train_ops
+                self.train_ops = original_train_ops
 
     def save(self, model_file, global_step=None):
         """ save.
