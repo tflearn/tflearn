@@ -66,7 +66,7 @@ class ImageAugmentation(DataAugmentation):
             imgaug.add_random_crop((32, 32), 6)
             ```
 
-        Args:
+        Arguments:
             crop_shape: `tuple` of `int`. The crop shape (height, width).
             padding: `int`. If not None, the image is padded with 'padding' 0s.
 
@@ -141,6 +141,8 @@ class ImageAugmentation(DataAugmentation):
 
     def _random_crop(self, batch, crop_shape, padding=None):
         oshape = np.shape(batch[0])
+        if padding:
+            oshape = (oshape[0] + padding, oshape[1] + padding)
         new_batch = []
         npad = ((padding, padding), (padding, padding), (0, 0))
         for i in range(len(batch)):
