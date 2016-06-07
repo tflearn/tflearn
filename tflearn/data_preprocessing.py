@@ -264,11 +264,13 @@ class DataPreprocessing(object):
         def __init__(self, scope, name):
             self.is_required = False
             with tf.name_scope(scope):
-                # One variable contains the value
-                self.var = tf.Variable(0., trainable=False, name=name)
-                # Another one check if it has been restored or not
-                self.var_r = tf.Variable(False, trainable=False,
-                                         name=name+"_r")
+                with tf.device('/cpu:0'):
+                    # One variable contains the value
+                    self.var = tf.Variable(0., trainable=False, name=name,
+                                           validate_shape=False)
+                    # Another one check if it has been restored or not
+                    self.var_r = tf.Variable(False, trainable=False,
+                                             name=name+"_r")
             # RAM saved vars for faster access
             self.restored = False
             self.value = None
