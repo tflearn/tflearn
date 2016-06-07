@@ -186,9 +186,9 @@ def xavier(uniform=True, seed=None, dtype=tf.float32):
         An initializer for a weight matrix.
 
     References:
-        Xavier Glorot and Yoshua Bengio (2010): Understanding the difficulty of
-        training deep feedforward neural networks. International conference on
-        artificial intelligence and statistics.
+        Understanding the difficulty of training deep feedforward neural
+        networks. International conference on artificial intelligence and
+        statistics. Xavier Glorot and Yoshua Bengio (2010).
 
     Links:
         [http://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf]
@@ -206,6 +206,8 @@ def variance_scaling(factor=2.0, mode='FAN_IN', uniform=False, seed=None,
     When initializing a deep network, it is in principle advantageous to keep
     the scale of the input variance constant, so it does not explode or diminish
     by reaching the final layer. This initializer use the following formula:
+
+    ```
     if mode='FAN_IN': # Count only number of input connections.
       n = fan_in
     elif mode='FAN_OUT': # Count only number of output connections.
@@ -214,13 +216,17 @@ def variance_scaling(factor=2.0, mode='FAN_IN', uniform=False, seed=None,
       n = (fan_in + fan_out)/2.0
 
       truncated_normal(shape, 0.0, stddev=sqrt(factor / n))
+    ```
 
     To get http://arxiv.org/pdf/1502.01852v1.pdf use (Default):
     - factor=2.0 mode='FAN_IN' uniform=False
+
     To get http://arxiv.org/abs/1408.5093 use:
     - factor=1.0 mode='FAN_IN' uniform=True
+
     To get http://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf use:
     - factor=1.0 mode='FAN_AVG' uniform=True.
+
     To get xavier_initializer use either:
     - factor=1.0 mode='FAN_AVG' uniform=True.
     - factor=1.0 mode='FAN_AVG' uniform=False.
