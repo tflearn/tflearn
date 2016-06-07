@@ -42,9 +42,10 @@ from .metrics import Top_k, Accuracy, R2, top_k_op, accuracy_op, r2_op
 
 # Direct layers inclusion
 from . import layers
-from .layers.conv import conv_2d, max_pool_2d, avg_pool_2d, conv_1d, highway_conv_2d, highway_conv_1d, \
-    max_pool_1d, avg_pool_1d, global_avg_pool, shallow_residual_block, \
-    deep_residual_block, conv_2d_transpose, upsample_2d
+from .layers.conv import conv_2d, max_pool_2d, avg_pool_2d, conv_1d, \
+    highway_conv_2d, highway_conv_1d, max_pool_1d, avg_pool_1d, \
+    global_avg_pool, residual_block, residual_bottleneck, \
+    conv_2d_transpose, upsample_2d
 from .layers.core import input_data, dropout, custom_layer, reshape, \
     flatten, activation, fully_connected, single_unit, highway
 from .layers.normalization import batch_normalization, local_response_normalization

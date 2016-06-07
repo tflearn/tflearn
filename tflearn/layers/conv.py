@@ -573,18 +573,16 @@ def global_avg_pool(incoming, name="GlobalAvgPool"):
         return tf.reduce_mean(incoming, [1, 2])
 
 
-def deep_residual_block(incoming, nb_blocks, bottleneck_size, out_channels,
+def residual_bottleneck(incoming, nb_blocks, bottleneck_size, out_channels,
                         downsample=False, downsample_strides=2,
-                        activation='relu', batch_norm=True, bias=False,
-                        weights_init='uniform_scaling', bias_init='zeros',
-                        regularizer=None, weight_decay=0.0001, trainable=True,
-                        restore=True, name="DeepResidualBlock"):
-    """ Deep Residual Block.
+                        activation='relu', batch_norm=True, bias=True,
+                        weights_init='variance_scaling', bias_init='zeros',
+                        regularizer='L2', weight_decay=0.0001,
+                        trainable=True, restore=True, name="ResidualBottleneck"):
+    """ Residual Bottleneck.
 
-    A deep residual block as described in MSRA's Deep Residual Network paper.
-
-    Notice: Because TensorFlow doesn't support a strides > filter size,
-    an average pooling is used as a fix, but decrease performances.
+    A residual bottleneck block as described in MSRA's Deep Residual Network
+    paper. Full pre-activation architecture is used here.
 
     Input:
         4-D Tensor [batch, height, width, in_channels].
@@ -599,8 +597,9 @@ def deep_residual_block(incoming, nb_blocks, bottleneck_size, out_channels,
             bottleneck convolutional layer.
         out_channels: `int`. The number of convolutional filters of the
             layers surrounding the bottleneck layer.
-        downsample:
-        downsample_strides:
+        downsample: `bool`. If True, apply downsampling using
+            'downsample_strides' for strides.
+        downsample_strides: `int`. The strides to use when downsampling.
         activation: `str` (name) or `function` (returning a `Tensor`).
             Activation applied to this layer (see tflearn.activations).
             Default: 'linear'.
@@ -620,11 +619,15 @@ def deep_residual_block(incoming, nb_blocks, bottleneck_size, out_channels,
 
     References:
         Deep Residual Learning for Image Recognition. Kaiming He, Xiangyu
-        Zhang, Shaoqing Ren, Jian Sun. 2015.
+            Zhang, Shaoqing Ren, Jian Sun. 2015.
+        Identity Mappings in Deep Residual Networks. Kaiming He, Xiangyu
+            Zhang, Shaoqing Ren, Jian Sun. 2015.
 
     Links:
         [http://arxiv.org/pdf/1512.03385v1.pdf]
-        (http://arxiv.org/pdf/1512.03385v1.pdf)
+            (http://arxiv.org/pdf/1512.03385v1.pdf)
+        [Identity Mappings in Deep Residual Networks]
+            (https://arxiv.org/pdf/1603.05027v2.pdf)
 
     """
     resnet = incoming
@@ -632,56 +635,47 @@ def deep_residual_block(incoming, nb_blocks, bottleneck_size, out_channels,
 
     with tf.name_scope(name):
         for i in range(nb_blocks):
-            with tf.name_scope('ResidualBlock'):
 
-                identity = resnet
+            identity = resnet
 
-                if downsample:
-                    # Use average pooling, because TensorFlow conv_2d can't
-                    # accept kernel size < strides.
-                    resnet = avg_pool_2d(resnet, downsample_strides,
-                                         downsample_strides)
-                    resnet = conv_2d(resnet, bottleneck_size, 1, 1, 'valid',
-                                     'linear', bias, weights_init,
-                                     bias_init, regularizer, weight_decay,
-                                     trainable, restore)
-                else:
-                    resnet = conv_2d(resnet, bottleneck_size, 1, 1, 'valid',
-                                     'linear', bias, weights_init,
-                                     bias_init, regularizer, weight_decay,
-                                     trainable, restore)
-                if batch_norm:
-                    resnet = tflearn.batch_normalization(resnet)
-                resnet = tflearn.activation(resnet, activation)
+            if not downsample:
+                downsample_strides = 1
 
-                resnet = conv_2d(resnet, bottleneck_size, 3, 1, 'same',
-                                 'linear', bias, weights_init,
-                                 bias_init, regularizer, weight_decay,
-                                 trainable, restore)
-                if batch_norm:
-                    resnet = tflearn.batch_normalization(resnet)
-                resnet = tflearn.activation(resnet, activation)
+            if batch_norm:
+                resnet = tflearn.batch_normalization(resnet)
+            resnet = tflearn.activation(resnet, activation)
 
-                resnet = conv_2d(resnet, out_channels, 1, 1, 'valid',
-                                 activation, bias, weights_init,
-                                 bias_init, regularizer, weight_decay,
-                                 trainable, restore)
-                if batch_norm:
-                    resnet = tflearn.batch_normalization(resnet)
+            resnet = conv_2d(resnet, bottleneck_size, 1,
+                             downsample_strides, 'valid',
+                             'linear', bias, weights_init,
+                             bias_init, regularizer, weight_decay,
+                             trainable, restore)
 
-                if downsample:
-                    # Use average pooling, because TensorFlow conv_2d can't
-                    # accept kernel size < strides.
-                    identity = avg_pool_2d(identity, downsample_strides,
-                                           downsample_strides)
+            if batch_norm:
+                resnet = tflearn.batch_normalization(resnet)
+            resnet = tflearn.activation(resnet, activation)
 
-                # Projection to new dimension
-                if in_channels != out_channels:
-                    in_channels = out_channels
-                    identity = conv_2d(identity, out_channels, 1, 1, 'valid',
-                                       'linear', bias, weights_init,
-                                       bias_init, regularizer, weight_decay,
-                                       trainable, restore)
+            resnet = conv_2d(resnet, bottleneck_size, 3, 1, 'same',
+                             'linear', bias, weights_init,
+                             bias_init, regularizer, weight_decay,
+                             trainable, restore)
+
+            resnet = conv_2d(resnet, out_channels, 1, 1, 'valid',
+                             activation, bias, weights_init,
+                             bias_init, regularizer, weight_decay,
+                             trainable, restore)
+
+            # Downsampling
+            if downsample_strides > 1:
+                identity = tflearn.avg_pool_2d(identity, 1,
+                                               downsample_strides)
+
+            # Projection to new dimension
+            if in_channels != out_channels:
+                ch = (out_channels - in_channels)//2
+                identity = tf.pad(identity,
+                                  [[0, 0], [0, 0], [0, 0], [ch, ch]])
+                in_channels = out_channels
 
                 resnet = resnet + identity
                 resnet = tflearn.activation(resnet, activation)
@@ -689,20 +683,15 @@ def deep_residual_block(incoming, nb_blocks, bottleneck_size, out_channels,
     return resnet
 
 
-def shallow_residual_block(incoming, nb_blocks, out_channels,
-                           downsample=False, downsample_strides=2,
-                           activation='relu', batch_norm=True, bias=False,
-                           weights_init='uniform_scaling', bias_init='zeros',
-                           regularizer=None, weight_decay=0.0001,
-                           trainable=True, restore=True,
-                           name="ShallowResidualBlock"):
-    """ Shallow Residual Block.
+def residual_block(incoming, nb_blocks, out_channels, downsample=False,
+                   downsample_strides=2, activation='relu', batch_norm=True,
+                   bias=True, weights_init='variance_scaling',
+                   bias_init='zeros', regularizer='L2', weight_decay=0.0001,
+                   trainable=True, restore=True, name="ResidualBlock"):
+    """ Residual Block.
 
-    A shallow residual block as described in MSRA's Deep Residual Network
-    paper.
-
-    Notice: Because TensorFlow doesn't support a strides > filter size,
-    an average pooling is used as a fix, but decrease performances.
+    A residual block as described in MSRA's Deep Residual Network paper.
+    Full pre-activation architecture is used here.
 
     Input:
         4-D Tensor [batch, height, width, in_channels].
@@ -737,11 +726,15 @@ def shallow_residual_block(incoming, nb_blocks, out_channels,
 
     References:
         Deep Residual Learning for Image Recognition. Kaiming He, Xiangyu
-        Zhang, Shaoqing Ren, Jian Sun. 2015.
+            Zhang, Shaoqing Ren, Jian Sun. 2015.
+        Identity Mappings in Deep Residual Networks. Kaiming He, Xiangyu
+            Zhang, Shaoqing Ren, Jian Sun. 2015.
 
     Links:
         [http://arxiv.org/pdf/1512.03385v1.pdf]
-        (http://arxiv.org/pdf/1512.03385v1.pdf)
+            (http://arxiv.org/pdf/1512.03385v1.pdf)
+        [Identity Mappings in Deep Residual Networks]
+            (https://arxiv.org/pdf/1603.05027v2.pdf)
 
     """
     resnet = incoming
@@ -749,54 +742,44 @@ def shallow_residual_block(incoming, nb_blocks, out_channels,
 
     with tf.name_scope(name):
         for i in range(nb_blocks):
-            with tf.name_scope('ResidualBlock'):
 
-                identity = resnet
+            identity = resnet
 
-                if downsample:
-                    resnet = conv_2d(resnet, out_channels, 3,
-                                     downsample_strides, 'same', 'linear',
-                                     bias, weights_init, bias_init,
-                                     regularizer, weight_decay, trainable,
-                                     restore)
-                else:
-                    resnet = conv_2d(resnet, out_channels, 3, 1, 'same',
-                                     'linear', bias, weights_init,
-                                     bias_init, regularizer, weight_decay,
-                                     trainable, restore)
-                if batch_norm:
-                    resnet = tflearn.batch_normalization(resnet)
-                resnet = tflearn.activation(resnet, activation)
+            if not downsample:
+                downsample_strides = 1
 
-                resnet = conv_2d(resnet, out_channels, 3, 1, 'same',
-                                 'linear', bias, weights_init,
-                                 bias_init, regularizer, weight_decay,
-                                 trainable, restore)
-                if batch_norm:
-                    resnet = tflearn.batch_normalization(resnet)
+            if batch_norm:
+                resnet = tflearn.batch_normalization(resnet)
+            resnet = tflearn.activation(resnet, activation)
 
-                # TensorFlow can't accept kernel size < strides, so using a
-                # average pooling or resizing for downsampling.
+            resnet = conv_2d(resnet, out_channels, 3,
+                             downsample_strides, 'same', 'linear',
+                             bias, weights_init, bias_init,
+                             regularizer, weight_decay, trainable,
+                             restore)
 
-                # Downsampling
-                if downsample:
-                    #identity = avg_pool_2d(identity, downsample_strides,
-                    #                       downsample_strides)
-                    size = resnet.get_shape().as_list()
-                    identity = tf.image.resize_nearest_neighbor(identity,
-                                                                [size[1],
-                                                                 size[2]])
+            if batch_norm:
+                resnet = tflearn.batch_normalization(resnet)
+            resnet = tflearn.activation(resnet, activation)
 
-                # Projection to new dimension
-                if in_channels != out_channels:
-                    in_channels = out_channels
-                    identity = conv_2d(identity, out_channels, 1, 1, 'same',
-                                       'linear', bias, weights_init,
-                                       bias_init, regularizer, weight_decay,
-                                       trainable, restore)
+            resnet = conv_2d(resnet, out_channels, 3, 1, 'same',
+                             'linear', bias, weights_init,
+                             bias_init, regularizer, weight_decay,
+                             trainable, restore)
 
-                resnet = resnet + identity
-                resnet = tflearn.activation(resnet, activation)
+            # Downsampling
+            if downsample_strides > 1:
+                identity = tflearn.avg_pool_2d(identity, 1,
+                                               downsample_strides)
+
+            # Projection to new dimension
+            if in_channels != out_channels:
+                ch = (out_channels - in_channels)//2
+                identity = tf.pad(identity,
+                                  [[0, 0], [0, 0], [0, 0], [ch, ch]])
+                in_channels = out_channels
+
+            resnet = resnet + identity
 
     return resnet
 
@@ -875,17 +858,20 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
                         restore=restore)
         # Track per layer variables
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
-        #weight and bias for the transform gate
+
+        # Weight and bias for the transform gate
         with tf.name_scope('transform_gate') as transform_gate:
             W_T = vs.variable(transform_gate + 'W', shape=nb_filter,
-                            regularizer=None, initializer=W_init,
-                            trainable=trainable, restore=restore)
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + transform_gate, W_T)
+                              regularizer=None, initializer=W_init,
+                              trainable=trainable, restore=restore)
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' +
+                                 transform_gate, W_T)
 
             b_T = vs.variable(transform_gate + 'b', shape=nb_filter,
-                            initializer=tf.constant_initializer(-1), trainable=trainable,
-                            restore=restore)
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + transform_gate, b_T)
+                              initializer=tf.constant_initializer(-1),
+                              trainable=trainable, restore=restore)
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' +
+                                 transform_gate, b_T)
 
         if isinstance(activation, str):
             activation = activations.get(activation)
@@ -894,7 +880,7 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         else:
             raise ValueError("Invalid Activation.")
 
-        #shared convolution for gating
+        # Shared convolution for gating
         convolved = tf.nn.conv2d(incoming, W, strides, padding)
         H = activation(convolved + b)
         T = tf.sigmoid(tf.mul(convolved, W_T) + b_T)
@@ -986,25 +972,26 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         # Track per layer variables
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
 
-
-
         b_init = initializations.get(bias_init)()
         b = vs.variable(scope + 'b', shape=nb_filter,
                         initializer=b_init, trainable=trainable,
                         restore=restore)
         # Track per layer variables
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
-        #weight and bias for the transform gate
+
+        # Weight and bias for the transform gate
         with tf.name_scope('transform_gate') as transform_gate:
             W_T = vs.variable(transform_gate + 'W', shape=nb_filter,
                             regularizer=None, initializer=W_init,
                             trainable=trainable, restore=restore)
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + transform_gate, W_T)
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' +
+                                 transform_gate, W_T)
 
             b_T = vs.variable(transform_gate + 'b', shape=nb_filter,
-                            initializer=tf.constant_initializer(-1), trainable=trainable,
-                            restore=restore)
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + transform_gate, b_T)
+                              initializer=tf.constant_initializer(-1),
+                              trainable=trainable, restore=restore)
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' +
+                                 transform_gate, b_T)
 
         if isinstance(activation, str):
             activation = activations.get(activation)

@@ -189,6 +189,10 @@ def xavier(uniform=True, seed=None, dtype=tf.float32):
         Xavier Glorot and Yoshua Bengio (2010): Understanding the difficulty of
         training deep feedforward neural networks. International conference on
         artificial intelligence and statistics.
+
+    Links:
+        [http://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf]
+        (http://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf)
     """
     return xavier_initializer(uniform=uniform, seed=seed, dtype=dtype)
 
@@ -231,11 +235,11 @@ def variance_scaling(factor=2.0, mode='FAN_IN', uniform=False, seed=None,
         dtype: The data type. Only floating point types are supported.
 
     Returns:
-    An initializer that generates tensors with unit variance.
+        An initializer that generates tensors with unit variance.
 
     Raises:
-    ValueError: if `dtype` is not a floating point type.
-    TypeError: if `mode` is not in ['FAN_IN', 'FAN_OUT', 'FAN_AVG'].
+        ValueError: if `dtype` is not a floating point type.
+        TypeError: if `mode` is not in ['FAN_IN', 'FAN_OUT', 'FAN_AVG'].
     """
     return variance_scaling_initializer(factor=factor, mode=mode,
                                         uniform=uniform, seed=seed,

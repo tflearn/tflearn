@@ -33,18 +33,18 @@ testX = du.featurewise_zero_center(testX, mean)
 # Building Residual Network
 net = tflearn.input_data(shape=[None, 28, 28, 1])
 net = tflearn.conv_2d(net, 64, 3, activation='relu', bias=False)
-net = tflearn.batch_normalization(net)
 # Residual blocks
-net = tflearn.deep_residual_block(net, 3, 16, 64)
-net = tflearn.deep_residual_block(net, 1, 32, 128, downsample=True)
-net = tflearn.deep_residual_block(net, 3, 32, 128)
-net = tflearn.deep_residual_block(net, 1, 64, 256, downsample=True)
-net = tflearn.deep_residual_block(net, 3, 64, 256)
+net = tflearn.residual_bottleneck(net, 3, 16, 64)
+net = tflearn.residual_bottleneck(net, 1, 32, 128, downsample=True)
+net = tflearn.residual_bottleneck(net, 2, 32, 128)
+net = tflearn.residual_bottleneck(net, 1, 64, 256, downsample=True)
+net = tflearn.residual_bottleneck(net, 2, 64, 256)
+net = tflearn.batch_normalization(net)
+net = tflearn.activation(net, 'relu')
 net = tflearn.global_avg_pool(net)
 # Regression
 net = tflearn.fully_connected(net, 10, activation='softmax')
-sgd = tflearn.SGD(learning_rate=0.1, lr_decay=0.96, decay_step=300)
-net = tflearn.regression(net, optimizer='sgd',
+net = tflearn.regression(net, optimizer='momentum',
                          loss='categorical_crossentropy',
                          learning_rate=0.1)
 # Training

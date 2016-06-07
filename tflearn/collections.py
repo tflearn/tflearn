@@ -36,3 +36,6 @@ tf.GraphKeys.DATA_PREP = 'data_preprocessing'
 
 # Collection to store all input variable data preprocessing
 tf.GraphKeys.DATA_AUG = 'data_augmentation'
+
+# Collection to store all custom learning rate variable
+tf.GraphKeys.LR_VARIABLES = 'lr_variables'
