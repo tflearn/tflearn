@@ -39,6 +39,49 @@ def softmax_categorical_crossentropy(y_pred, y_true):
         return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y_pred,
                                                                       y_true))
 
+def weak_cross_entropy_2d(y_pred, y_true, num_classes=None, epsilon=0.0001, head=None):
+    """Calculate the semantic segmentation using weak softmax cross entropy loss.
+
+    Given the prediction `y_pred` shaped as 2d image and the corresponding y_true, this calculated the
+    widely used semantic segmentation loss. Using `tf.nn.softmax_cross_entropy_with_logits`
+    is currently not supported. See https://github.com/tensorflow/tensorflow/issues/2327#issuecomment-224491229
+
+    Args:
+      y_pred: tensor, float - [batch_size, width, height, num_classes].
+      y_true: Labels tensor, int32 - [batch_size, width, height, num_classes].
+          The ground truth of your data.
+      head: numpy array - [num_classes].
+          Weighting the loss of each class.
+
+    Returns:
+      loss: Loss tensor of type float.
+    """
+    if num_classes is None:
+        num_classes = y_true.get_shape()[-1]
+        # This only works, if y_true if shape of y_true is defined
+        assert(num_classes is not None)
+    with tf.name_scope('loss'):
+        y_pred = tf.reshape(y_pred, (-1, num_classes))
+        shape = [y_pred.get_shape()[0], num_classes]
+        epsilon = tf.constant(value=epsilon, shape=shape)
+        y_pred = y_pred + epsilon
+        y_true = tf.to_float(tf.reshape(y_true, (-1, num_classes)))
+
+        softmax = tf.nn.softmax(y_pred)
+
+        if head is not None:
+            cross_entropy = -tf.reduce_sum(tf.mul(y_true * tf.log(softmax),
+                                           head), reduction_indices=[1])
+        else:
+            cross_entropy = -tf.reduce_sum(y_true * tf.log(softmax), reduction_indices=[1]))
+
+        cross_entropy_mean = tf.reduce_mean(cross_entropy,
+                                            name='xentropy_mean')
+        tf.add_to_collection('losses', cross_entropy_mean)
+
+        loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
+    return loss
+
 
 def categorical_crossentropy(y_pred, y_true):
     """ Categorical Crossentropy.
