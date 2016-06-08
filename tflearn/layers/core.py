@@ -366,7 +366,7 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
     return inference
     
     
-def highway(incoming, n_units, activation='linear',
+def highway(incoming, n_units, activation='linear', transform_dropout=None,
             weights_init='truncated_normal', bias_init='zeros',
             regularizer=None, weight_decay=0.001, trainable=True,
             restore=True, name="FullyConnectedHighway"):
@@ -387,6 +387,7 @@ def highway(incoming, n_units, activation='linear',
         activation: `str` (name) or `function` (returning a `Tensor`).
             Activation applied to this layer (see tflearn.activations).
             Default: 'linear'.
+        transform_dropout: `float`: Keep probability on the highway transform gate.
         weights_init: `str` (name) or `Tensor`. Weights initialization.
             (see tflearn.initializations) Default: 'truncated_normal'.
         bias_init: `str` (name) or `Tensor`. Bias initialization.
@@ -460,6 +461,8 @@ def highway(incoming, n_units, activation='linear',
             
         H = activation(tf.matmul(incoming, W) + b)
         T = tf.sigmoid(tf.matmul(incoming, W_T) + b_T)
+        if transform_dropout:
+            T = dropout(T, transform_dropout)
         C = tf.sub(1.0, T)
 
         inference = tf.add(tf.mul(H, T), tf.mul(incoming, C))

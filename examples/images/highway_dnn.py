@@ -28,11 +28,10 @@ dense1 = tflearn.fully_connected(input_layer, 64, activation='elu',
 highway = dense1                              
 for i in range(10):
     highway = tflearn.highway(highway, 64, activation='elu',
-                              regularizer='L2', weight_decay=0.001)
+                              regularizer='L2', weight_decay=0.001, transform_dropout=0.8)
                               
                               
-dropout2 = tflearn.dropout(highway, 0.5)
-softmax = tflearn.fully_connected(dropout2, 10, activation='softmax')
+softmax = tflearn.fully_connected(highway, 10, activation='softmax')
 
 # Regression using SGD with learning rate decay and Top-3 accuracy
 sgd = tflearn.SGD(learning_rate=0.1, lr_decay=0.96, decay_step=1000)
