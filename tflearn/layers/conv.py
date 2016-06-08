@@ -263,6 +263,86 @@ def upsample_2d(incoming, kernel_size, name="UpSample2D"):
     return inference
 
 
+def upscore_layer(incoming, num_classes,
+                  name='Upscore', shape=None,
+                  kernel_size=4, strides=2):
+        """ Upscore Layer.
+
+        This implements the upscore layer as used in
+        (Fully Convolutional Networks)[http://arxiv.org/abs/1411.4038]. 
+        The upscore layer is initialized as bilinear upsampling filter.
+
+        Input:
+            4-D Tensor [batch, height, width, in_channels].
+
+        Output:
+            4-D Tensor [batch, pooled height, pooled width, in_channels].
+
+        Arguments:
+            incoming: `Tensor`. Incoming 4-D Layer to upsample.
+            num_classes: `int`. Number of output feature maps.
+            shape: `tf.shape` or list of `ints`. Dimension of the output map
+            [batch_size, new height, new width]. For convinience four values are
+            allows: [batch_size, new height, new width, X], where X is ignored.
+            kernel_size: 'int` or list of `ints`. Upsampling kernel size.
+            strides: 'int` or list of `ints`. Strides of conv operation.
+            Default: [1 2 2 1].
+            name: A name for this layer (optional). Default: 'Upscore'.
+
+        Attributes:
+            scope: `Scope`. This layer scope.
+
+        """
+        input_shape = utils.get_incoming_shape(incoming)
+        assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+
+        strides = utils.autoformat_kernel_2d(strides)
+        filter_size = utils.autoformat_filter_conv2d(kernel_size,
+                                                     num_classes,
+                                                     input_shape[-1])
+
+        with tf.variable_scope(name) as scope:
+            if shape is None:
+                # Compute shape out of Bottom
+                in_shape = tf.shape(incoming)
+
+                h = ((in_shape[1] - 1) * stride[1]) + 1
+                w = ((in_shape[2] - 1) * stride[1]) + 1
+                new_shape = [in_shape[0], h, w, num_classes]
+            else:
+                new_shape = [shape[0], shape[1], shape[2], num_classes]
+            output_shape = tf.pack(new_shape)
+
+            def get_deconv_filter(f_shape):
+                """
+                Create filter weights initialized as bilinear upsampling.
+                """
+                width = f_shape[0]
+                heigh = f_shape[0]
+                f = ceil(width/2.0)
+                c = (2 * f - 1 - f % 2) / (2.0 * f)
+                bilinear = np.zeros([f_shape[0], f_shape[1]])
+                for x in range(width):
+                    for y in range(heigh):
+                        value = (1 - abs(x / f - c)) * (1 - abs(y / f - c))
+                        bilinear[x, y] = value
+                weights = np.zeros(f_shape)
+                for i in range(f_shape[2]):
+                    weights[:, :, i, i] = bilinear
+
+                init = tf.constant_initializer(value=weights,
+                                               dtype=tf.float32)
+            return tf.get_variable(name="up_filter", initializer=init,
+                                   shape=weights.shape)
+
+            weights = get_deconv_filter(filter_size)
+            deconv = tf.nn.conv2d_transpose(incoming, weights, output_shape,
+                                            strides=strides, padding='SAME')
+
+        deconv.scope = scope
+        return deconv
+
+
 def max_pool_2d(incoming, kernel_size, strides=None, padding='same',
                 name="MaxPool2D"):
     """ Max Pooling 2D.
