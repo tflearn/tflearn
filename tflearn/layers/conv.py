@@ -868,7 +868,7 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
                                  transform_gate, W_T)
 
             b_T = vs.variable(transform_gate + 'b', shape=nb_filter,
-                              initializer=tf.constant_initializer(-1),
+                              initializer=tf.constant_initializer(-3),
                               trainable=trainable, restore=restore)
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' +
                                  transform_gate, b_T)
@@ -988,7 +988,7 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
                                  transform_gate, W_T)
 
             b_T = vs.variable(transform_gate + 'b', shape=nb_filter,
-                              initializer=tf.constant_initializer(-1),
+                              initializer=tf.constant_initializer(-3),
                               trainable=trainable, restore=restore)
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' +
                                  transform_gate, b_T)
