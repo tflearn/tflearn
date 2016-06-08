@@ -284,6 +284,8 @@ class Momentum(Optimizer):
         super(Momentum, self).__init__(learning_rate, use_locking, name)
         self.momentum = momentum
         self.lr_decay = lr_decay
+        if self.lr_decay > 0.:
+            self.has_decay = True
         self.decay_step = decay_step
         self.staircase = staircase
 
