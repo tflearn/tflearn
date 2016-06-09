@@ -188,7 +188,7 @@ def leaky_relu(x, alpha=0.1, name="LeakyReLU"):
 leakyrelu = leaky_relu
 
 
-def prelu(x, weights_init='zeros', name="PReLU"):
+def prelu(x, weights_init='zeros', restore=True, name="PReLU"):
     """ PReLU.
 
     Parametric Rectified Linear Unit.
@@ -197,6 +197,7 @@ def prelu(x, weights_init='zeros', name="PReLU"):
         x: A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
             `int16`, or `int8`.
         weights_init: `str`. Weights initialization. Default: zeros.
+        restore: `bool`. Restore or not alphas
         name: A name for this activation op (optional).
 
     Attributes:
@@ -224,7 +225,7 @@ def prelu(x, weights_init='zeros', name="PReLU"):
     with tf.name_scope(i_scope + name) as scope:
         W_init = initializations.get(weights_init)()
         alphas = va.variable(shape=w_shape, initializer=W_init,
-                             name=scope + "alphas")
+                             restore=restore, name=scope + "alphas")
 
         x = tf.nn.relu(x) + tf.mul(alphas, (x - tf.abs(x))) * 0.5
 
