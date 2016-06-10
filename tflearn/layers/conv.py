@@ -2,6 +2,7 @@
 from __future__ import division, print_function, absolute_import
 
 import tensorflow as tf
+import numpy as np
 
 import tflearn
 from .. import variables as vs
@@ -263,10 +264,9 @@ def upsample_2d(incoming, kernel_size, name="UpSample2D"):
     return inference
 
 
-def upscore_layer(incoming, num_classes,
-                  name='Upscore', shape=None,
-                  kernel_size=4, strides=2):
-        """ Upscore Layer.
+def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
+                  strides=2, name='Upscore'):
+        """ Upscore.
 
         This implements the upscore layer as used in
         (Fully Convolutional Networks)[http://arxiv.org/abs/1411.4038]. 
@@ -282,15 +282,19 @@ def upscore_layer(incoming, num_classes,
             incoming: `Tensor`. Incoming 4-D Layer to upsample.
             num_classes: `int`. Number of output feature maps.
             shape: `tf.shape` or list of `ints`. Dimension of the output map
-            [batch_size, new height, new width]. For convinience four values are
-            allows: [batch_size, new height, new width, X], where X is ignored.
+                [batch_size, new height, new width]. For convinience four values
+                 are allows [batch_size, new height, new width, X], where X
+                 is ignored.
             kernel_size: 'int` or list of `ints`. Upsampling kernel size.
             strides: 'int` or list of `ints`. Strides of conv operation.
-            Default: [1 2 2 1].
+                Default: [1 2 2 1].
             name: A name for this layer (optional). Default: 'Upscore'.
 
         Attributes:
             scope: `Scope`. This layer scope.
+
+        Links:
+            (Fully Convolutional Networks)[http://arxiv.org/abs/1411.4038]
 
         """
         input_shape = utils.get_incoming_shape(incoming)
@@ -306,8 +310,8 @@ def upscore_layer(incoming, num_classes,
                 # Compute shape out of Bottom
                 in_shape = tf.shape(incoming)
 
-                h = ((in_shape[1] - 1) * stride[1]) + 1
-                w = ((in_shape[2] - 1) * stride[1]) + 1
+                h = ((in_shape[1] - 1) * strides[1]) + 1
+                w = ((in_shape[2] - 1) * strides[1]) + 1
                 new_shape = [in_shape[0], h, w, num_classes]
             else:
                 new_shape = [shape[0], shape[1], shape[2], num_classes]
@@ -332,8 +336,8 @@ def upscore_layer(incoming, num_classes,
 
                 init = tf.constant_initializer(value=weights,
                                                dtype=tf.float32)
-            return tf.get_variable(name="up_filter", initializer=init,
-                                   shape=weights.shape)
+                return tf.get_variable(name="up_filter", initializer=init,
+                                       shape=weights.shape)
 
             weights = get_deconv_filter(filter_size)
             deconv = tf.nn.conv2d_transpose(incoming, weights, output_shape,

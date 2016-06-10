@@ -39,22 +39,26 @@ def softmax_categorical_crossentropy(y_pred, y_true):
         return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y_pred,
                                                                       y_true))
 
-def weak_cross_entropy_2d(y_pred, y_true, num_classes=None, epsilon=0.0001, head=None):
-    """Calculate the semantic segmentation using weak softmax cross entropy loss.
 
-    Given the prediction `y_pred` shaped as 2d image and the corresponding y_true, this calculated the
-    widely used semantic segmentation loss. Using `tf.nn.softmax_cross_entropy_with_logits`
-    is currently not supported. See https://github.com/tensorflow/tensorflow/issues/2327#issuecomment-224491229
+def weak_cross_entropy_2d(y_pred, y_true, num_classes=None, epsilon=0.0001,
+                          head=None):
+    """ Weak Crossentropy 2d.
 
-    Args:
-      y_pred: tensor, float - [batch_size, width, height, num_classes].
-      y_true: Labels tensor, int32 - [batch_size, width, height, num_classes].
-          The ground truth of your data.
-      head: numpy array - [num_classes].
-          Weighting the loss of each class.
+    Calculate the semantic segmentation using weak softmax cross entropy loss.
+
+    Given the prediction `y_pred` shaped as 2d image and the corresponding
+    y_true, this calculated the widely used semantic segmentation loss.
+    Using `tf.nn.softmax_cross_entropy_with_logits` is currently not supported.
+    See https://github.com/tensorflow/tensorflow/issues/2327#issuecomment-224491229
+
+    Arguments:
+        y_pred: `tensor, float` - [batch_size, width, height, num_classes].
+        y_true: `Labels tensor, int32` - [batch_size, width, height, num_classes].
+            The ground truth of your data.
+        head: `numpy array` - [num_classes]. Weighting the loss of each class.
 
     Returns:
-      loss: Loss tensor of type float.
+        loss: Loss tensor of type float.
     """
     if num_classes is None:
         num_classes = y_true.get_shape()[-1]
@@ -73,7 +77,8 @@ def weak_cross_entropy_2d(y_pred, y_true, num_classes=None, epsilon=0.0001, head
             cross_entropy = -tf.reduce_sum(tf.mul(y_true * tf.log(softmax),
                                            head), reduction_indices=[1])
         else:
-            cross_entropy = -tf.reduce_sum(y_true * tf.log(softmax), reduction_indices=[1]))
+            cross_entropy = -tf.reduce_sum(y_true * tf.log(softmax),
+                                           reduction_indices=[1])
 
         cross_entropy_mean = tf.reduce_mean(cross_entropy,
                                             name='xentropy_mean')
