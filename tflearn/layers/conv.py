@@ -3,6 +3,7 @@ from __future__ import division, print_function, absolute_import
 
 import tensorflow as tf
 import numpy as np
+from math import ceil
 
 import tflearn
 from .. import variables as vs
