@@ -36,7 +36,7 @@
 - [Shakespeare Scripts Generation](https://github.com/tflearn/tflearn/blob/master/examples/nlp/lstm_generator_shakespeare.py). Generates new Shakespeare scripts, using LSTM network.
 
 ## Reinforcement Learning
-- [Atari Pong async 1-step Q-Learning](https://github.com/tflearn/tflearn/blob/master/reinforcement_learning/async_1step_qlearning.py). Teach a machine to play Atari Pong game using 1-step Q-learning.
+- [Atari Pong 1-step Q-Learning](https://github.com/tflearn/tflearn/blob/master/examples/reinforcement_learning/pong_1step_qlearning.py). Teach a machine to play Atari Pong game using 1-step Q-learning.
 
 ## Notebooks
 - [Spiral Classification Problem](https://github.com/tflearn/tflearn/blob/master/examples/notebooks/spiral.ipynb). TFLearn implementation of spiral classification problem from Stanford CS231n.
