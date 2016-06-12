@@ -28,8 +28,8 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     Arguments:
         incoming: `Tensor`. Incoming 4-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
-        filter_size: 'int` or list of `ints`. Size of filters.
-        strides: 'int` or list of `ints`. Strides of conv operation.
+        filter_size: `int` or `list of int`. Size of filters.
+        strides: 'int` or list of `int`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -120,7 +120,7 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
 
     This operation is sometimes called "deconvolution" after (Deconvolutional
     Networks)[http://www.matthewzeiler.com/pubs/cvpr2010/cvpr2010.pdf], but is
-    actually the transpose (gradient) of `conv2d` rather than an actual
+    actually the transpose (gradient) of `conv_2d` rather than an actual
     deconvolution.
 
     Input:
@@ -132,11 +132,11 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
     Arguments:
         incoming: `Tensor`. Incoming 4-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
-        filter_size: `int` or list of `ints`. Size of filters.
-        output_shape: `list of ints`. Dimensions of the output tensor.
+        filter_size: `int` or `list of int`. Size of filters.
+        output_shape: `list of int`. Dimensions of the output tensor.
             Can optionally include the number of conv filters.
             [new height, new width, nb_filter] or [new height, new width].
-        strides: `int` or list of `ints`. Strides of conv operation.
+        strides: `int` or list of `int`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -231,6 +231,96 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
     return inference
 
 
+def max_pool_2d(incoming, kernel_size, strides=None, padding='same',
+                name="MaxPool2D"):
+    """ Max Pooling 2D.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        4-D Tensor [batch, pooled height, pooled width, in_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Layer.
+        kernel_size: 'int` or `list of int`. Pooling kernel size.
+        strides: 'int` or `list of int`. Strides of conv operation.
+            Default: same as kernel_size.
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        name: A name for this layer (optional). Default: 'MaxPool2D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+
+    """
+    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
+        "Padding must be same' or 'valid'"
+
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+
+    kernel = utils.autoformat_kernel_2d(kernel_size)
+    strides = utils.autoformat_kernel_2d(strides) if strides else kernel
+    padding = utils.autoformat_padding(padding)
+
+    with tf.name_scope(name) as scope:
+        inference = tf.nn.max_pool(incoming, kernel, strides, padding)
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights
+    inference.scope = scope
+
+    return inference
+
+
+def avg_pool_2d(incoming, kernel_size, strides=None, padding='same',
+                name="AvgPool2D"):
+    """ Average Pooling 2D.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        4-D Tensor [batch, pooled height, pooled width, in_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Layer.
+        kernel_size: 'int` or `list of int`. Pooling kernel size.
+        strides: 'int` or `list of int`. Strides of conv operation.
+            Default: same as kernel_size.
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        name: A name for this layer (optional). Default: 'AvgPool2D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+
+    """
+    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
+        "Padding must be same' or 'valid'"
+
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+
+    kernel = utils.autoformat_kernel_2d(kernel_size)
+    strides = utils.autoformat_kernel_2d(strides) if strides else kernel
+    padding = utils.autoformat_padding(padding)
+
+    with tf.name_scope(name) as scope:
+        inference = tf.nn.avg_pool(incoming, kernel, strides, padding)
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights
+    inference.scope = scope
+
+    return inference
+
+
 def upsample_2d(incoming, kernel_size, name="UpSample2D"):
     """ UpSample 2D.
 
@@ -242,7 +332,7 @@ def upsample_2d(incoming, kernel_size, name="UpSample2D"):
 
     Arguments:
         incoming: `Tensor`. Incoming 4-D Layer to upsample.
-        kernel_size: 'int` or list of `ints`. Upsampling kernel size.
+        kernel_size: 'int` or `list of int`. Upsampling kernel size.
         name: A name for this layer (optional). Default: 'UpSample2D'.
 
     Attributes:
@@ -270,7 +360,7 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
         """ Upscore.
 
         This implements the upscore layer as used in
-        (Fully Convolutional Networks)[http://arxiv.org/abs/1411.4038]. 
+        (Fully Convolutional Networks)[http://arxiv.org/abs/1411.4038].
         The upscore layer is initialized as bilinear upsampling filter.
 
         Input:
@@ -282,12 +372,12 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
         Arguments:
             incoming: `Tensor`. Incoming 4-D Layer to upsample.
             num_classes: `int`. Number of output feature maps.
-            shape: `tf.shape` or list of `ints`. Dimension of the output map
+            shape: `list of int`. Dimension of the output map
                 [batch_size, new height, new width]. For convinience four values
                  are allows [batch_size, new height, new width, X], where X
                  is ignored.
-            kernel_size: 'int` or list of `ints`. Upsampling kernel size.
-            strides: 'int` or list of `ints`. Strides of conv operation.
+            kernel_size: 'int` or `list of int`. Upsampling kernel size.
+            strides: 'int` or `list of int`. Strides of conv operation.
                 Default: [1 2 2 1].
             name: A name for this layer (optional). Default: 'Upscore'.
 
@@ -348,96 +438,6 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
         return deconv
 
 
-def max_pool_2d(incoming, kernel_size, strides=None, padding='same',
-                name="MaxPool2D"):
-    """ Max Pooling 2D.
-
-    Input:
-        4-D Tensor [batch, height, width, in_channels].
-
-    Output:
-        4-D Tensor [batch, pooled height, pooled width, in_channels].
-
-    Arguments:
-        incoming: `Tensor`. Incoming 4-D Layer.
-        kernel_size: 'int` or list of `ints`. Pooling kernel size.
-        strides: 'int` or list of `ints`. Strides of conv operation.
-            Default: same as kernel_size.
-        padding: `str` from `"same", "valid"`. Padding algo to use.
-            Default: 'same'.
-        name: A name for this layer (optional). Default: 'MaxPool2D'.
-
-    Attributes:
-        scope: `Scope`. This layer scope.
-
-    """
-    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
-        "Padding must be same' or 'valid'"
-
-    input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
-
-    kernel = utils.autoformat_kernel_2d(kernel_size)
-    strides = utils.autoformat_kernel_2d(strides) if strides else kernel
-    padding = utils.autoformat_padding(padding)
-
-    with tf.name_scope(name) as scope:
-        inference = tf.nn.max_pool(incoming, kernel, strides, padding)
-
-        # Track activations.
-        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
-
-    # Add attributes to Tensor to easy access weights
-    inference.scope = scope
-
-    return inference
-
-
-def avg_pool_2d(incoming, kernel_size, strides=None, padding='same',
-                name="AvgPool2D"):
-    """ Average Pooling 2D.
-
-    Input:
-        4-D Tensor [batch, height, width, in_channels].
-
-    Output:
-        4-D Tensor [batch, pooled height, pooled width, in_channels].
-
-    Arguments:
-        incoming: `Tensor`. Incoming 4-D Layer.
-        kernel_size: 'int` or list of `ints`. Pooling kernel size.
-        strides: 'int` or list of `ints`. Strides of conv operation.
-            Default: same as kernel_size.
-        padding: `str` from `"same", "valid"`. Padding algo to use.
-            Default: 'same'.
-        name: A name for this layer (optional). Default: 'AvgPool2D'.
-
-    Attributes:
-        scope: `Scope`. This layer scope.
-
-    """
-    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
-        "Padding must be same' or 'valid'"
-
-    input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
-
-    kernel = utils.autoformat_kernel_2d(kernel_size)
-    strides = utils.autoformat_kernel_2d(strides) if strides else kernel
-    padding = utils.autoformat_padding(padding)
-
-    with tf.name_scope(name) as scope:
-        inference = tf.nn.avg_pool(incoming, kernel, strides, padding)
-
-        # Track activations.
-        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
-
-    # Add attributes to Tensor to easy access weights
-    inference.scope = scope
-
-    return inference
-
-
 def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
             activation='linear', bias=True, weights_init='uniform_scaling',
             bias_init='zeros', regularizer=None, weight_decay=0.001,
@@ -453,8 +453,8 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     Arguments:
         incoming: `Tensor`. Incoming 3-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
-        filter_size: 'int` or list of `ints`. Size of filters.
-        strides: 'int` or list of `ints`. Strides of conv operation.
+        filter_size: 'int` or `list of int`. Size of filters.
+        strides: 'int` or `list of int`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -552,8 +552,8 @@ def max_pool_1d(incoming, kernel_size, strides=None, padding='same',
 
     Arguments:
         incoming: `Tensor`. Incoming 3-D Layer.
-        kernel_size: 'int` or list of `ints`. Pooling kernel size.
-        strides: 'int` or list of `ints`. Strides of conv operation.
+        kernel_size: `int` or `list of int`. Pooling kernel size.
+        strides: `int` or `list of int`. Strides of conv operation.
             Default: same as kernel_size.
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -601,8 +601,8 @@ def avg_pool_1d(incoming, kernel_size, strides=None, padding='same',
 
     Arguments:
         incoming: `Tensor`. Incoming 3-D Layer.
-        kernel_size: 'int` or list of `ints`. Pooling kernel size.
-        strides: 'int` or list of `ints`. Strides of conv operation.
+        kernel_size: `int` or `list of int`. Pooling kernel size.
+        strides: `int` or `list of int`. Strides of conv operation.
             Default: same as kernel_size.
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -884,8 +884,8 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     Arguments:
         incoming: `Tensor`. Incoming 4-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
-        filter_size: 'int` or list of `ints`. Size of filters.
-        strides: 'int` or list of `ints`. Strides of conv operation.
+        filter_size: 'int` or `list of int`. Size of filters.
+        strides: 'int` or `list of int`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -1000,8 +1000,8 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     Arguments:
         incoming: `Tensor`. Incoming 3-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
-        filter_size: 'int` or list of `ints`. Size of filters.
-        strides: 'int` or list of `ints`. Strides of conv operation.
+        filter_size: 'int` or `list of int`. Size of filters.
+        strides: 'int` or `list of int`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.

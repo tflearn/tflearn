@@ -109,7 +109,7 @@ def string_to_semi_redundant_sequences(string, seq_maxlen=25, redun_step=3):
         redun_step: `int`. Redundancy step. Default: 3.
 
     Returns:
-        `tuple`: (inputs, targets, dictionary)
+        A tuple: (inputs, targets, dictionary)
     """
 
     print("Vectorizing text...")
@@ -160,9 +160,10 @@ try:
 except Exception:
     _VocabularyProcessor = object
 
+
 # Mirroring TensorFLow `VocabularyProcessor`
 class VocabularyProcessor(_VocabularyProcessor):
-    """ VocabularyProcessor.
+    """ Vocabulary Processor.
 
     Maps documents to sequences of word ids.
 
@@ -217,7 +218,7 @@ class VocabularyProcessor(_VocabularyProcessor):
                                                               unused_y)
 
     def transform(self, raw_documents):
-        """
+        """ transform.
 
         Transform documents to word-id matrix.
 
@@ -257,7 +258,7 @@ class VocabularyProcessor(_VocabularyProcessor):
 
     @classmethod
     def restore(cls, filename):
-        """ restor.
+        """ restore.
 
         Restores vocabulary processor from given file.
 
@@ -372,7 +373,7 @@ def shuffle(*arrs):
     Shuffle given arrays at unison, along first axis.
 
     Arguments:
-        *arrs: Each array to shuffle at unison as a parameter.
+        *arrs: Each array to shuffle at unison.
 
     Returns:
         Tuple of shuffled arrays.

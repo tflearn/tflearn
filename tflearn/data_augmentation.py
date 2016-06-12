@@ -12,10 +12,19 @@ except Exception:
 class DataAugmentation(object):
     """ Data Augmentation.
 
-    Base class for managing data augmentation.
+    Base class for applying common real-time data augmentation.
+
+    This class is meant to be used as an argument of `input_data`. When training
+    a model, the defined augmentation methods will be applied at training
+    time only. Note that DataPreprocessing is similar to DataAugmentation,
+    but applies at both training time and testing time.
 
     Arguments:
-        None.
+        None
+
+    Parameters:
+        methods: `list of function`. The augmentation methods to apply.
+        args: A `list` of arguments list to use for these methods.
 
     """
 
@@ -33,12 +42,21 @@ class DataAugmentation(object):
 
 
 class ImageAugmentation(DataAugmentation):
-    """ ImageAugmentation.
+    """ Image Augmentation.
 
-    Augmentation methods designed especially for images.
+    Base class for applying real-time augmentation related to images.
+
+    This class is meant to be used as an argument of `input_data`. When training
+    a model, the defined augmentation methods will be applied at training
+    time only. Note that ImagePreprocessing is similar to ImageAugmentation,
+    but applies at both training time and testing time.
 
     Arguments:
         None.
+
+    Parameters:
+        methods: `list of function`. The augmentation methods to apply.
+        args: A `list` of arguments list to use for these methods.
 
     """
 
@@ -104,7 +122,7 @@ class ImageAugmentation(DataAugmentation):
     def add_random_rotation(self, max_angle=20.):
         """ add_random_rotation.
 
-        Randomly rotate an image by a random angle (-`max_angle`, `max_angle`).
+        Randomly rotate an image by a random angle (-max_angle, max_angle).
 
         Arguments:
             max_angle: `float`. The maximum rotation angle.
@@ -120,7 +138,7 @@ class ImageAugmentation(DataAugmentation):
         """ add_random_blur.
 
         Randomly blur an image by applying a gaussian filter with a random
-        sigma (0., `sigma_max`).
+        sigma (0., sigma_max).
 
         Arguments:
             sigma: `float` or list of `float`. Standard deviation for Gaussian

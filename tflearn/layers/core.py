@@ -17,12 +17,12 @@ def input_data(shape=None, placeholder=None, dtype=tf.float32,
                name="InputData"):
     """ Input Data.
 
-    `input_data` is used as a data entry (placeholder) of a network.
-    This placeholder will be feeded with data when training
+    This layer is used as a data entry (placeholder) of a network. The inner
+    placeholder will then be feeded with data when training.
 
     This layer is used to keep track of the network inputs, by adding the
     placeholder to INPUTS graphkey. TFLearn training functions may retrieve
-    those variables to setup the network training process.
+    these variables to setup the network training process.
 
     Input:
         List of `int` (Shape), to create a new placeholder.

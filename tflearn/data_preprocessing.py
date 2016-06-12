@@ -11,10 +11,19 @@ _EPSILON = 1e-8
 class DataPreprocessing(object):
     """ Data Preprocessing.
 
-    Manage real-time data preprocessing.
+    Base class for applying common real-time data preprocessing.
+
+    This class is meant to be used as an argument of `input_data`. When training
+    a model, the defined pre-processing methods will be applied at both
+    training and testing time. Note that DataAugmentation is similar to
+    DataPreprocessing, but only applies at training time.
 
     Arguments:
         None.
+
+    Parameters:
+        methods: `list of function`. Augmentation methods to apply.
+        args: A `list` of arguments to use for these methods.
 
     """
 
@@ -290,13 +299,14 @@ class DataPreprocessing(object):
 
 
 class ImagePreprocessing(DataPreprocessing):
-
     """ Image Preprocessing.
 
-    Pre-processing methods designed especially for images.
+    Base class for applying real-time image related pre-processing.
 
-    Arguments:
-        None.
+    This class is meant to be used as an argument of `input_data`. When training
+    a model, the defined pre-processing methods will be applied at both
+    training and testing time. Note that ImageAugmentation is similar to
+    ImagePreprocessing, but only applies at training time.
 
     """
 
