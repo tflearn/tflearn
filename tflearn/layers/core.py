@@ -398,7 +398,7 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
             loading a model
-         name: A name for this layer (optional). Default: 'FullyConnectedHighway'.
+        name: A name for this layer (optional). Default: 'FullyConnectedHighway'.
 
     Attributes:
         scope: `Scope`. This layer scope.
@@ -406,7 +406,7 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
         W_t: `Tensor`. Variable representing units weights for transform gate.
         b: `Tensor`. Variable representing biases.
         b_t: `Tensor`. Variable representing biases for transform gate.
-        
+
     Links:
         [https://arxiv.org/abs/1505.00387](https://arxiv.org/abs/1505.00387)
 

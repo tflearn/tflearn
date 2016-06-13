@@ -51,8 +51,8 @@ TMAX = 80000000
 # Current training step
 T = 0
 # Resize game screen
-resized_width = 84
-resized_height = 84
+resized_width = 80
+resized_height = 80
 # Use this number of recent screens as the environment state
 agent_history_length = 4
 # Frequency with which each actor learner thread does an async gradient update
@@ -60,11 +60,11 @@ network_update_frequency = 32
 # Reset the target network every n timesteps
 target_network_update_frequency = 10000
 # Learning rate
-learning_rate = 0.0001
+learning_rate = 0.00025
 # Reward discount rate
 gamma = 0.99
 # Number of timesteps to anneal epsilon
-anneal_epsilon_timesteps = 1000000
+anneal_epsilon_timesteps = 400000
 
 # =============================
 #   Utils Parameters
@@ -73,7 +73,7 @@ anneal_epsilon_timesteps = 1000000
 show_training = True
 # Directory for storing tensorboard summaries
 summary_dir = '/tmp/tflearn_logs/'
-summary_interval = 5
+summary_interval = 10
 checkpoint_path = 'qlearning.tflearn.ckpt'
 checkpoint_interval = 2000
 # Number of episodes to run gym evaluation
@@ -93,8 +93,11 @@ def build_dqn(num_actions, agent_history_length, resized_width,
     # Inputs shape: [batch, channel, width, height] need to be changed into
     # shape [batch, widht, height, channel]
     net = tf.transpose(inputs, [0, 2, 3, 1])
-    net = tflearn.conv_2d(net, 16, 8, strides=4, activation='relu')
-    net = tflearn.conv_2d(net, 2, 4, strides=2, activation='relu')
+    net = tflearn.conv_2d(net, 32, 8, strides=4, activation='relu')
+    net = tflearn.max_pool_2d(net, 2, strides=2)
+    net = tflearn.conv_2d(net, 64, 4, strides=2, activation='relu')
+    net = tflearn.max_pool_2d(net, 2, strides=2)
+    net = tflearn.conv_2d(net, 64, 3, strides=1, activation='relu')
     net = tflearn.fully_connected(net, 256, activation='relu')
     q_values = tflearn.fully_connected(net, num_actions)
     return inputs, q_values
@@ -336,7 +339,7 @@ def build_graph(num_actions):
     y = tf.placeholder("float", [None])
     action_q_values = tf.reduce_sum(tf.mul(q_values, a), reduction_indices=1)
     cost = tflearn.mean_square(action_q_values, y)
-    optimizer = tf.train.RMSPropOptimizer(learning_rate)
+    optimizer = tf.train.RMSPropOptimizer(learning_rate, 0.95, 0.95, 0.01)
     grad_update = optimizer.minimize(cost, var_list=network_params)
 
     graph_ops = {"s": s,
