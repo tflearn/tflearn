@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Teaching a machine to play 'Pong' Atari game by implementing a 1-step
-Q-learning with TFLearn, TensorFlow and OpenAI gym environment. Q-learning
-is described in "Asynchronous Methods for Deep Reinforcement Learning"
+Teaching a machine to play an Atari game (Pacman by default) by implementing
+a 1-step Q-learning with TFLearn, TensorFlow and OpenAI gym environment. The
+algorithm is described in "Asynchronous Methods for Deep Reinforcement Learning"
 paper. OpenAI's gym environment is used here for providing the Atari game
-environment for handling 'Pong' logic and states. This example is originally
+environment for handling games logic and states. This example is originally
 adapted from Corey Lynch's repo (url below).
 
 Requirements:
@@ -39,7 +39,8 @@ testing = False
 # Model path (to load when testing)
 test_model_path = '/path/to/your/qlearning.tflearn.ckpt'
 # Atari game to learn
-game = 'Pong-v0'
+# You can also try: 'Breakout-v0', 'Pong-v0', 'SpaceInvaders-v0', ...
+game = 'MsPacman-v0'
 # Learning threads
 n_threads = 8
 
@@ -50,17 +51,14 @@ n_threads = 8
 TMAX = 80000000
 # Current training step
 T = 0
-# Resize game screen
-resized_width = 80
-resized_height = 80
-# Use this number of recent screens as the environment state
-agent_history_length = 4
-# Frequency with which each actor learner thread does an async gradient update
-network_update_frequency = 32
-# Reset the target network every n timesteps
-target_network_update_frequency = 10000
+# Consecutive screen frames when performing training
+action_repeat = 4
+# Async gradient update frequency of each learning thread
+I_AsyncUpdate = 5
+# Timestep to reset the target network
+I_target = 40000
 # Learning rate
-learning_rate = 0.00025
+learning_rate = 0.001
 # Reward discount rate
 gamma = 0.99
 # Number of timesteps to anneal epsilon
@@ -73,7 +71,7 @@ anneal_epsilon_timesteps = 400000
 show_training = True
 # Directory for storing tensorboard summaries
 summary_dir = '/tmp/tflearn_logs/'
-summary_interval = 10
+summary_interval = 100
 checkpoint_path = 'qlearning.tflearn.ckpt'
 checkpoint_interval = 2000
 # Number of episodes to run gym evaluation
@@ -83,21 +81,16 @@ num_eval_episodes = 100
 # =============================
 #   TFLearn Deep Q Network
 # =============================
-def build_dqn(num_actions, agent_history_length, resized_width,
-                  resized_height):
+def build_dqn(num_actions, action_repeat):
     """
     Building a DQN.
     """
-    inputs = tf.placeholder(tf.float32, shape=[None, agent_history_length,
-                                               resized_width, resized_height])
-    # Inputs shape: [batch, channel, width, height] need to be changed into
-    # shape [batch, widht, height, channel]
+    inputs = tf.placeholder(tf.float32, [None, action_repeat, 84, 84])
+    # Inputs shape: [batch, channel, height, width] need to be changed into
+    # shape [batch, height, width, channel]
     net = tf.transpose(inputs, [0, 2, 3, 1])
     net = tflearn.conv_2d(net, 32, 8, strides=4, activation='relu')
-    net = tflearn.max_pool_2d(net, 2, strides=2)
     net = tflearn.conv_2d(net, 64, 4, strides=2, activation='relu')
-    net = tflearn.max_pool_2d(net, 2, strides=2)
-    net = tflearn.conv_2d(net, 64, 3, strides=1, activation='relu')
     net = tflearn.fully_connected(net, 256, activation='relu')
     q_values = tflearn.fully_connected(net, num_actions)
     return inputs, q_values
@@ -110,24 +103,16 @@ class AtariEnvironment(object):
     """
     Small wrapper for gym atari environments.
     Responsible for preprocessing screens and holding on to a screen buffer
-    of size agent_history_length from which environment state
-    is constructed.
+    of size action_repeat from which environment state is constructed.
     """
-    def __init__(self, gym_env, resized_width, resized_height, agent_history_length):
+    def __init__(self, gym_env, action_repeat):
         self.env = gym_env
-        self.resized_width = resized_width
-        self.resized_height = resized_height
-        self.agent_history_length = agent_history_length
+        self.action_repeat = action_repeat
 
+        # Agent available actions, such as LEFT, RIGHT, NOOP, etc...
         self.gym_actions = range(gym_env.action_space.n)
-        if (gym_env.spec.id == "Pong-v0" or gym_env.spec.id == "Breakout-v0"):
-            # Gym returns 6 possible actions for breakout and pong.
-            # Only three are used, the rest are no-ops. This just lets us
-            # pick from a simplified "LEFT", "RIGHT", "NOOP" action space.
-            self.gym_actions = [1, 2, 3]
-
-        # Screen buffer of size AGENT_HISTORY_LENGTH to be able to build
-        # state arrays of size [1, AGENT_HISTORY_LENGTH, width, height]
+        # Screen buffer of size action_repeat to be able to build
+        # state arrays of size [1, action_repeat, 84, 84]
         self.state_buffer = deque()
 
     def get_initial_state(self):
@@ -139,25 +124,25 @@ class AtariEnvironment(object):
 
         x_t = self.env.reset()
         x_t = self.get_preprocessed_frame(x_t)
-        s_t = np.stack((x_t, x_t, x_t, x_t), axis = 0)
+        s_t = np.stack([x_t for i in range(self.action_repeat)], axis=0)
 
-        for i in range(self.agent_history_length-1):
+        for i in range(self.action_repeat-1):
             self.state_buffer.append(x_t)
         return s_t
 
     def get_preprocessed_frame(self, observation):
         """
-        See Methods->Preprocessing in Mnih et al.
+        0) Atari frames: 210 x 160
         1) Get image grayscale
-        2) Rescale image
+        2) Rescale image 110 x 84
+        3) Crop center 84 x 84 (you can crop top/bottom according to the game)
         """
-        return resize(rgb2gray(observation), (self.resized_width,
-                                              self.resized_height))
+        return resize(rgb2gray(observation), (110, 84))[13:110 - 13, :]
 
     def step(self, action_index):
         """
         Excecutes an action in the gym environment.
-        Builds current state (concatenation of agent_history_length-1 previous
+        Builds current state (concatenation of action_repeat-1 previous
         frames and current one). Pops oldest frame, adds current frame to
         the state buffer. Returns current state.
         """
@@ -166,10 +151,9 @@ class AtariEnvironment(object):
         x_t1 = self.get_preprocessed_frame(x_t1)
 
         previous_frames = np.array(self.state_buffer)
-        s_t1 = np.empty((self.agent_history_length, self.resized_height,
-                         self.resized_width))
-        s_t1[:self.agent_history_length-1, ...] = previous_frames
-        s_t1[self.agent_history_length-1] = x_t1
+        s_t1 = np.empty((self.action_repeat, 84, 84))
+        s_t1[:self.action_repeat-1, :] = previous_frames
+        s_t1[self.action_repeat-1] = x_t1
 
         # Pop the oldest frame, add the current frame to the queue
         self.state_buffer.popleft()
@@ -212,9 +196,8 @@ def actor_learner_thread(thread_id, env, session, graph_ops, num_actions,
     summary_placeholders, assign_ops, summary_op = summary_ops
 
     # Wrap env with AtariEnvironment helper class
-    env = AtariEnvironment(gym_env=env, resized_width=resized_width,
-                           resized_height=resized_height,
-                           agent_history_length=agent_history_length)
+    env = AtariEnvironment(gym_env=env,
+                           action_repeat=action_repeat)
 
     # Initialize network gradients
     s_batch = []
@@ -280,15 +263,15 @@ def actor_learner_thread(thread_id, env, session, graph_ops, num_actions,
             episode_ave_max_q += np.max(readout_t)
 
             # Optionally update target network
-            if T % target_network_update_frequency == 0:
+            if T % I_target == 0:
                 session.run(reset_target_network_params)
 
             # Optionally update online network
-            if t % network_update_frequency == 0 or terminal:
+            if t % I_AsyncUpdate == 0 or terminal:
                 if s_batch:
-                    session.run(grad_update, feed_dict = {y : y_batch,
-                                                          a : a_batch,
-                                                          s : s_batch})
+                    session.run(grad_update, feed_dict={y: y_batch,
+                                                        a: a_batch,
+                                                        s: s_batch})
                 # Clear gradients
                 s_batch = []
                 a_batch = []
@@ -315,17 +298,13 @@ def actor_learner_thread(thread_id, env, session, graph_ops, num_actions,
 def build_graph(num_actions):
     # Create shared deep q network
     s, q_network = build_dqn(num_actions=num_actions,
-                             agent_history_length=agent_history_length,
-                             resized_width=resized_width,
-                             resized_height=resized_height)
+                             action_repeat=action_repeat)
     network_params = tf.trainable_variables()
     q_values = q_network
 
     # Create shared target network
     st, target_q_network = build_dqn(num_actions=num_actions,
-                                     agent_history_length=agent_history_length,
-                                     resized_width=resized_width,
-                                     resized_height=resized_height)
+                                     action_repeat=action_repeat)
     target_network_params = tf.trainable_variables()[len(network_params):]
     target_q_values = target_q_network
 
@@ -339,7 +318,7 @@ def build_graph(num_actions):
     y = tf.placeholder("float", [None])
     action_q_values = tf.reduce_sum(tf.mul(q_values, a), reduction_indices=1)
     cost = tflearn.mean_square(action_q_values, y)
-    optimizer = tf.train.RMSPropOptimizer(learning_rate, 0.95, 0.95, 0.01)
+    optimizer = tf.train.RMSPropOptimizer(learning_rate)
     grad_update = optimizer.minimize(cost, var_list=network_params)
 
     graph_ops = {"s": s,
@@ -381,11 +360,6 @@ def get_num_actions():
     # Figure out number of actions from gym env
     env = gym.make(game)
     num_actions = env.action_space.n
-    if (game == "Pong-v0" or game == "Breakout-v0"):
-        # Gym currently specifies 6 actions for pong
-        # and breakout when only 3 are needed. This
-        # is a lame workaround.
-        num_actions = 3
     return num_actions
 
 
@@ -447,9 +421,7 @@ def evaluation(session, graph_ops, saver):
 
     # Wrap env with AtariEnvironment helper class
     env = AtariEnvironment(gym_env=monitor_env,
-                           resized_width=resized_width,
-                           resized_height=resized_height,
-                           agent_history_length=agent_history_length)
+                           action_repeat=action_repeat)
 
     for i_episode in xrange(num_eval_episodes):
         s_t = env.get_initial_state()
