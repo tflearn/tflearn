@@ -29,7 +29,7 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
         nb_filter: `int`. The number of convolutional filters.
         filter_size: `int` or `list of int`. Size of filters.
         strides: 'int` or list of `int`. Strides of conv operation.
-            Default: [1 1 1 1 1].Must have strides[0] = strides[4] = 1.
+            Default: [1 1 1 1 1]. Must have strides[0] = strides[4] = 1.
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
         activation: `str` (name) or `function` (returning a `Tensor`).
