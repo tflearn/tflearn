@@ -410,7 +410,7 @@ def autoformat_stride_3d(strides):
             return [1, strides[0], strides[1],strides[2], 1]
         elif len(strides) == 5:
             assert strides[0] == strides[4] == 1, "Must have strides[0] = strides[4] = 1"
-            return [strides[0], strides[1], strides[2], strides[3], strides[5]]
+            return [strides[0], strides[1], strides[2], strides[3], strides[4]]
         else:
             raise Exception("strides length error: " + str(len(strides))
                             + ", only a length of 3 or 5 is supported.")
@@ -427,7 +427,7 @@ def autoformat_kernel_3d(kernel):
             return [1, 1, kernel[0], kernel[1], kernel[2]]
         elif len(kernel) == 5:
             assert kernel[0] == kernel[1] == 1, "Must have kernel_size[0] = kernel_size[1] = 1"
-            return [kernel[0], kernel[1], kernel[2], kernel[3], kernel[5]]
+            return [kernel[0], kernel[1], kernel[2], kernel[3], kernel[4]]
         else:
             raise Exception("kernel length error: " + str(len(kernel))
                             + ", only a length of 3 or 5 is supported.")
