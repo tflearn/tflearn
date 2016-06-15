@@ -116,7 +116,7 @@ class ImageAugmentation(DataAugmentation):
             Nothing.
 
         """
-        self.methods.append(self._random_flip_leftright)
+        self.methods.append(self._random_flip_updown)
         self.args.append(None)
 
     def add_random_rotation(self, max_angle=20.):
