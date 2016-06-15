@@ -12,6 +12,101 @@ from .. import initializations
 from .. import losses
 from .. import utils
 
+def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
+            activation='linear', bias=True, weights_init='uniform_scaling',
+            bias_init='zeros', regularizer=None, weight_decay=0.001,
+            trainable=True, restore=True, name="Conv3D"):
+    """ Convolution 3D.
+
+    Input:
+        5-D Tensor [batch, in_depth, in_height, in_width, in_channels].
+
+    Output:
+        5-D Tensor [filter_depth, filter_height, filter_width, in_channels, out_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 5-D Tensor.
+        nb_filter: `int`. The number of convolutional filters.
+        filter_size: `int` or `list of int`. Size of filters.
+        strides: 'int` or list of `int`. Strides of conv operation.
+            Default: [1 1 1 1 1].Must have strides[0] = strides[4] = 1.
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
+        bias: `bool`. If True, a bias is used.
+        weights_init: `str` (name) or `Tensor`. Weights initialization.
+            (see tflearn.initializations) Default: 'truncated_normal'.
+        bias_init: `str` (name) or `Tensor`. Bias initialization.
+            (see tflearn.initializations) Default: 'zeros'.
+        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
+            layer weights (see tflearn.regularizers). Default: None.
+        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model
+        name: A name for this layer (optional). Default: 'Conv2D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+        W: `Variable`. Variable representing filter weights.
+        b: `Variable`. Variable representing biases.
+
+    """
+    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
+        "Padding must be same' or 'valid'"
+
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
+    filter_size = utils.autoformat_filter_conv3d(filter_size,
+                                                 input_shape[-1],
+                                                 nb_filter)
+    strides = utils.autoformat_stride_3d(strides)
+    padding = utils.autoformat_padding(padding)
+
+    with tf.name_scope(name) as scope:
+
+        W_init = weights_init
+        if isinstance(weights_init, str):
+            W_init = initializations.get(weights_init)()
+        W_regul = None
+        if regularizer:
+            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        W = vs.variable(scope + 'W', shape=filter_size,
+                        regularizer=W_regul, initializer=W_init,
+                        trainable=trainable, restore=restore)
+        # Track per layer variables
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
+
+        b = None
+        if bias:
+            b_init = initializations.get(bias_init)()
+            b = vs.variable(scope + 'b', shape=nb_filter,
+                            initializer=b_init, trainable=trainable,
+                            restore=restore)
+            # Track per layer variables
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
+
+        inference = tf.nn.conv3d(incoming, W, strides, padding)
+        if b: inference = tf.nn.bias_add(inference, b)
+
+        if isinstance(activation, str):
+            inference = activations.get(activation)(inference)
+        elif hasattr(activation, '__call__'):
+            inference = activation(inference)
+        else:
+            raise ValueError("Invalid Activation.")
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights.
+    inference.scope = scope
+    inference.W = W
+    inference.b = b
+
+    return inference
 
 def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
             activation='linear', bias=True, weights_init='uniform_scaling',
@@ -266,6 +361,96 @@ def max_pool_2d(incoming, kernel_size, strides=None, padding='same',
 
     with tf.name_scope(name) as scope:
         inference = tf.nn.max_pool(incoming, kernel, strides, padding)
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights
+    inference.scope = scope
+
+    return inference
+
+
+def max_pool_3d(incoming, kernel_size, strides=1, padding='same',
+                name="MaxPool3D"):
+    """ Max Pooling 3D.
+
+    Input:
+        5-D Tensor [batch, depth, rows, cols, channels].
+
+    Output:
+        5-D Tensor [batch, pooled depth, pooled rows, pooled cols, in_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 5-D Layer.
+        kernel_size: 'int` or `list of int`. Pooling kernel size.Must have kernel_size[0] = kernel_size[1] = 1
+        strides: 'int` or `list of int`. Strides of conv operation.Must have strides[0] = strides[4] = 1.
+            Default: [1 1 1 1]
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        name: A name for this layer (optional). Default: 'MaxPool3D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+
+    """
+    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
+        "Padding must be same' or 'valid'"
+
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
+
+    kernel = utils.autoformat_kernel_3d(kernel_size)
+    strides = utils.autoformat_stride_3d(strides) 
+    padding = utils.autoformat_padding(padding)
+
+    with tf.name_scope(name) as scope:
+        inference = tf.nn.max_pool(incoming, kernel, strides, padding)
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights
+    inference.scope = scope
+
+    return inference
+
+
+def avg_pool_3d(incoming, kernel_size, strides=None, padding='same',
+                name="AvgPool3D"):
+    """ Average Pooling 3D.
+
+    Input:
+        5-D Tensor [batch, depth, rows, cols, channels].
+
+    Output:
+        5-D Tensor [batch, pooled depth, pooled rows, pooled cols, in_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 5-D Layer.
+        kernel_size: 'int` or `list of int`. Pooling kernel size.Must have kernel_size[0] = kernel_size[1] = 1
+        strides: 'int` or `list of int`. Strides of conv operation.Must have strides[0] = strides[4] = 1.
+            Default: [1 1 1 1]
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        name: A name for this layer (optional). Default: 'AvgPool3D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+
+    """
+    assert padding in ['same', 'valid', 'SAME', 'VALID'], \
+        "Padding must be same' or 'valid'"
+
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+
+    kernel = utils.autoformat_kernel_3d(kernel_size)
+    strides = utils.autoformat_stride_3d(strides) 
+    padding = utils.autoformat_padding(padding)
+
+    with tf.name_scope(name) as scope:
+        inference = tf.nn.avg_pool(incoming, kernel, strides, padding)
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
