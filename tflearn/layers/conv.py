@@ -430,7 +430,7 @@ def avg_pool_3d(incoming, kernel_size, strides=None, padding='same',
         incoming: `Tensor`. Incoming 5-D Layer.
         kernel_size: 'int` or `list of int`. Pooling kernel size.Must have kernel_size[0] = kernel_size[1] = 1
         strides: 'int` or `list of int`. Strides of conv operation.Must have strides[0] = strides[4] = 1.
-            Default: [1 1 1 1]
+            Default: [1 1 1 1 1]
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
         name: A name for this layer (optional). Default: 'AvgPool3D'.
@@ -443,7 +443,7 @@ def avg_pool_3d(incoming, kernel_size, strides=None, padding='same',
         "Padding must be same' or 'valid'"
 
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
 
     kernel = utils.autoformat_kernel_3d(kernel_size)
     strides = utils.autoformat_stride_3d(strides) 
