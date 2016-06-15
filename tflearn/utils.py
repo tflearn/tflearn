@@ -404,7 +404,7 @@ def autoformat_filter_conv3d(fsize, in_depth, out_depth):
 # Auto format stride for 3d convolution
 def autoformat_stride_3d(strides):
     if isinstance(strides, int):
-        return [1, strides, strides, 1]
+        return [1, strides, strides, strides, 1]
     elif isinstance(strides, (tuple, list)):
         if len(strides) == 3:
             return [1, strides[0], strides[1],strides[2], 1]
@@ -419,7 +419,7 @@ def autoformat_stride_3d(strides):
 
 
 # Auto format kernel for 3d convolution
-def autoformat_stride_3d(kernel):
+def autoformat_kernel_3d(kernel):
     if isinstance(kernel, int):
         return [1, 1, kernel, kernel]
     elif isinstance(kernel, (tuple, list)):
