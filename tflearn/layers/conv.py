@@ -385,7 +385,7 @@ def max_pool_3d(incoming, kernel_size, strides=1, padding='same',
         incoming: `Tensor`. Incoming 5-D Layer.
         kernel_size: 'int` or `list of int`. Pooling kernel size.Must have kernel_size[0] = kernel_size[1] = 1
         strides: 'int` or `list of int`. Strides of conv operation.Must have strides[0] = strides[4] = 1.
-            Default: [1 1 1 1]
+            Default: [1 1 1 1 1]
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
         name: A name for this layer (optional). Default: 'MaxPool3D'.
@@ -405,7 +405,7 @@ def max_pool_3d(incoming, kernel_size, strides=1, padding='same',
     padding = utils.autoformat_padding(padding)
 
     with tf.name_scope(name) as scope:
-        inference = tf.nn.max_pool(incoming, kernel, strides, padding)
+        inference = tf.nn.max_pool3d(incoming, kernel, strides, padding)
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
@@ -450,7 +450,7 @@ def avg_pool_3d(incoming, kernel_size, strides=None, padding='same',
     padding = utils.autoformat_padding(padding)
 
     with tf.name_scope(name) as scope:
-        inference = tf.nn.avg_pool(incoming, kernel, strides, padding)
+        inference = tf.nn.avg_pool3d(incoming, kernel, strides, padding)
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
