@@ -46,7 +46,7 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
             loading a model
-        name: A name for this layer (optional). Default: 'Conv2D'.
+        name: A name for this layer (optional). Default: 'Conv3D'.
 
     Attributes:
         scope: `Scope`. This layer scope.
