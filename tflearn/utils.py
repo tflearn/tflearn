@@ -349,9 +349,9 @@ def check_restore_tensor(tensor_to_check, exclvars):
 
 # Auto format kernel
 def autoformat_kernel_2d(strides):
-    if type(strides) is int:
+    if isinstance(strides, int):
         return [1, strides, strides, 1]
-    elif type(strides) in [tuple, list]:
+    elif isinstance(strides, (tuple, list)):
         if len(strides) == 2:
             return [1, strides[0], strides[1], 1]
         elif len(strides) == 4:
@@ -366,9 +366,9 @@ def autoformat_kernel_2d(strides):
 # Auto format filter size
 # Output shape: (rows, cols, input_depth, out_depth)
 def autoformat_filter_conv2d(fsize, in_depth, out_depth):
-    if type(fsize) is int:
+    if isinstance(fsize,int):
         return [fsize, fsize, in_depth, out_depth]
-    elif type(fsize) in [tuple, list]:
+    elif type(fsize, (tuple, list)):
         if len(fsize) == 2:
             return [fsize[0], fsize[1], in_depth, out_depth]
         else:
@@ -389,9 +389,9 @@ def autoformat_padding(padding):
 # Auto format filter size
 # Output shape: (rows, cols, input_depth, out_depth)
 def autoformat_filter_conv3d(fsize, in_depth, out_depth):
-    if type(fsize) is int:
+    if isinstance(fsize, int):
         return [fsize, fsize, fsize, in_depth, out_depth]
-    elif type(fsize) in [tuple, list]:
+    elif isinstance(fsize, (tuple, list)):
         if len(fsize) == 3:
             return [fsize[0], fsize[1],fsize[2], in_depth, out_depth]
         else:
@@ -403,9 +403,9 @@ def autoformat_filter_conv3d(fsize, in_depth, out_depth):
 
 # Auto format stride for 3d convolution
 def autoformat_stride_3d(strides):
-    if type(strides) is int:
+    if isinstance(strides, int):
         return [1, strides, strides, 1]
-    elif type(strides) in [tuple, list]:
+    elif isinstance(strides, (tuple, list)):
         if len(strides) == 3:
             return [1, strides[0], strides[1],strides[2], 1]
         elif len(strides) == 5:
@@ -420,9 +420,9 @@ def autoformat_stride_3d(strides):
 
 # Auto format kernel for 3d convolution
 def autoformat_stride_3d(kernel):
-    if type(kernel) is int:
+    if isinstance(kernel, int):
         return [1, 1, kernel, kernel]
-    elif type(kernel) in [tuple, list]:
+    elif isinstance(kernel, (tuple, list)):
         if len(kernel) == 3:
             return [1, 1, kernel[0], kernel[1], kernel[2]]
         elif len(kernel) == 5:
