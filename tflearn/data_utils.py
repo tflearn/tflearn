@@ -297,7 +297,7 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
     be assigned to each sub-folder following alphabetical order.
 
     'file' mode: Plain text file should be formatted as follow:
-    ``
+    ```
     /path/to/img1 class_id
     /path/to/img2 class_id
     /path/to/img3 class_id
@@ -420,7 +420,7 @@ def image_preloader(target_path, image_shape, mode='file', normalize=True,
 
     'file' mode: A plain text file listing every image path and class id.
     This file should be formatted as follow:
-    ``
+    ```
     /path/to/img1 class_id
     /path/to/img2 class_id
     /path/to/img3 class_id

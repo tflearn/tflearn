@@ -36,16 +36,17 @@ pages:
   - Losses: losses.md
   - Summaries: summaries.md
   - Variables: variables.md
+- Data Management:
+  - Data Utils: data_utils.md
+  - Data Preprocessing: data_preprocessing.md
+  - Data Augmentation: data_augmentation.md
+  - Data Flow: data_flow.md
+- Others:
+  - Graph Config: config.md
 - Helpers for Extending Tensorflow:
   - Trainer: helpers/trainer.md
   - Evaluator: helpers/evaluator.md
   - Summarizer: helpers/summarizer.md
   - Regularizer: helpers/regularizer.md
-- Others:
-  - Data Preprocessing: data_preprocessing.md
-  - Data Augmentation: data_augmentation.md
-  - Data Flow: data_flow.md
-  - Data Utils: data_utils.md
-  - Graph Config: config.md
 - Contributions: contributions.md
 - License: license.md
