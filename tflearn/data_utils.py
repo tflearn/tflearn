@@ -276,8 +276,8 @@ class VocabularyProcessor(_VocabularyProcessor):
 # ===================
 
 def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
-                             mode='folder', categorical_labels=True,
-                             normalize_img=True, grayscale=False,
+                             mode='file', categorical_labels=True,
+                             normalize=True, grayscale=False,
                              files_extension=None, chunks=True):
     """ Build HDF5 Image Dataset.
 
@@ -303,6 +303,29 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
     /path/to/img3 class_id
     ```
 
+    Examples:
+        ```
+        # Load path/class_id image file:
+        dataset_file = 'my_dataset.txt'
+
+        # Build a HDF5 dataset (only required once)
+        from tflearn.data_utils import build_hdf5_image_dataset
+        build_hdf5_image_dataset(dataset_file, image_shape=(128, 128),
+                                 mode='file', output_path='dataset.h5',
+                                 categorical_labels=True, normalize_img=True)
+
+        # Load HDF5 dataset
+        import h5py
+        h5f = h5py.File('dataset.h5', 'w')
+        X = h5f['X']
+        Y = h5f['Y']
+
+        # Build neural network and train
+        network = ...
+        model = DNN(network, ...)
+        model.fit(X, Y)
+        ```
+
     Arguments:
         target_path: `str`. Path of root folder or images plain text file.
         image_shape: `tuple (height, width)`. The images shape. Images that
@@ -317,7 +340,7 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
             Default: 'folder'.
         categorical_labels: `bool`. If True, labels are converted to binary
             vectors.
-        normalize_img: `bool`. If True, normalize all pictures by dividing
+        normalize: `bool`. If True, normalize all pictures by dividing
             every image array by 255.
         grayscale: `bool`. If true, images are converted to grayscale.
         files_extension: `list of str`. A list of allowed image file
@@ -341,7 +364,7 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
         with open(target_path, 'r') as f:
             images, labels = [], []
             for l in f.readlines():
-                l = l.split(' ')
+                l = l.strip('\n').split(' ')
                 images.append(l[0])
                 labels.append(l[1])
 
@@ -364,13 +387,106 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
         if grayscale:
             img = convert_color(img, 'L')
         img = pil_to_nparray(img)
-        if normalize_img:
+        if normalize:
             img /= 255.
         dataset['X'][i] = img
         if categorical_labels:
             dataset['Y'][i] = to_categorical([labels[i]], n_classes)[0]
         else:
             dataset['Y'][i] = labels[i]
+
+
+def image_preloader(target_path, image_shape, mode='file', normalize=True,
+                    grayscale=False, categorical_labels=True,
+                    files_extension=None):
+    """ Image PreLoader.
+
+    Create a python array (`Preloader`) that loads images on the fly (from
+    disk or url). There is two ways to provide image samples 'folder' or
+    'file', see the specifications below.
+
+    'folder' mode: Load images from disk, given a root folder. This folder
+    should be arranged as follow:
+    ```
+    ROOT_FOLDER -> SUBFOLDER_0 (CLASS 0) -> CLASS0_IMG1.jpg
+                                         -> CLASS0_IMG2.jpg
+                                         -> ...
+                -> SUBFOLDER_1 (CLASS 1) -> CLASS1_IMG1.jpg
+                                         -> ...
+                -> ...
+    ```
+    Note that if sub-folders are not integers from 0 to n_classes, an id will
+    be assigned to each sub-folder following alphabetical order.
+
+    'file' mode: A plain text file listing every image path and class id.
+    This file should be formatted as follow:
+    ``
+    /path/to/img1 class_id
+    /path/to/img2 class_id
+    /path/to/img3 class_id
+    ```
+
+    Note that load images on the fly and convert is time inefficient,
+    so you can instead use `build_hdf5_image_dataset` to build a HDF5 dataset
+    that enable fast retrieval (this function takes similar arguments).
+
+    Examples:
+        ```
+        # Load path/class_id image file:
+        dataset_file = 'my_dataset.txt'
+
+        # Build the preloader array, resize images to 128x128
+        from tflearn.data_utils import image_preloader
+        X, Y = image_preloader(dataset_file, image_shape=(128, 128),
+                               mode='file', categorical_labels=True,
+                               normalize=True)
+
+        # Build neural network and train
+        network = ...
+        model = DNN(network, ...)
+        model.fit(X, Y)
+        ```
+
+    Arguments:
+        target_path: `str`. Path of root folder or images plain text file.
+        image_shape: `tuple (height, width)`. The images shape. Images that
+            doesn't match that shape will be resized.
+        mode: `str` in ['file', 'folder']. The data source mode. 'folder'
+            accepts a root folder with each of his sub-folder representing a
+            class containing the images to classify.
+            'file' accepts a single plain text file that contains every
+            image path with their class id.
+            Default: 'folder'.
+        categorical_labels: `bool`. If True, labels are converted to binary
+            vectors.
+        normalize: `bool`. If True, normalize all pictures by dividing
+            every image array by 255.
+        grayscale: `bool`. If true, images are converted to grayscale.
+        files_extension: `list of str`. A list of allowed image file
+            extension, for example ['.jpg', '.jpeg', '.png']. If None,
+            all files are allowed.
+
+    Returns:
+        (X, Y): with X the images array and Y the labels array.
+
+    """
+    assert mode in ['folder', 'file']
+    if mode == 'folder':
+        images, labels = directory_to_samples(target_path,
+                                              flags=files_extension)
+    else:
+        with open(target_path, 'r') as f:
+            images, labels = [], []
+            for l in f.readlines():
+                l = l.strip('\n').split(' ')
+                images.append(l[0])
+                labels.append(int(l[1]))
+
+    n_classes = np.max(labels) + 1
+    X = ImagePreloader(images, image_shape, normalize, grayscale)
+    Y = LabelPreloader(labels, n_classes, categorical_labels)
+
+    return X, Y
 
 
 def load_image(in_image):
@@ -584,6 +700,54 @@ def directory_to_samples(directory, flags=None):
 # ==================
 #    OTHERS
 # ==================
+
+class Preloader(object):
+    def __init__(self, array, function):
+        self.array = array
+        self.function = function
+
+    def __getitem__(self, id):
+        if isinstance(id, list):
+            return [self.function(self.array[i]) for i in id]
+        elif isinstance(id, slice):
+            return [self.function(arr) for arr in self.array[id]]
+        else:
+            return self.function(self.array[id])
+
+    def __len__(self):
+        return len(self.array)
+
+
+class ImagePreloader(Preloader):
+    def __init__(self, array, image_shape, normalize=True, grayscale=False):
+        fn = lambda x: self.preload(x, image_shape, normalize, grayscale)
+        super(ImagePreloader, self).__init__(array, fn)
+
+    def preload(self, path, image_shape, normalize=True, grayscale=False):
+        img = load_image(path)
+        width, height = img.size
+        if width != image_shape[0] or height != image_shape[1]:
+            img = resize_image(img, image_shape[0], image_shape[1])
+        if grayscale:
+            img = convert_color(img, 'L')
+        img = pil_to_nparray(img)
+        if normalize:
+            img /= 255.
+        return img
+
+
+class LabelPreloader(Preloader):
+    def __init__(self, array, n_class=None, categorical_label=True):
+        fn = lambda x: self.preload(x, n_class, categorical_label)
+        super(LabelPreloader, self).__init__(array, fn)
+
+    def preload(self, label, n_class, categorical_label):
+        if categorical_label:
+            assert isinstance(n_class, int)
+            return to_categorical([label], n_class)[0]
+        else:
+            return label
+
 
 def get_max(X):
     return np.max(X)
