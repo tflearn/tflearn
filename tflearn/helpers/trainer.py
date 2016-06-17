@@ -123,6 +123,13 @@ class Trainer(object):
                 var_list=to_restore,
                 max_to_keep=max_checkpoints,
                 keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours)
+            # A second Saver, that only restore trainable variables
+            to_restore_trainvars = [item for item in tf.trainable_variables()
+                                    if check_restore_tensor(item, excl_vars)]
+            self.restorer_trainvars = tf.train.Saver(
+                var_list=to_restore_trainvars,
+                max_to_keep=max_checkpoints,
+                keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours)
 
             self.checkpoint_path = checkpoint_path
 
@@ -364,19 +371,23 @@ class Trainer(object):
         for t in l3_tags:
             tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, t)
 
-    def restore(self, model_file):
+    def restore(self, model_file, trainable_variable_only=False):
         """ restore.
 
         Restore a Tensorflow model
 
         Arguments:
             model_file: path of tensorflow model to restore
+            trainable_variable_only: If True, only restore trainable variables.
 
         """
         self.close_session()
         self.session = tf.Session()
         self.session.run(tf.initialize_all_variables())
-        self.restorer.restore(self.session, model_file)
+        if not trainable_variable_only:
+            self.restorer.restore(self.session, model_file)
+        else:
+            self.restorer_trainvars.restore(self.session, model_file)
         for o in self.train_ops:
             o.session = self.session
         self.restored = True

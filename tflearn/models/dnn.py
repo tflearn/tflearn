@@ -44,10 +44,6 @@ class DNN(object):
         assert isinstance(network, tf.Tensor), "'network' arg is not a Tensor!"
         self.net = network
         self.train_ops = tf.get_collection(tf.GraphKeys.TRAIN_OPS)
-        if len(self.train_ops) == 0:
-            raise Exception('tf collection "' + tf.GraphKeys.TRAIN_OPS + '" '
-                            'is empty! Please make sure you are using '
-                            '`regression` layer in your network.')
         self.trainer = Trainer(self.train_ops,
                                clip_gradients=clip_gradients,
                                tensorboard_dir=tensorboard_dir,
@@ -133,6 +129,11 @@ class DNN(object):
             run_id: `str`. Give a name for this run. (Useful for Tensorboard).
 
         """
+        if len(self.train_ops) == 0:
+            raise Exception('tf collection "' + tf.GraphKeys.TRAIN_OPS + '" '
+                            'is empty! Please make sure you are using '
+                            '`regression` layer in your network.')
+
         if batch_size:
             for train_op in self.train_ops:
                 train_op.batch_size = batch_size
@@ -215,16 +216,19 @@ class DNN(object):
         #with self.graph.as_default():
         self.trainer.save(model_file)
 
-    def load(self, model_file):
+    def load(self, model_file, weights_only=False):
         """ Load.
 
         Restore model weights.
 
         Arguments:
             model_file: `str`. Model path.
-
+            weights_only: `bool`. If True, only weights will be restored (
+                and not intermediate variable, such as step counter, moving
+                averages...). Note that if you are using batch normalization,
+                averages will not be restored as well.
         """
-        self.trainer.restore(model_file)
+        self.trainer.restore(model_file, weights_only)
         self.session = self.trainer.session
         self.predictor = Evaluator([self.net],
                                    session=self.session,
