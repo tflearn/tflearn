@@ -383,7 +383,7 @@ def autoformat_padding(padding):
     if padding in ['same', 'SAME', 'valid', 'VALID']:
         return str.upper(padding)
     else:
-        raise Exception("Unknow padding! Accepted values: 'same', 'valid'.")
+        raise Exception("Unknown padding! Accepted values: 'same', 'valid'.")
 
 
 # Auto format filter size
