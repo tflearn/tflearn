@@ -52,10 +52,10 @@ def input_data(shape=None, placeholder=None, dtype=tf.float32,
         name: `str`. A name for this layer (optional).
 
     """
-    if not shape and not placeholder:
+    if not shape and placeholder is None:
         raise Exception("`shape` or `placeholder` argument is required.")
 
-    if not placeholder:
+    if placeholder is None:
         # Add 'None' if missing
         assert shape is not None, "A shape or a placeholder must be provided."
         if len(shape) > 1:
