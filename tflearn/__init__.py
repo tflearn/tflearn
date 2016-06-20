@@ -31,7 +31,7 @@ from . import data_utils
 from . import collections # Add TFLearn collections to Tensorflow GraphKeys
 
 # Direct ops inclusion
-from .optimizers import SGD, AdaGrad, Adam, RMSProp, Momentum, Ftrl
+from .optimizers import SGD, AdaGrad, Adam, RMSProp, Momentum, Ftrl, AdaDelta
 from .activations import linear, tanh, sigmoid, softmax, softplus, softsign,\
     relu, relu6, leaky_relu, prelu, elu
 from .variables import variable, get_all_trainable_variable, \
@@ -47,7 +47,7 @@ from .layers.conv import conv_2d, max_pool_2d, avg_pool_2d, conv_1d, \
     global_avg_pool, residual_block, residual_bottleneck, \
     conv_2d_transpose, upsample_2d
 from .layers.core import input_data, dropout, custom_layer, reshape, \
-    flatten, activation, fully_connected, single_unit, highway
+    flatten, activation, fully_connected, single_unit, highway, one_hot_encoding
 from .layers.normalization import batch_normalization, local_response_normalization
 from .layers.estimator import regression
 from .layers.recurrent import lstm, gru, simple_rnn, bidirectional_rnn, dynamic_rnn, RNNCell, BasicLSTMCell, GRUCell, BasicRNNCell, DropoutWrapper

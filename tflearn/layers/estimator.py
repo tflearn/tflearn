@@ -3,7 +3,7 @@ from __future__ import division, print_function, absolute_import
 
 import tensorflow as tf
 
-import  tflearn
+from ..layers import core
 from tflearn import utils
 from tflearn import objectives
 from tflearn import metrics
@@ -14,8 +14,8 @@ from tflearn.helpers.trainer import TrainOp
 def regression(incoming, placeholder=None, optimizer='adam',
                loss='categorical_crossentropy', metric='default',
                learning_rate=0.001, dtype=tf.float32, batch_size=64,
-               shuffle_batches=True, trainable_vars=None, restore=True,
-               op_name=None, name=None):
+               shuffle_batches=True, to_one_hot=False, n_classes=None,
+               trainable_vars=None, restore=True, op_name=None, name=None):
     """ Regression.
 
     Input:
@@ -43,6 +43,10 @@ def regression(incoming, placeholder=None, optimizer='adam',
             supports different batch size for every optimizers. Default: 64.
         shuffle_batches: `bool`. Shuffle or not this optimizer batches at
             every epoch. Default: True.
+        to_one_hot: `bool`. If True, labels will be encoded to one hot vectors.
+            'n_classes' must then be specified.
+        n_classes: `int`. The total number of classes. Only required when using
+            'to_one_hot' option.
         trainable_vars: list of `Variable`. If specified, this regression will
             only update given variable weights. Else, all trainale variable
             are going to be updated.
@@ -60,12 +64,17 @@ def regression(incoming, placeholder=None, optimizer='adam',
 
     input_shape = utils.get_incoming_shape(incoming)
 
-    if not placeholder:
+    if placeholder is None:
         pscope = "TargetsData" if not name else name
         with tf.name_scope(pscope):
             placeholder = tf.placeholder(shape=input_shape, dtype=dtype, name="Y")
 
     tf.add_to_collection(tf.GraphKeys.TARGETS, placeholder)
+
+    if to_one_hot:
+        if n_classes is None:
+            raise Exception("'n_classes' is required when using 'to_one_hot'.")
+        placeholder = core.one_hot_encoding(placeholder, n_classes)
 
     step_tensor = None
     # Building Optimizer

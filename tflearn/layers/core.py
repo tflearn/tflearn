@@ -2,6 +2,7 @@ from __future__ import division, print_function, absolute_import
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.ops import standard_ops
 
 import tflearn
 
@@ -315,7 +316,7 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
             loading a model.
-        name: A name for this layer (optional). Default: 'Dense'.
+        name: A name for this layer (optional). Default: 'Linear'.
 
     Attributes:
         W: `Tensor`. Variable representing weight.
@@ -478,3 +479,35 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
     inference.b_t = b_T
 
     return inference
+
+
+def one_hot_encoding(target, n_classes, on_value=1.0, off_value=1.0,
+                     name="OneHotEncoding"):
+    """ One Hot Encoding.
+
+    Transform numeric labels into a binary vector.
+
+    Input:
+        The Labels Placeholder.
+
+    Output:
+        2-D Tensor, The encoded labels.
+
+    Arguments:
+        target: `Placeholder`. The labels placeholder.
+        n_classes: `int`. Total number of classes.
+        on_value: `scalar`. A scalar defining the on-value.
+        off_value: `scalar`. A scalar defining the off-value.
+        name: A name for this layer (optional). Default: 'OneHotEncoding'.
+
+    """
+
+    with tf.name_scope(name):
+        if target.dtype == tf.dtypes.int32:
+          target = standard_ops.to_int64(target)
+
+        target = standard_ops.one_hot(target, n_classes,
+                                      on_value=on_value,
+                                      off_value=off_value)
+
+    return target
