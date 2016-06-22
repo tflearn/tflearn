@@ -366,7 +366,7 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
             for l in f.readlines():
                 l = l.strip('\n').split()
                 images.append(l[0])
-                labels.append(l[1])
+                labels.append(int(l[1]))
 
     n_classes = np.max(labels) + 1
 
