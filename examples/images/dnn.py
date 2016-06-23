@@ -23,10 +23,10 @@ X, Y, testX, testY = mnist.load_data(one_hot=True)
 input_layer = tflearn.input_data(shape=[None, 784])
 dense1 = tflearn.fully_connected(input_layer, 64, activation='tanh',
                                  regularizer='L2', weight_decay=0.001)
-dropout1 = tflearn.dropout(dense1, 0.5)
+dropout1 = tflearn.dropout(dense1, 0.8)
 dense2 = tflearn.fully_connected(dropout1, 64, activation='tanh',
                                  regularizer='L2', weight_decay=0.001)
-dropout2 = tflearn.dropout(dense2, 0.5)
+dropout2 = tflearn.dropout(dense2, 0.8)
 softmax = tflearn.fully_connected(dropout2, 10, activation='softmax')
 
 # Regression using SGD with learning rate decay and Top-3 accuracy

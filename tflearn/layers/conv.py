@@ -12,103 +12,12 @@ from .. import initializations
 from .. import losses
 from .. import utils
 
-def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
-            activation='linear', bias=True, weights_init='uniform_scaling',
-            bias_init='zeros', regularizer=None, weight_decay=0.001,
-            trainable=True, restore=True, name="Conv3D"):
-    """ Convolution 3D.
-
-    Input:
-        5-D Tensor [batch, in_depth, in_height, in_width, in_channels].
-
-    Output:
-        5-D Tensor [filter_depth, filter_height, filter_width, in_channels, out_channels].
-
-    Arguments:
-        incoming: `Tensor`. Incoming 5-D Tensor.
-        nb_filter: `int`. The number of convolutional filters.
-        filter_size: `int` or `list of int`. Size of filters.
-        strides: 'int` or list of `int`. Strides of conv operation.
-            Default: [1 1 1 1 1]. Must have strides[0] = strides[4] = 1.
-        padding: `str` from `"same", "valid"`. Padding algo to use.
-            Default: 'same'.
-        activation: `str` (name) or `function` (returning a `Tensor`).
-            Activation applied to this layer (see tflearn.activations).
-            Default: 'linear'.
-        bias: `bool`. If True, a bias is used.
-        weights_init: `str` (name) or `Tensor`. Weights initialization.
-            (see tflearn.initializations) Default: 'truncated_normal'.
-        bias_init: `str` (name) or `Tensor`. Bias initialization.
-            (see tflearn.initializations) Default: 'zeros'.
-        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
-            layer weights (see tflearn.regularizers). Default: None.
-        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
-        trainable: `bool`. If True, weights will be trainable.
-        restore: `bool`. If True, this layer weights will be restored when
-            loading a model
-        name: A name for this layer (optional). Default: 'Conv3D'.
-
-    Attributes:
-        scope: `Scope`. This layer scope.
-        W: `Variable`. Variable representing filter weights.
-        b: `Variable`. Variable representing biases.
-
-    """
-    input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
-    filter_size = utils.autoformat_filter_conv3d(filter_size,
-                                                 input_shape[-1],
-                                                 nb_filter)
-    strides = utils.autoformat_stride_3d(strides)
-    padding = utils.autoformat_padding(padding)
-
-    with tf.name_scope(name) as scope:
-
-        W_init = weights_init
-        if isinstance(weights_init, str):
-            W_init = initializations.get(weights_init)()
-        W_regul = None
-        if regularizer:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
-        W = vs.variable(scope + 'W', shape=filter_size,
-                        regularizer=W_regul, initializer=W_init,
-                        trainable=trainable, restore=restore)
-        # Track per layer variables
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
-
-        b = None
-        if bias:
-            b_init = initializations.get(bias_init)()
-            b = vs.variable(scope + 'b', shape=nb_filter,
-                            initializer=b_init, trainable=trainable,
-                            restore=restore)
-            # Track per layer variables
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
-
-        inference = tf.nn.conv3d(incoming, W, strides, padding)
-        if b: inference = tf.nn.bias_add(inference, b)
-
-        if isinstance(activation, str):
-            inference = activations.get(activation)(inference)
-        elif hasattr(activation, '__call__'):
-            inference = activation(inference)
-        else:
-            raise ValueError("Invalid Activation.")
-
-        # Track activations.
-        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
-
-    # Add attributes to Tensor to easy access weights.
-    inference.scope = scope
-    inference.W = W
-    inference.b = b
-
-    return inference
 
 def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
             activation='linear', bias=True, weights_init='uniform_scaling',
             bias_init='zeros', regularizer=None, weight_decay=0.001,
-            trainable=True, restore=True, name="Conv2D"):
+            trainable=True, restore=True, reuse=False, scope=None,
+            name="Conv2D"):
     """ Convolution 2D.
 
     Input:
@@ -138,7 +47,12 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
-            loading a model
+            loading a model.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share varibales between layers. Note that scope will
+            override name.
         name: A name for this layer (optional). Default: 'Conv2D'.
 
     Attributes:
@@ -155,7 +69,8 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     strides = utils.autoformat_kernel_2d(strides)
     padding = utils.autoformat_padding(padding)
 
-    with tf.name_scope(name) as scope:
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
 
         W_init = weights_init
         if isinstance(weights_init, str):
@@ -163,20 +78,20 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         W_regul = None
         if regularizer:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
-        W = vs.variable(scope + 'W', shape=filter_size,
-                        regularizer=W_regul, initializer=W_init,
-                        trainable=trainable, restore=restore)
+        W = vs.variable('W', shape=filter_size, regularizer=W_regul,
+                        initializer=W_init, trainable=trainable,
+                        restore=restore)
+
         # Track per layer variables
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
 
         b = None
         if bias:
             b_init = initializations.get(bias_init)()
-            b = vs.variable(scope + 'b', shape=nb_filter,
-                            initializer=b_init, trainable=trainable,
-                            restore=restore)
+            b = vs.variable('b', shape=nb_filter, initializer=b_init,
+                            trainable=trainable, restore=restore)
             # Track per layer variables
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
         inference = tf.nn.conv2d(incoming, W, strides, padding)
         if b: inference = tf.nn.bias_add(inference, b)
@@ -203,7 +118,8 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
                       strides=1, padding='same', activation='linear',
                       bias=True, weights_init='uniform_scaling',
                       bias_init='zeros', regularizer=None, weight_decay=0.001,
-                      trainable=True, restore=True, name="Conv2DTranspose"):
+                      trainable=True, restore=True, reuse=False, scope=None,
+                      name="Conv2DTranspose"):
 
     """ Convolution 2D Transpose.
 
@@ -242,7 +158,12 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
         weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
-            loading a model
+            loading a model.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share varibales between layers. Note that scope will
+            override name.
         name: A name for this layer (optional). Default: 'Conv2DTranspose'.
 
     Attributes:
@@ -260,26 +181,27 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
     strides = utils.autoformat_kernel_2d(strides)
     padding = utils.autoformat_padding(padding)
 
-    with tf.name_scope(name) as scope:
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
 
         W_init = initializations.get(weights_init)()
         W_regul = None
         if regularizer:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
-        W = vs.variable(scope + 'W', shape=filter_size,
+        W = vs.variable('W', shape=filter_size,
                         regularizer=W_regul, initializer=W_init,
                         trainable=trainable, restore=restore)
         # Track per layer variables
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
 
         b = None
         if bias:
             b_init = initializations.get(bias_init)()
-            b = vs.variable(scope + 'b', shape=nb_filter,
+            b = vs.variable('b', shape=nb_filter,
                             initializer=b_init, trainable=trainable,
                             restore=restore)
             # Track per layer variables
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
         # Determine the complete shape of the output tensor.
         batch_size = tf.gather(tf.shape(incoming), tf.constant([0]))
@@ -349,90 +271,6 @@ def max_pool_2d(incoming, kernel_size, strides=None, padding='same',
 
     with tf.name_scope(name) as scope:
         inference = tf.nn.max_pool(incoming, kernel, strides, padding)
-
-        # Track activations.
-        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
-
-    # Add attributes to Tensor to easy access weights
-    inference.scope = scope
-
-    return inference
-
-
-def max_pool_3d(incoming, kernel_size, strides=1, padding='same',
-                name="MaxPool3D"):
-    """ Max Pooling 3D.
-
-    Input:
-        5-D Tensor [batch, depth, rows, cols, channels].
-
-    Output:
-        5-D Tensor [batch, pooled depth, pooled rows, pooled cols, in_channels].
-
-    Arguments:
-        incoming: `Tensor`. Incoming 5-D Layer.
-        kernel_size: 'int` or `list of int`. Pooling kernel size.Must have kernel_size[0] = kernel_size[1] = 1
-        strides: 'int` or `list of int`. Strides of conv operation.Must have strides[0] = strides[4] = 1.
-            Default: [1 1 1 1 1]
-        padding: `str` from `"same", "valid"`. Padding algo to use.
-            Default: 'same'.
-        name: A name for this layer (optional). Default: 'MaxPool3D'.
-
-    Attributes:
-        scope: `Scope`. This layer scope.
-
-    """
-    input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
-
-    kernel = utils.autoformat_kernel_3d(kernel_size)
-    strides = utils.autoformat_stride_3d(strides) 
-    padding = utils.autoformat_padding(padding)
-
-    with tf.name_scope(name) as scope:
-        inference = tf.nn.max_pool3d(incoming, kernel, strides, padding)
-
-        # Track activations.
-        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
-
-    # Add attributes to Tensor to easy access weights
-    inference.scope = scope
-
-    return inference
-
-
-def avg_pool_3d(incoming, kernel_size, strides=None, padding='same',
-                name="AvgPool3D"):
-    """ Average Pooling 3D.
-
-    Input:
-        5-D Tensor [batch, depth, rows, cols, channels].
-
-    Output:
-        5-D Tensor [batch, pooled depth, pooled rows, pooled cols, in_channels].
-
-    Arguments:
-        incoming: `Tensor`. Incoming 5-D Layer.
-        kernel_size: 'int` or `list of int`. Pooling kernel size.Must have kernel_size[0] = kernel_size[1] = 1
-        strides: 'int` or `list of int`. Strides of conv operation.Must have strides[0] = strides[4] = 1.
-            Default: [1 1 1 1 1]
-        padding: `str` from `"same", "valid"`. Padding algo to use.
-            Default: 'same'.
-        name: A name for this layer (optional). Default: 'AvgPool3D'.
-
-    Attributes:
-        scope: `Scope`. This layer scope.
-
-    """
-    input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
-
-    kernel = utils.autoformat_kernel_3d(kernel_size)
-    strides = utils.autoformat_stride_3d(strides) 
-    padding = utils.autoformat_padding(padding)
-
-    with tf.name_scope(name) as scope:
-        inference = tf.nn.avg_pool3d(incoming, kernel, strides, padding)
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
@@ -520,92 +358,107 @@ def upsample_2d(incoming, kernel_size, name="UpSample2D"):
 
 
 def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
-                  strides=2, name='Upscore'):
-        """ Upscore.
+                  strides=2, trainable=True, restore=True,
+                  reuse=False, scope=None, name='Upscore'):
+    """ Upscore.
 
-        This implements the upscore layer as used in
-        (Fully Convolutional Networks)[http://arxiv.org/abs/1411.4038].
-        The upscore layer is initialized as bilinear upsampling filter.
+    This implements the upscore layer as used in
+    (Fully Convolutional Networks)[http://arxiv.org/abs/1411.4038].
+    The upscore layer is initialized as bilinear upsampling filter.
 
-        Input:
-            4-D Tensor [batch, height, width, in_channels].
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
 
-        Output:
-            4-D Tensor [batch, pooled height, pooled width, in_channels].
+    Output:
+        4-D Tensor [batch, pooled height, pooled width, in_channels].
 
-        Arguments:
-            incoming: `Tensor`. Incoming 4-D Layer to upsample.
-            num_classes: `int`. Number of output feature maps.
-            shape: `list of int`. Dimension of the output map
-                [batch_size, new height, new width]. For convinience four values
-                 are allows [batch_size, new height, new width, X], where X
-                 is ignored.
-            kernel_size: 'int` or `list of int`. Upsampling kernel size.
-            strides: 'int` or `list of int`. Strides of conv operation.
-                Default: [1 2 2 1].
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Layer to upsample.
+        num_classes: `int`. Number of output feature maps.
+        shape: `list of int`. Dimension of the output map
+            [batch_size, new height, new width]. For convinience four values
+             are allows [batch_size, new height, new width, X], where X
+             is ignored.
+        kernel_size: 'int` or `list of int`. Upsampling kernel size.
+        strides: 'int` or `list of int`. Strides of conv operation.
+            Default: [1 2 2 1].
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share varibales between layers. Note that scope will
+            override name.
             name: A name for this layer (optional). Default: 'Upscore'.
 
-        Attributes:
-            scope: `Scope`. This layer scope.
+    Attributes:
+        scope: `Scope`. This layer scope.
 
-        Links:
-            (Fully Convolutional Networks)[http://arxiv.org/abs/1411.4038]
+    Links:
+        (Fully Convolutional Networks)[http://arxiv.org/abs/1411.4038]
 
-        """
-        input_shape = utils.get_incoming_shape(incoming)
-        assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    """
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
 
-        strides = utils.autoformat_kernel_2d(strides)
-        filter_size = utils.autoformat_filter_conv2d(kernel_size,
-                                                     num_classes,
-                                                     input_shape[-1])
+    strides = utils.autoformat_kernel_2d(strides)
+    filter_size = utils.autoformat_filter_conv2d(kernel_size,
+                                                 num_classes,
+                                                 input_shape[-1])
 
-        with tf.variable_scope(name) as scope:
-            if shape is None:
-                # Compute shape out of Bottom
-                in_shape = tf.shape(incoming)
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
 
-                h = ((in_shape[1] - 1) * strides[1]) + 1
-                w = ((in_shape[2] - 1) * strides[1]) + 1
-                new_shape = [in_shape[0], h, w, num_classes]
-            else:
-                new_shape = [shape[0], shape[1], shape[2], num_classes]
-            output_shape = tf.pack(new_shape)
+        if shape is None:
+            # Compute shape out of Bottom
+            in_shape = tf.shape(incoming)
 
-            def get_deconv_filter(f_shape):
-                """
-                Create filter weights initialized as bilinear upsampling.
-                """
-                width = f_shape[0]
-                heigh = f_shape[0]
-                f = ceil(width/2.0)
-                c = (2 * f - 1 - f % 2) / (2.0 * f)
-                bilinear = np.zeros([f_shape[0], f_shape[1]])
-                for x in range(width):
-                    for y in range(heigh):
-                        value = (1 - abs(x / f - c)) * (1 - abs(y / f - c))
-                        bilinear[x, y] = value
-                weights = np.zeros(f_shape)
-                for i in range(f_shape[2]):
-                    weights[:, :, i, i] = bilinear
+            h = ((in_shape[1] - 1) * strides[1]) + 1
+            w = ((in_shape[2] - 1) * strides[1]) + 1
+            new_shape = [in_shape[0], h, w, num_classes]
+        else:
+            new_shape = [shape[0], shape[1], shape[2], num_classes]
+        output_shape = tf.pack(new_shape)
 
-                init = tf.constant_initializer(value=weights,
-                                               dtype=tf.float32)
-                return tf.get_variable(name="up_filter", initializer=init,
-                                       shape=weights.shape)
+        def get_deconv_filter(f_shape):
+            """
+            Create filter weights initialized as bilinear upsampling.
+            """
+            width = f_shape[0]
+            heigh = f_shape[0]
+            f = ceil(width/2.0)
+            c = (2 * f - 1 - f % 2) / (2.0 * f)
+            bilinear = np.zeros([f_shape[0], f_shape[1]])
+            for x in range(width):
+                for y in range(heigh):
+                    value = (1 - abs(x / f - c)) * (1 - abs(y / f - c))
+                    bilinear[x, y] = value
+            weights = np.zeros(f_shape)
+            for i in range(f_shape[2]):
+                weights[:, :, i, i] = bilinear
 
-            weights = get_deconv_filter(filter_size)
-            deconv = tf.nn.conv2d_transpose(incoming, weights, output_shape,
-                                            strides=strides, padding='SAME')
+            init = tf.constant_initializer(value=weights,
+                                           dtype=tf.float32)
+            W = vs.variable(name="up_filter", initializer=init,
+                            shape=weights.shape, trainable=trainable,
+                            restore=restore)
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
+            return W
 
-        deconv.scope = scope
-        return deconv
+        weights = get_deconv_filter(filter_size)
+        deconv = tf.nn.conv2d_transpose(incoming, weights, output_shape,
+                                        strides=strides, padding='SAME')
+
+    deconv.scope = scope
+    return deconv
 
 
 def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
             activation='linear', bias=True, weights_init='uniform_scaling',
             bias_init='zeros', regularizer=None, weight_decay=0.001,
-            trainable=True, restore=True, name="Conv1D"):
+            trainable=True, restore=True, reuse=False, scope=None,
+            name="Conv1D"):
     """ Convolution 1D.
 
     Input:
@@ -636,6 +489,11 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
             loading a model
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share varibales between layers. Note that scope will
+            override name.
         name: A name for this layer (optional). Default: 'Conv1D'.
 
     Attributes:
@@ -656,26 +514,26 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     strides[1] = 1
     padding = utils.autoformat_padding(padding)
 
-    with tf.name_scope(name) as scope:
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
 
         W_init = initializations.get(weights_init)()
         W_regul = None
         if regularizer:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
-        W = vs.variable(scope + 'W', shape=filter_size,
-                        regularizer=W_regul, initializer=W_init,
-                        trainable=trainable, restore=restore)
+        W = vs.variable('W', shape=filter_size, regularizer=W_regul,
+                        initializer=W_init, trainable=trainable,
+                        restore=restore)
         # Track per layer variables
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
 
         b = None
         if bias:
             b_init = initializations.get(bias_init)()
-            b = vs.variable(scope + 'b', shape=nb_filter,
-                            initializer=b_init, trainable=trainable,
-                            restore=restore)
+            b = vs.variable('b', shape=nb_filter, initializer=b_init,
+                            trainable=trainable, restore=restore)
             # Track per layer variables
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
         # Adding dummy dimension to fit with Tensorflow conv2d
         inference = tf.expand_dims(incoming, 2)
@@ -792,6 +650,189 @@ def avg_pool_1d(incoming, kernel_size, strides=None, padding='same',
     return inference
 
 
+def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
+            activation='linear', bias=True, weights_init='uniform_scaling',
+            bias_init='zeros', regularizer=None, weight_decay=0.001,
+            trainable=True, restore=True, scope=None,  name="Conv3D"):
+    """ Convolution 3D.
+
+    Input:
+        5-D Tensor [batch, in_depth, in_height, in_width, in_channels].
+
+    Output:
+        5-D Tensor [filter_depth, filter_height, filter_width, in_channels, out_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 5-D Tensor.
+        nb_filter: `int`. The number of convolutional filters.
+        filter_size: `int` or `list of int`. Size of filters.
+        strides: 'int` or list of `int`. Strides of conv operation.
+            Default: [1 1 1 1 1]. Must have strides[0] = strides[4] = 1.
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
+        bias: `bool`. If True, a bias is used.
+        weights_init: `str` (name) or `Tensor`. Weights initialization.
+            (see tflearn.initializations) Default: 'truncated_normal'.
+        bias_init: `str` (name) or `Tensor`. Bias initialization.
+            (see tflearn.initializations) Default: 'zeros'.
+        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
+            layer weights (see tflearn.regularizers). Default: None.
+        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share varibales between layers. Note that scope will
+            override name.
+        name: A name for this layer (optional). Default: 'Conv3D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+        W: `Variable`. Variable representing filter weights.
+        b: `Variable`. Variable representing biases.
+
+    """
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
+    filter_size = utils.autoformat_filter_conv3d(filter_size,
+                                                 input_shape[-1],
+                                                 nb_filter)
+    strides = utils.autoformat_stride_3d(strides)
+    padding = utils.autoformat_padding(padding)
+
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
+
+        W_init = weights_init
+        if isinstance(weights_init, str):
+            W_init = initializations.get(weights_init)()
+        W_regul = None
+        if regularizer:
+            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        W = vs.variable('W', shape=filter_size, regularizer=W_regul,
+                        initializer=W_init, trainable=trainable,
+                        restore=restore)
+        # Track per layer variables
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
+
+        b = None
+        if bias:
+            b_init = initializations.get(bias_init)()
+            b = vs.variable('b', shape=nb_filter, initializer=b_init,
+                            trainable=trainable, restore=restore)
+            # Track per layer variables
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
+
+        inference = tf.nn.conv3d(incoming, W, strides, padding)
+        if b: inference = tf.nn.bias_add(inference, b)
+
+        if isinstance(activation, str):
+            inference = activations.get(activation)(inference)
+        elif hasattr(activation, '__call__'):
+            inference = activation(inference)
+        else:
+            raise ValueError("Invalid Activation.")
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights.
+    inference.scope = scope
+    inference.W = W
+    inference.b = b
+
+    return inference
+
+
+def max_pool_3d(incoming, kernel_size, strides=1, padding='same',
+                name="MaxPool3D"):
+    """ Max Pooling 3D.
+
+    Input:
+        5-D Tensor [batch, depth, rows, cols, channels].
+
+    Output:
+        5-D Tensor [batch, pooled depth, pooled rows, pooled cols, in_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 5-D Layer.
+        kernel_size: 'int` or `list of int`. Pooling kernel size.Must have kernel_size[0] = kernel_size[1] = 1
+        strides: 'int` or `list of int`. Strides of conv operation.Must have strides[0] = strides[4] = 1.
+            Default: [1 1 1 1 1]
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        name: A name for this layer (optional). Default: 'MaxPool3D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+
+    """
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
+
+    kernel = utils.autoformat_kernel_3d(kernel_size)
+    strides = utils.autoformat_stride_3d(strides)
+    padding = utils.autoformat_padding(padding)
+
+    with tf.name_scope(name) as scope:
+        inference = tf.nn.max_pool3d(incoming, kernel, strides, padding)
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights
+    inference.scope = scope
+
+    return inference
+
+
+def avg_pool_3d(incoming, kernel_size, strides=None, padding='same',
+                name="AvgPool3D"):
+    """ Average Pooling 3D.
+
+    Input:
+        5-D Tensor [batch, depth, rows, cols, channels].
+
+    Output:
+        5-D Tensor [batch, pooled depth, pooled rows, pooled cols, in_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 5-D Layer.
+        kernel_size: 'int` or `list of int`. Pooling kernel size.Must have kernel_size[0] = kernel_size[1] = 1
+        strides: 'int` or `list of int`. Strides of conv operation.Must have strides[0] = strides[4] = 1.
+            Default: [1 1 1 1 1]
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        name: A name for this layer (optional). Default: 'AvgPool3D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+
+    """
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
+
+    kernel = utils.autoformat_kernel_3d(kernel_size)
+    strides = utils.autoformat_stride_3d(strides)
+    padding = utils.autoformat_padding(padding)
+
+    with tf.name_scope(name) as scope:
+        inference = tf.nn.avg_pool3d(incoming, kernel, strides, padding)
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights
+    inference.scope = scope
+
+    return inference
+
+
 def global_avg_pool(incoming, name="GlobalAvgPool"):
     """ Global Average Pooling.
 
@@ -817,7 +858,8 @@ def residual_block(incoming, nb_blocks, out_channels, downsample=False,
                    downsample_strides=2, activation='relu', batch_norm=True,
                    bias=True, weights_init='variance_scaling',
                    bias_init='zeros', regularizer='L2', weight_decay=0.0001,
-                   trainable=True, restore=True, name="ResidualBlock"):
+                   trainable=True, restore=True, reuse=False, scope=None,
+                   name="ResidualBlock"):
     """ Residual Block.
 
     A residual block as described in MSRA's Deep Residual Network paper.
@@ -851,7 +893,12 @@ def residual_block(incoming, nb_blocks, out_channels, downsample=False,
         weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
-            loading a model
+            loading a model.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share varibales between layers. Note that scope will
+            override name.
         name: A name for this layer (optional). Default: 'ShallowBottleneck'.
 
     References:
@@ -870,7 +917,9 @@ def residual_block(incoming, nb_blocks, out_channels, downsample=False,
     resnet = incoming
     in_channels = incoming.get_shape().as_list()[-1]
 
-    with tf.name_scope(name):
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name #TODO
+
         for i in range(nb_blocks):
 
             identity = resnet
@@ -919,7 +968,8 @@ def residual_bottleneck(incoming, nb_blocks, bottleneck_size, out_channels,
                         activation='relu', batch_norm=True, bias=True,
                         weights_init='variance_scaling', bias_init='zeros',
                         regularizer='L2', weight_decay=0.0001,
-                        trainable=True, restore=True, name="ResidualBottleneck"):
+                        trainable=True, restore=True, reuse=False, scope=None,
+                        name="ResidualBottleneck"):
     """ Residual Bottleneck.
 
     A residual bottleneck block as described in MSRA's Deep Residual Network
@@ -955,7 +1005,12 @@ def residual_bottleneck(incoming, nb_blocks, bottleneck_size, out_channels,
         weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
-            loading a model
+            loading a model.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share varibales between layers. Note that scope will
+            override name.
         name: A name for this layer (optional). Default: 'DeepBottleneck'.
 
     References:
@@ -974,7 +1029,9 @@ def residual_bottleneck(incoming, nb_blocks, bottleneck_size, out_channels,
     resnet = incoming
     in_channels = incoming.get_shape().as_list()[-1]
 
-    with tf.name_scope(name):
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name #TODO
+
         for i in range(nb_blocks):
 
             identity = resnet
@@ -1027,7 +1084,8 @@ def residual_bottleneck(incoming, nb_blocks, bottleneck_size, out_channels,
 def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
                     activation='linear', weights_init='uniform_scaling',
                     bias_init='zeros', regularizer=None, weight_decay=0.001,
-                    trainable=True, restore=True, name="HighwayConv2D"):
+                    trainable=True, restore=True, reuse=False, scope=None,
+                    name="HighwayConv2D"):
     """ Highway Convolution 2D.
 
     Input:
@@ -1057,6 +1115,11 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
             loading a model
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share varibales between layers. Note that scope will
+            override name.
         name: A name for this layer (optional). Default: 'Conv2D'.
 
     Attributes:
@@ -1075,7 +1138,8 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     strides = utils.autoformat_kernel_2d(strides)
     padding = utils.autoformat_padding(padding)
 
-    with tf.name_scope(name) as scope:
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
 
         W_init = weights_init
         if isinstance(weights_init, str):
@@ -1083,32 +1147,30 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         W_regul = None
         if regularizer:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
-        W = vs.variable(scope + 'W', shape=filter_size,
-                        regularizer=W_regul, initializer=W_init,
-                        trainable=trainable, restore=restore)
-        # Track per layer variables
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
-
-        b_init = initializations.get(bias_init)()
-        b = vs.variable(scope + 'b', shape=nb_filter,
-                        initializer=b_init, trainable=trainable,
+        W = vs.variable('W', shape=filter_size, regularizer=W_regul,
+                        initializer=W_init, trainable=trainable,
                         restore=restore)
         # Track per layer variables
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
+
+        b_init = initializations.get(bias_init)()
+        b = vs.variable('b', shape=nb_filter, initializer=b_init,
+                        trainable=trainable, restore=restore)
+        # Track per layer variables
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
         # Weight and bias for the transform gate
-        with tf.name_scope('transform_gate') as transform_gate:
-            W_T = vs.variable(transform_gate + 'W', shape=nb_filter,
-                              regularizer=None, initializer=W_init,
-                              trainable=trainable, restore=restore)
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' +
-                                 transform_gate, W_T)
+        W_T = vs.variable('W_T', shape=nb_filter,
+                          regularizer=None, initializer=W_init,
+                          trainable=trainable, restore=restore)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' +
+                             name, W_T)
 
-            b_T = vs.variable(transform_gate + 'b', shape=nb_filter,
-                              initializer=tf.constant_initializer(-3),
-                              trainable=trainable, restore=restore)
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' +
-                                 transform_gate, b_T)
+        b_T = vs.variable('b_T', shape=nb_filter,
+                          initializer=tf.constant_initializer(-3),
+                          trainable=trainable, restore=restore)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' +
+                             name, b_T)
 
         if isinstance(activation, str):
             activation = activations.get(activation)
@@ -1140,7 +1202,8 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
 def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
                     activation='linear', weights_init='uniform_scaling',
                     bias_init='zeros', regularizer=None, weight_decay=0.001,
-                    trainable=True, restore=True, name="HighwayConv1D"):
+                    trainable=True, restore=True, reuse=False, scope=None,
+                    name="HighwayConv1D"):
     """ Highway Convolution 1D.
 
     Input:
@@ -1169,7 +1232,12 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
-            loading a model
+            loading a model.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share varibales between layers. Note that scope will
+            override name.
         name: A name for this layer (optional). Default: 'HighwayConv1D'.
 
     Attributes:
@@ -1192,7 +1260,8 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     strides[1] = 1
     padding = utils.autoformat_padding(padding)
 
-    with tf.name_scope(name) as scope:
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
 
         W_init = weights_init
         if isinstance(weights_init, str):
@@ -1200,32 +1269,29 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         W_regul = None
         if regularizer:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
-        W = vs.variable(scope + 'W', shape=filter_size,
+        W = vs.variable('W', shape=filter_size,
                         regularizer=W_regul, initializer=W_init,
                         trainable=trainable, restore=restore)
         # Track per layer variables
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
 
         b_init = initializations.get(bias_init)()
-        b = vs.variable(scope + 'b', shape=nb_filter,
+        b = vs.variable('b', shape=nb_filter,
                         initializer=b_init, trainable=trainable,
                         restore=restore)
         # Track per layer variables
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
         # Weight and bias for the transform gate
-        with tf.name_scope('transform_gate') as transform_gate:
-            W_T = vs.variable(transform_gate + 'W', shape=nb_filter,
-                            regularizer=None, initializer=W_init,
-                            trainable=trainable, restore=restore)
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' +
-                                 transform_gate, W_T)
+        W_T = vs.variable('W_T', shape=nb_filter,
+                        regularizer=None, initializer=W_init,
+                        trainable=trainable, restore=restore)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W_T)
 
-            b_T = vs.variable(transform_gate + 'b', shape=nb_filter,
-                              initializer=tf.constant_initializer(-3),
-                              trainable=trainable, restore=restore)
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' +
-                                 transform_gate, b_T)
+        b_T = vs.variable('b_T', shape=nb_filter,
+                          initializer=tf.constant_initializer(-3),
+                          trainable=trainable, restore=restore)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b_T)
 
         if isinstance(activation, str):
             activation = activations.get(activation)
@@ -1236,7 +1302,7 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
         # Adding dummy dimension to fit with Tensorflow conv2d
         inference = tf.expand_dims(incoming, 2)
-        #shared convolution for gating
+        # Shared convolution for gating
         convolved = tf.nn.conv2d(inference, W, strides, padding)
         H = activation(tf.squeeze(convolved + b, [2]))
         T = tf.sigmoid(tf.squeeze(tf.mul(convolved, W_T) + b_T, [2]))

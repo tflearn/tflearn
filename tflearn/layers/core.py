@@ -78,7 +78,8 @@ def input_data(shape=None, placeholder=None, dtype=tf.float32,
 def fully_connected(incoming, n_units, activation='linear', bias=True,
                     weights_init='truncated_normal', bias_init='zeros',
                     regularizer=None, weight_decay=0.001, trainable=True,
-                    restore=True, name="FullyConnected"):
+                    restore=True, reuse=False, scope=None,
+                    name="FullyConnected"):
     """ Fully Connected.
 
     A fully connected layer.
@@ -100,13 +101,18 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
             (see tflearn.initializations) Default: 'truncated_normal'.
         bias_init: `str` (name) or `Tensor`. Bias initialization.
             (see tflearn.initializations) Default: 'zeros'.
-       regularizer: `str` (name) or `Tensor`. Add a regularizer to this
+        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
             layer weights (see tflearn.regularizers). Default: None.
-       weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
-       trainable: `bool`. If True, weights will be trainable.
-       restore: `bool`. If True, this layer weights will be restored when
+        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
             loading a model.
-       name: A name for this layer (optional). Default: 'FullyConnected'.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share varibales between layers. Note that scope will
+            override name.
+        name: A name for this layer (optional). Default: 'FullyConnected'.
 
     Attributes:
         scope: `Scope`. This layer scope.
@@ -119,7 +125,8 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
     n_inputs = int(np.prod(input_shape[1:]))
 
     # Build variables and inference.
-    with tf.name_scope(name) as scope:
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
 
         W_init = weights_init
         if isinstance(weights_init, str):
@@ -127,18 +134,17 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
         W_regul = None
         if regularizer:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
-        W = va.variable(scope + 'W', shape=[n_inputs, n_units],
-                        regularizer=W_regul, initializer=W_init,
-                        trainable=trainable, restore=restore)
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
+        W = va.variable('W', shape=[n_inputs, n_units], regularizer=W_regul,
+                        initializer=W_init, trainable=trainable,
+                        restore=restore)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
 
         b = None
         if bias:
             b_init = initializations.get(bias_init)()
-            b = va.variable(scope + 'b', shape=[n_units],
-                            initializer=b_init, trainable=trainable,
-                            restore=restore)
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
+            b = va.variable('b', shape=[n_units], initializer=b_init,
+                            trainable=trainable, restore=restore)
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
         inference = incoming
         # If input is not 2d, flatten it.
@@ -297,7 +303,7 @@ def activation(incoming, activation='linear'):
 
 
 def single_unit(incoming, activation='linear', bias=True, trainable=True,
-                restore=True, name="Linear"):
+                restore=True, reuse=False, scope=None, name="Linear"):
     """ Single Unit.
 
     A single unit (Linear) Layer.
@@ -316,6 +322,11 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
             loading a model.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share varibales between layers. Note that scope will
+            override name.
         name: A name for this layer (optional). Default: 'Linear'.
 
     Attributes:
@@ -327,19 +338,20 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
     n_inputs = int(np.prod(input_shape[1:]))
 
     # Build variables and inference.
-    with tf.name_scope(name) as scope:
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
 
-        W = va.variable(scope + 'W', shape=[n_inputs],
+        W = va.variable('W', shape=[n_inputs],
                         initializer=tf.constant_initializer(np.random.randn()),
                         trainable=trainable, restore=restore)
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
 
         b = None
         if bias:
-            b = va.variable(scope + 'b', shape=[n_inputs],
+            b = va.variable('b', shape=[n_inputs],
                             initializer=tf.constant_initializer(np.random.randn()),
                             trainable=trainable, restore=restore)
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
         inference = incoming
         # If input is not 2d, flatten it.
@@ -370,7 +382,8 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
 def highway(incoming, n_units, activation='linear', transform_dropout=None,
             weights_init='truncated_normal', bias_init='zeros',
             regularizer=None, weight_decay=0.001, trainable=True,
-            restore=True, name="FullyConnectedHighway"):
+            restore=True, reuse=False, scope=None,
+            name="FullyConnectedHighway"):
     """ Fully Connected Highway.
 
     A fully connected highway network layer, with some inspiration from
@@ -399,6 +412,11 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
             loading a model
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share varibales between layers. Note that scope will
+            override name.
         name: A name for this layer (optional). Default: 'FullyConnectedHighway'.
 
     Attributes:
@@ -417,7 +435,8 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
     n_inputs = int(np.prod(input_shape[1:]))
 
     # Build variables and inference.
-    with tf.name_scope(name) as scope:
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
 
         W_init = weights_init
         if isinstance(weights_init, str):
@@ -425,29 +444,26 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
         W_regul = None
         if regularizer:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
-        W = va.variable(scope + 'W', shape=[n_inputs, n_units],
-                        regularizer=W_regul, initializer=W_init,
-                        trainable=trainable, restore=restore)
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
-
-        b = None
-        b_init = initializations.get(bias_init)()
-        b = va.variable(scope + 'b', shape=[n_units],
-                        initializer=b_init, trainable=trainable,
+        W = va.variable('W', shape=[n_inputs, n_units], regularizer=W_regul,
+                        initializer=W_init, trainable=trainable,
                         restore=restore)
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
+
+        b_init = initializations.get(bias_init)()
+        b = va.variable('b', shape=[n_units], initializer=b_init,
+                        trainable=trainable, restore=restore)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
             
-        #weight and bias for the transform gate
-        with tf.name_scope('transform_gate') as transform_gate:
-            W_T = va.variable(transform_gate + 'W', shape=[n_inputs, n_units],
-                            regularizer=None, initializer=W_init,
-                            trainable=trainable, restore=restore)
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + transform_gate, W_T) 
-            
-            b_T = va.variable(transform_gate + 'b', shape=[n_units],
-                            initializer=tf.constant_initializer(-1), trainable=trainable,
-                            restore=restore)
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + transform_gate, b_T)
+        # Weight and bias for the transform gate
+        W_T = va.variable('W_T', shape=[n_inputs, n_units],
+                          regularizer=None, initializer=W_init,
+                          trainable=trainable, restore=restore)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W_T)
+
+        b_T = va.variable('b_T', shape=[n_units],
+                          initializer=tf.constant_initializer(-1),
+                          trainable=trainable, restore=restore)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b_T)
 
         # If input is not 2d, flatten it.
         if len(input_shape) > 2:

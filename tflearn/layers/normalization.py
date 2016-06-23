@@ -10,8 +10,9 @@ from .. import variables as vs
 
 
 def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
-                        decay=0.9, trainable=True, restore=True,
-                        stddev=0.002, name="BatchNormalization"):
+                        decay=0.9, stddev=0.002, trainable=True,
+                        restore=True, reuse=False, scope=None,
+                        name="BatchNormalization"):
     """ Batch Normalization.
 
     Normalize activations of the previous layer at each batch.
@@ -22,10 +23,15 @@ def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
         gamma: `float`. Default: 1.0.
         epsilon: `float`. Defalut: 1e-5.
         decay: `float`. Default: 0.9.
+        stddev: `float`. Standard deviation for weights initialization.
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
             loading a model.
-        stddev: `float`. Standard deviation for weights initialization.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share varibales between layers. Note that scope will
+            override name.
         name: `str`. A name for this layer (optional).
 
     References:
@@ -42,27 +48,28 @@ def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
 
     gamma_init = tf.random_normal_initializer(mean=gamma, stddev=stddev)
 
-    with tf.name_scope(name) as scope:
-        beta = vs.variable(scope + 'beta', shape=[input_shape[-1]],
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
+        beta = vs.variable('beta', shape=[input_shape[-1]],
                            initializer=tf.constant_initializer(beta),
                            trainable=trainable, restore=restore)
-        gamma = vs.variable(scope + 'gamma', shape=[input_shape[-1]],
+        gamma = vs.variable('gamma', shape=[input_shape[-1]],
                             initializer=gamma_init, trainable=trainable,
                             restore=restore)
         # Track per layer variables
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, beta)
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, gamma)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, beta)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, gamma)
         if not restore:
             tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, beta)
             tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, gamma)
 
         axis = list(range(input_ndim - 1))
-        moving_mean = vs.variable(scope + 'moving_mean',
+        moving_mean = vs.variable('moving_mean',
                                   input_shape[-1:],
                                   initializer=tf.zeros_initializer,
                                   trainable=False,
                                   restore=restore)
-        moving_variance = vs.variable(scope + 'moving_variance',
+        moving_variance = vs.variable('moving_variance',
                                       input_shape[-1:],
                                       initializer=tf.ones_initializer,
                                       trainable=False,
@@ -123,6 +130,7 @@ def local_response_normalization(incoming, depth_radius=5, bias=1.0,
             Defaults to 1.0.
         alpha: `float`. A scale factor, usually positive. Defaults to 0.0001.
         beta: `float`. An exponent. Defaults to `0.5`.
+        name: `str`. A name for this layer (optional).
 
     """
 

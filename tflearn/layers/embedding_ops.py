@@ -10,7 +10,8 @@ from .. import initializations
 
 
 def embedding(incoming, input_dim, output_dim, weights_init='truncated_normal',
-              trainable=True, restore=True, name="Embedding"):
+              trainable=True, restore=True, reuse=False, scope=None,
+              name="Embedding"):
     """ Embedding.
 
     Embedding layer for a sequence of ids.
@@ -42,12 +43,13 @@ def embedding(incoming, input_dim, output_dim, weights_init='truncated_normal',
     if isinstance(weights_init, str):
         W_init = initializations.get(weights_init)()
 
-    with tf.name_scope(name) as scope:
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
         with tf.device('/cpu:0'):
-            W = vs.variable(scope + "W", shape=[input_dim, output_dim],
+            W = vs.variable("W", shape=[input_dim, output_dim],
                             initializer=W_init, trainable=trainable,
                             restore=restore)
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
 
         inference = tf.cast(incoming, tf.int32)
         inference = tf.nn.embedding_lookup(W, inference)

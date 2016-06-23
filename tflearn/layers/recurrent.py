@@ -27,7 +27,8 @@ from .. import initializations
 def simple_rnn(incoming, n_units, activation='sigmoid', dropout=None,
                bias=True, weights_init='truncated_normal', return_seq=False,
                return_states=False, initial_state=None, sequence_length=None,
-               trainable=True, restore=True, name="SimpleRNN"):
+               trainable=True, restore=True, reuse=False, scope=None,
+               name="SimpleRNN"):
     """ Simple RNN.
 
     Simple Recurrent Layer.
@@ -69,7 +70,9 @@ def simple_rnn(incoming, n_units, activation='sigmoid', dropout=None,
     if isinstance(weights_init, str):
         W_init = initializations.get(weights_init)()
 
-    with tf.name_scope(name) as scope:
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
+
         cell = BasicRNNCell(n_units, activation, bias, W_init,
                             trainable, restore)
         out_cell = cell
@@ -95,14 +98,14 @@ def simple_rnn(incoming, n_units, activation='sigmoid', dropout=None,
             inference = tf.unpack(inference)
 
         # Track per layer variables
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name,
                              cell.W)
         if bias:
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name,
                                  cell.b)
 
         outputs, states = _rnn(out_cell, inference, dtype=tf.float32,
-                               initial_state=initial_state, scope=scope[:-1],
+                               initial_state=initial_state, scope=name [:-1],
                                sequence_length=sequence_length)
 
         # Track activations.
@@ -118,7 +121,7 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
          dropout=None, bias=True, weights_init='truncated_normal',
          forget_bias=1.0, return_seq=False, return_states=False,
          initial_state=None, sequence_length=None, trainable=True,
-         restore=True, name="LSTM"):
+         restore=True, reuse=False, scope=None, name="LSTM"):
     """ LSTM.
 
     Long Short Term Memory Recurrent Layer.
@@ -171,7 +174,9 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
     if isinstance(weights_init, str):
         W_init = initializations.get(weights_init)()
 
-    with tf.name_scope(name) as scope:
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
+
         cell = BasicLSTMCell(n_units, activation, inner_activation, bias,
                              W_init, forget_bias, trainable, restore)
         out_cell = cell
@@ -197,12 +202,12 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
             inference = tf.unpack(inference)
 
         outputs, states = _rnn(out_cell, inference, dtype=tf.float32,
-                               initial_state=initial_state, scope=scope[:-1],
+                               initial_state=initial_state, scope=name[:-1],
                                sequence_length=sequence_length)
         # Track per layer variables
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, cell.W)
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, cell.W)
         if bias:
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name,
                                  cell.b)
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, outputs[-1])
@@ -216,7 +221,8 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
 def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
         dropout=None, bias=True, weights_init='truncated_normal',
         return_seq=False, return_states=False, initial_state=None,
-        sequence_length=None, trainable=True, restore=True, name="GRU"):
+        sequence_length=None, trainable=True, restore=True, reuse=False,
+        scope=None, name="GRU"):
     """ GRU.
 
     Gated Recurrent Unit Layer.
@@ -267,7 +273,9 @@ def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
     if isinstance(weights_init, str):
         W_init = initializations.get(weights_init)()
 
-    with tf.name_scope(name) as scope:
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
+
         cell = GRUCell(n_units, activation, inner_activation, bias, W_init,
                        trainable, restore)
         out_cell = cell
@@ -293,18 +301,18 @@ def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
             inference = tf.unpack(inference)
 
         outputs, states = _rnn(out_cell, inference, dtype=tf.float32,
-                               initial_state=initial_state, scope=scope[:-1],
+                               initial_state=initial_state, scope=name[:-1],
                                sequence_length=sequence_length)
 
         # Track per layer variables
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name,
                              cell.W[0])
-        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name,
                              cell.W[1])
         if bias:
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name,
                                  cell.b[0])
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope,
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name,
                                  cell.b[1])
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, outputs[-1])
@@ -318,7 +326,7 @@ def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
 def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
                       return_states=False, initial_state_fw=None,
                       initial_state_bw=None, sequence_length=None,
-                      name="BidirectionalRNN"):
+                      reuse=False, scope=None, name="BidirectionalRNN"):
     """ Bidirectional RNN.
 
     Build a bidirectional recurrent neural network, it requires 2 RNN Cells
@@ -355,7 +363,8 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
     assert (rnncell_fw._num_units == rnncell_bw._num_units), \
         "RNN Cells number of units must match!"
 
-    with tf.name_scope(name) as scope:
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
 
         inference = incoming
         # If a tensor given, convert it to a per timestep list
@@ -393,7 +402,7 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
 
 def dynamic_rnn(incoming, rnncell, sequence_length=None, time_major=False,
                 return_seq=False, return_states=False, initial_state=None,
-                name="DynamicRNN"):
+                reuse=False, scope=None, name="DynamicRNN"):
     """ Dynamic RNN.
 
     RNN with dynamic sequence length.
@@ -437,7 +446,8 @@ def dynamic_rnn(incoming, rnncell, sequence_length=None, time_major=False,
     """
 
     # Variables initialization
-    with tf.name_scope(name) as scope:
+    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+        name = scope.name
 
         inference = incoming
         # If a tensor given, convert it to a per timestep list

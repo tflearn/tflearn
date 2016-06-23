@@ -35,7 +35,6 @@ img_prep.add_featurewise_stdnorm()
 img_aug = ImageAugmentation()
 img_aug.add_random_flip_leftright()
 img_aug.add_random_rotation(max_angle=25.)
-img_aug.add_random_blur(sigma_max=3.)
 
 # Convolutional network building
 network = input_data(shape=[None, 32, 32, 3],
