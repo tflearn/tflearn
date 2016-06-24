@@ -377,8 +377,8 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
     inference.b = b
 
     return inference
-    
-    
+
+
 def highway(incoming, n_units, activation='linear', transform_dropout=None,
             weights_init='truncated_normal', bias_init='zeros',
             regularizer=None, weight_decay=0.001, trainable=True,
@@ -453,7 +453,7 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
         b = va.variable('b', shape=[n_units], initializer=b_init,
                         trainable=trainable, restore=restore)
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
-            
+
         # Weight and bias for the transform gate
         W_T = va.variable('W_T', shape=[n_inputs, n_units],
                           regularizer=None, initializer=W_init,
@@ -475,7 +475,7 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
             activation = activation
         else:
             raise ValueError("Invalid Activation.")
-            
+
         H = activation(tf.matmul(incoming, W) + b)
         T = tf.sigmoid(tf.matmul(incoming, W_T) + b_T)
         if transform_dropout:

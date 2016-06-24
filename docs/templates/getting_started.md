@@ -35,8 +35,8 @@ Here is a list of all currently available layers:
 
 File | Layers
 -----|-------
-[core](http://tflearn.org/layers/core/) | input_data, fully_connected, dropout, custom_layer, reshape, flatten, activation, single_unit
-[conv](http://tflearn.org/layers/conv/) | conv_2d, conv_2d_transpose, max_pool_2d, avg_pool_2d, conv_1d, max_pool_1d, avg_pool_1d, shallow_residual_block, deep_residual_block
+[core](http://tflearn.org/layers/core/) | input_data, fully_connected, dropout, custom_layer, reshape, flatten, activation, single_unit, highway, one_hot_encoding
+[conv](http://tflearn.org/layers/conv/) | conv_2d, conv_2d_transpose, max_pool_2d, avg_pool_2d, upsample_2d, conv_1d, max_pool_1d, avg_pool_1d, residual_block, residual_bottleneck, conv_3d, max_pool_3d, avg_pool_3d, highway_conv_2d
 [recurrent](http://tflearn.org/layers/recurrent/) | simple_rnn, lstm, gru, bidirectionnal_rnn, dynamic_rnn
 [embedding](http://tflearn.org/layers/embedding_ops/) | embedding
 [normalization](http://tflearn.org/layers/normalization/) | batch_normalization, local_response_normalization
@@ -51,7 +51,7 @@ File | Ops
 -----|----
 [activations](http://tflearn.org/activations) | linear, tanh, sigmoid, softmax, softplus, softsign, relu, relu6, leaky_relu, prelu, elu
 [objectives](http://tflearn.org/objectives) | softmax_categorical_crossentropy, categorical_crossentropy, binary_crossentropy, mean_square, hinge_loss
-[optimizers](http://tflearn.org/optimizers) | SGD, RMSProp, Adam, Momentum, AdaGrad, Ftrl
+[optimizers](http://tflearn.org/optimizers) | SGD, RMSProp, Adam, Momentum, AdaGrad, Ftrl, AdaDelta
 [metrics](http://tflearn.org/metrics) | Accuracy, Top_k, R2
 [initializations](http://tflearn.org/initializations) | zeros, uniform, uniform_scaling, normal, truncated_normal
 [losses](http://tflearn.org/losses) | l1, l2
@@ -231,6 +231,32 @@ network = input_data(shape=[None, 32, 32, 3],
 
 For more details, see [Data Preprocessing](http://tflearn.org/data_preprocessing) and [Data Augmentation](http://tflearn.org/data_augmentation)
 
+### Scopes & Weights sharing
+
+All layers are built over 'variable_op_scope', that make it easy to share variables among multiple layers and make TFLearn suitable for distributed training. All layers with inner  variables support a 'scope' argument to place variables under; layers with same scope name will then share the same weights.
+
+```python
+# Define a model builder
+def my_model(x):
+    x = tflearn.fully_connected(x, 32, scope='fc1')
+    x = tflearn.fully_connected(x, 32, scope='fc2')
+    x = tflearn.fully_connected(x, 2, scope='out')
+
+# 2 different computation graph but sharing the same weights
+with tf.device('/gpu:0')
+    # Force all Variables to reside on the CPU.
+    with tf.arg_ops([tflearn.variables.variable], device='/cpu:0'):
+        model1 = my_model(placeholder_X)
+# Reuse Variables for the next model
+tf.get_variable_scope().reuse_variables()
+with tf.device('/gpu:1')
+    with tf.arg_ops([tflearn.variables.variable], device='/cpu:0'):
+        model2 = my_model(placeholder_X)
+
+# Model can now be trained by multiple GPUs (see gradient averaging)
+...
+```
+
 ### Graph Initialization
 
 It might be useful to limit resources, or assigns more or less GPU RAM memory while training. To do so, a graph initializer can be used to configure a graph before run:
@@ -277,8 +303,8 @@ File | Ops
 -----|----
 [activations](http://tflearn.org/activations) | linear, tanh, sigmoid, softmax, softplus, softsign, relu, relu6, leaky_relu, prelu, elu
 [objectives](http://tflearn.org/objectives) | softmax_categorical_crossentropy, categorical_crossentropy, binary_crossentropy, mean_square, hinge_loss
-[optimizers](http://tflearn.org/optimizers) | SGD, RMSProp, Adam, Momentum, AdaGrad, Ftrl
-[metrics](http://tflearn.org/metrics#accuracy_op) | accuracy_op, top_k_op, r2_op
+[optimizers](http://tflearn.org/optimizers) | SGD, RMSProp, Adam, Momentum, AdaGrad, Ftrl, AdaDelta
+[metrics](http://tflearn.org/metrics) | Accuracy, Top_k, R2
 [initializations](http://tflearn.org/initializations) | zeros, uniform, uniform_scaling, normal, truncated_normal
 [losses](http://tflearn.org/losses) | l1, l2
 
