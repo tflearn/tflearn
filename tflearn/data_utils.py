@@ -478,7 +478,7 @@ def image_preloader(target_path, image_shape, mode='file', normalize=True,
         with open(target_path, 'r') as f:
             images, labels = [], []
             for l in f.readlines():
-                l = l.strip('\n').split(' ')
+                l = l.strip('\n').split()
                 images.append(l[0])
                 labels.append(int(l[1]))
 
