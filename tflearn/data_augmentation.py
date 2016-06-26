@@ -167,7 +167,7 @@ class ImageAugmentation(DataAugmentation):
             new_batch.append(batch[i])
             if padding:
                 new_batch[i] = np.lib.pad(batch[i], pad_width=npad,
-                                      mode='constant', constant_values=0)
+                                          mode='constant', constant_values=0)
             nh = random.randint(0, oshape[0] - crop_shape[0])
             nw = random.randint(0, oshape[1] - crop_shape[1])
             new_batch[i] = new_batch[i][nh:nh + crop_shape[0],

@@ -184,7 +184,9 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
     with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
         name = scope.name
 
-        W_init = initializations.get(weights_init)()
+        W_init = weights_init
+        if isinstance(weights_init, str):
+            W_init = initializations.get(weights_init)()
         W_regul = None
         if regularizer:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
@@ -517,7 +519,9 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
         name = scope.name
 
-        W_init = initializations.get(weights_init)()
+        W_init = weights_init
+        if isinstance(weights_init, str):
+            W_init = initializations.get(weights_init)()
         W_regul = None
         if regularizer:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
