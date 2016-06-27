@@ -31,7 +31,7 @@ class DataFlow(object):
         dprep_dict: dict. Optional data pre-processing parameter for performing
             real time data pre-processing. Keys must be placeholders and values
             `DataPreprocessing` subclass object.
-        dprep_dict: dict. Optional data augmentation parameter for performing
+        daug_dict: dict. Optional data augmentation parameter for performing
             real time data augmentation. Keys must be placeholders and values
             `DataAugmentation` subclass object.
 
@@ -76,7 +76,7 @@ class FeedDictFlow(DataFlow):
         dprep_dict: dict. Optional data pre-processing parameter for performing
             real time data pre-processing. Keys must be placeholders and values
             `DataPreprocessing` subclass object.
-        dprep_dict: dict. Optional data augmentation parameter for performing
+        daug_dict: dict. Optional data augmentation parameter for performing
             real time data augmentation. Keys must be placeholders and values
             `DataAugmentation` subclass object.
         index_array: `list`. An optional list of index to be used instead of
