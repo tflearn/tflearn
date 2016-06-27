@@ -686,10 +686,17 @@ def directory_to_samples(directory, flags=None):
     samples = []
     targets = []
     label = 0
-    classes = sorted(os.walk(directory).next()[1])
+    try: # Python 2
+        classes = sorted(os.walk(directory).next()[1])
+    except Exception: # Python 3
+        classes = sorted(os.walk(directory).__next__()[1])
     for c in classes:
         c_dir = os.path.join(directory, c)
-        for sample in os.walk(c_dir).next()[2]:
+        try: # Python 2
+            walk = os.walk(c_dir).next()
+        except Exception: # Python 3
+            walk = os.walk(c_dir).__next__()
+        for sample in walk[2]:
             if not flags or any(flag in sample for flag in flags):
                 samples.append(os.path.join(c_dir, sample))
                 targets.append(label)
