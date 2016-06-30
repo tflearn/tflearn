@@ -44,7 +44,7 @@ def maybe_download(filename, source_url, work_directory):
         print("Downloading Oxford 17 category Flower Dataset, Please "
               "wait...")
         filepath, _ = urllib.request.urlretrieve(source_url + filename,
-                                                 filepath)
+                                                 filepath, reporthook)
         statinfo = os.stat(filepath)
         print(('Succesfully downloaded', filename, statinfo.st_size, 'bytes.'))
 
@@ -52,6 +52,18 @@ def maybe_download(filename, source_url, work_directory):
         build_class_directories(os.path.join(work_directory, 'jpg'))
     return filepath
 
+#reporthook from stackoverflow #13881092
+def reporthook(blocknum, blocksize, totalsize):
+    readsofar = blocknum * blocksize
+    if totalsize > 0:
+        percent = readsofar * 1e2 / totalsize
+        s = "\r%5.1f%% %*d / %d" % (
+            percent, len(str(totalsize)), readsofar, totalsize)
+        sys.stderr.write(s)
+        if readsofar >= totalsize: # near the end
+            sys.stderr.write("\n")
+    else: # total size is unknown
+        sys.stderr.write("read %d\n" % (readsofar,))
 
 def build_class_directories(dir):
     dir_id = 0

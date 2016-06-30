@@ -70,12 +70,24 @@ def maybe_download(filename, source_url, work_directory):
     if not os.path.exists(filepath):
         print("Downloading CIFAR 10, Please wait...")
         filepath, _ = urllib.request.urlretrieve(source_url + filename,
-                                                 filepath)
+                                                 filepath, reporthook)
         statinfo = os.stat(filepath)
         print(('Succesfully downloaded', filename, statinfo.st_size, 'bytes.'))
         untar(filepath)
     return filepath
 
+#reporthook from stackoverflow #13881092
+def reporthook(blocknum, blocksize, totalsize):
+    readsofar = blocknum * blocksize
+    if totalsize > 0:
+        percent = readsofar * 1e2 / totalsize
+        s = "\r%5.1f%% %*d / %d" % (
+            percent, len(str(totalsize)), readsofar, totalsize)
+        sys.stderr.write(s)
+        if readsofar >= totalsize: # near the end
+            sys.stderr.write("\n")
+    else: # total size is unknown
+        sys.stderr.write("read %d\n" % (readsofar,))
 
 def untar(fname):
     if (fname.endswith("tar.gz")):
