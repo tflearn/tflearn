@@ -657,7 +657,8 @@ def avg_pool_1d(incoming, kernel_size, strides=None, padding='same',
 def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
             activation='linear', bias=True, weights_init='uniform_scaling',
             bias_init='zeros', regularizer=None, weight_decay=0.001,
-            trainable=True, restore=True, scope=None,  name="Conv3D"):
+            trainable=True, restore=True, reuse=False, scope=None,
+            name="Conv3D"):
     """ Convolution 3D.
 
     Input:
