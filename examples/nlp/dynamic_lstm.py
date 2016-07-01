@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Simple example using LSTM recurrent neural network to classify IMDB
-sentiment dataset.
+Simple example using a Dynamic RNN (LSTM) to classify IMDB sentiment dataset.
+Dynamic computation are performed over sequences with variable length.
 
 References:
     - Long Short Term Memory, Sepp Hochreiter & Jurgen Schmidhuber, Neural
@@ -29,7 +29,11 @@ trainX, trainY = train
 testX, testY = test
 
 # Data preprocessing
-# Sequence padding
+# NOTE: Padding is required for dimension consistency. This will pad sequences
+# with 0 at the end, until it reaches the max sequence length. 0 is used as a
+# masking value by dynamic RNNs in TFLearn; a sequence length will be
+# retrieved by counting non zero elements in a sequence. Then dynamic RNN step
+# computation is performed according to that length.
 trainX = pad_sequences(trainX, maxlen=100, value=0.)
 testX = pad_sequences(testX, maxlen=100, value=0.)
 # Converting labels to binary vectors
@@ -38,8 +42,10 @@ testY = to_categorical(testY, nb_classes=2)
 
 # Network building
 net = tflearn.input_data([None, 100])
+# Masking is not required for embedding, sequence length is computed prior to
+# the embedding op and assigned as 'seq_length' attribute to the returned Tensor.
 net = tflearn.embedding(net, input_dim=10000, output_dim=128)
-net = tflearn.lstm(net, 128, dropout=0.8)
+net = tflearn.lstm(net, 128, dropout=0.8, dynamic=True)
 net = tflearn.fully_connected(net, 2, activation='softmax')
 net = tflearn.regression(net, optimizer='adam', learning_rate=0.001,
                          loss='categorical_crossentropy')

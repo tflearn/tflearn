@@ -28,10 +28,9 @@ from tflearn.layers.recurrent import bidirectional_rnn, BasicLSTMCell
 from tflearn.layers.estimator import regression
 
 # IMDB Dataset loading
-train, val, test = imdb.load_data(path='imdb.pkl', maxlen=200,
-                                  n_words=20000)
+train, test, _ = imdb.load_data(path='imdb.pkl', n_words=10000,
+                                valid_portion=0.1)
 trainX, trainY = train
-valX, valY = val
 testX, testY = test
 
 # Data preprocessing
@@ -40,7 +39,6 @@ trainX = pad_sequences(trainX, maxlen=200, value=0.)
 testX = pad_sequences(testX, maxlen=200, value=0.)
 # Converting labels to binary vectors
 trainY = to_categorical(trainY, nb_classes=2)
-valY = to_categorical(valY, nb_classes=2)
 testY = to_categorical(testY, nb_classes=2)
 
 # Network building

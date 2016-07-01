@@ -50,7 +50,8 @@ from .layers.core import input_data, dropout, custom_layer, reshape, \
     flatten, activation, fully_connected, single_unit, highway, one_hot_encoding
 from .layers.normalization import batch_normalization, local_response_normalization
 from .layers.estimator import regression
-from .layers.recurrent import lstm, gru, simple_rnn, bidirectional_rnn, dynamic_rnn, RNNCell, BasicLSTMCell, GRUCell, BasicRNNCell, DropoutWrapper
+from .layers.recurrent import lstm, gru, simple_rnn, bidirectional_rnn, \
+    BasicRNNCell, BasicLSTMCell, GRUCell
 from .layers.embedding_ops import embedding
 from .layers.merge_ops import merge, merge_outputs
 
