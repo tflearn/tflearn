@@ -332,10 +332,14 @@ class Trainer(object):
         try:
             # Try latest api
             l = tf.get_collection_ref("summary_tags")
+            l4 = tf.get_collection_ref(tf.GraphKeys.GRAPH_CONFIG)
         except Exception:
             l = tf.get_collection("summary_tags")
+            l4 = tf.get_collection(tf.GraphKeys.GRAPH_CONFIG)
         l_stags = list(l)
+        l4_stags = list(l4)
         del l[:]
+        del l4[:]
 
         try:
             # Try latest api
@@ -364,6 +368,8 @@ class Trainer(object):
         # 0.7 workaround, restore values
         for t in l_stags:
             tf.add_to_collection("summary_tags", t)
+        for t in l4_stags:
+            tf.add_to_collection(tf.GraphKeys.GRAPH_CONFIG, t)
         for t in l1_dtags:
             tf.add_to_collection(tf.GraphKeys.DATA_PREP, t)
         for t in l2_dtags:
