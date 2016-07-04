@@ -580,10 +580,10 @@ class GRUCell(_rnn_cell.RNNCell):
 
             self.W, self.b = list(), list()
             # Retrieve RNN Variables
-            with tf.variable_scope('Linear/Gates', reuse=True):
+            with tf.variable_scope('Gates/Linear', reuse=True):
                 self.W.append(tf.get_variable('Matrix'))
                 self.b.append(tf.get_variable('Bias'))
-            with tf.variable_scope('Linear/Candidate', reuse=True):
+            with tf.variable_scope('Candidate/Linear', reuse=True):
                 self.W.append(tf.get_variable('Matrix'))
                 self.b.append(tf.get_variable('Bias'))
 
