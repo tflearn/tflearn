@@ -87,8 +87,9 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
         b = None
         if bias:
-            b_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=b_init,
+            if isinstance(bias_init, str):
+                bias_init = initializations.get(bias_init)()
+            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
@@ -198,10 +199,10 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
 
         b = None
         if bias:
-            b_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter,
-                            initializer=b_init, trainable=trainable,
-                            restore=restore)
+            if isinstance(bias_init, str):
+                bias_init = initializations.get(bias_init)()
+            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+                            trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
@@ -533,8 +534,9 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
         b = None
         if bias:
-            b_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=b_init,
+            if isinstance(bias_init, str):
+                bias_init = initializations.get(bias_init)()
+            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
@@ -727,8 +729,9 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
         b = None
         if bias:
-            b_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=b_init,
+            if isinstance(bias_init, str):
+                bias_init = initializations.get(bias_init)()
+            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
@@ -1158,8 +1161,8 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         # Track per layer variables
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
 
-        b_init = initializations.get(bias_init)()
-        b = vs.variable('b', shape=nb_filter, initializer=b_init,
+        bias_init = initializations.get(bias_init)()
+        b = vs.variable('b', shape=nb_filter, initializer=bias_init,
                         trainable=trainable, restore=restore)
         # Track per layer variables
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
@@ -1280,10 +1283,9 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         # Track per layer variables
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
 
-        b_init = initializations.get(bias_init)()
-        b = vs.variable('b', shape=nb_filter,
-                        initializer=b_init, trainable=trainable,
-                        restore=restore)
+        bias_init = initializations.get(bias_init)()
+        b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+                        trainable=trainable, restore=restore)
         # Track per layer variables
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 

@@ -141,8 +141,9 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
 
         b = None
         if bias:
-            b_init = initializations.get(bias_init)()
-            b = va.variable('b', shape=[n_units], initializer=b_init,
+            if isinstance(bias, str):
+                bias_init = initializations.get(bias_init)()
+            b = va.variable('b', shape=[n_units], initializer=bias_init,
                             trainable=trainable, restore=restore)
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
@@ -449,8 +450,9 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
                         restore=restore)
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
 
-        b_init = initializations.get(bias_init)()
-        b = va.variable('b', shape=[n_units], initializer=b_init,
+        if isinstance(bias_init, str):
+            bias_init = initializations.get(bias_init)()
+        b = va.variable('b', shape=[n_units], initializer=bias_init,
                         trainable=trainable, restore=restore)
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
