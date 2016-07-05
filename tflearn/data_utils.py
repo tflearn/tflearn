@@ -312,7 +312,7 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
         from tflearn.data_utils import build_hdf5_image_dataset
         build_hdf5_image_dataset(dataset_file, image_shape=(128, 128),
                                  mode='file', output_path='dataset.h5',
-                                 categorical_labels=True, normalize_img=True)
+                                 categorical_labels=True, normalize=True)
 
         # Load HDF5 dataset
         import h5py
@@ -386,6 +386,9 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
             img = resize_image(img, image_shape[0], image_shape[1])
         if grayscale:
             img = convert_color(img, 'L')
+	elif img.mode == 'L':
+            img = convert_color(img, 'RGB')
+
         img = pil_to_nparray(img)
         if normalize:
             img /= 255.
