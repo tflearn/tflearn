@@ -386,7 +386,7 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
             img = resize_image(img, image_shape[0], image_shape[1])
         if grayscale:
             img = convert_color(img, 'L')
-	elif img.mode == 'L':
+        elif img.mode == 'L':
             img = convert_color(img, 'RGB')
 
         img = pil_to_nparray(img)
@@ -753,7 +753,8 @@ class LabelPreloader(Preloader):
 
     def preload(self, label, n_class, categorical_label):
         if categorical_label:
-            assert isinstance(n_class, int)
+            #TODO: inspect assert bug
+            #assert isinstance(n_class, int)
             return to_categorical([label], n_class)[0]
         else:
             return label
