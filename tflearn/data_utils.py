@@ -717,7 +717,7 @@ class Preloader(object):
         self.function = function
 
     def __getitem__(self, id):
-        if isinstance(id, list):
+        if type(id) in [list, np.ndarray]:
             return [self.function(self.array[i]) for i in id]
         elif isinstance(id, slice):
             return [self.function(arr) for arr in self.array[id]]
