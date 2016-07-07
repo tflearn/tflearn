@@ -13,6 +13,10 @@ except Exception:
     from tensorflow.models.rnn import rnn_cell as _rnn_cell
     from tensorflow.models.rnn import rnn as _rnn, bidirectional_rnn as _brnn, \
         dynamic_rnn as _drnn
+try:
+    from tensorflow.python.util.nest import is_sequence
+except Exception:
+    is_sequence = _rnn_cell._is_sequence
 from .. import utils
 from .. import activations
 from .. import initializations
@@ -612,9 +616,9 @@ def _linear(args, output_size, bias, bias_start=0.0, weights_init=None,
     Raises:
         ValueError: if some of the arguments has unspecified or wrong shape.
     """
-    if args is None or (_rnn_cell._is_sequence(args) and not args):
+    if args is None or (is_sequence(args) and not args):
         raise ValueError("`args` must be specified")
-    if not _rnn_cell._is_sequence(args):
+    if not is_sequence(args):
         args = [args]
 
     # Calculate the total size of arguments on dimension 1.
