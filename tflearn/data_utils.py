@@ -54,8 +54,8 @@ def pad_sequences(sequences, maxlen=None, dtype='int32', padding='post',
 
     Pad each sequence to the same length: the length of the longest sequence.
     If maxlen is provided, any sequence longer than maxlen is truncated to
-    maxlen. Truncation happens off either the beginning (default) or the
-    end of the sequence. Supports post-padding and pre-padding (default).
+    maxlen. Truncation happens off either the beginning or the end (default) 
+    of the sequence. Supports pre-padding and post-padding (default).
 
     Arguments:
         sequences: list of lists where each element is a sequence.
