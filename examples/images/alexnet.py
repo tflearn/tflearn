@@ -24,10 +24,10 @@ from tflearn.layers.normalization import local_response_normalization
 from tflearn.layers.estimator import regression
 
 import tflearn.datasets.oxflower17 as oxflower17
-X, Y = oxflower17.load_data(one_hot=True)
+X, Y = oxflower17.load_data(one_hot=True, resize_pics=(227, 227))
 
 # Building 'AlexNet'
-network = input_data(shape=[None, 224, 224, 3])
+network = input_data(shape=[None, 227, 227, 3])
 network = conv_2d(network, 96, 11, strides=4, activation='relu')
 network = max_pool_2d(network, 3, strides=2)
 network = local_response_normalization(network)
