@@ -383,8 +383,8 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
     else:
         o = outputs if return_seq else outputs[-1]
 
-    sfw = states_fw if return_seq else states_fw[-1]
-    sbw = states_fw if return_seq else states_bw[-1]
+    sfw = states_fw
+    sbw = states_fw
 
     return (o, sfw, sbw) if return_states else o
 
