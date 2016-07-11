@@ -17,6 +17,7 @@ try:
     from tensorflow.python.util.nest import is_sequence
 except Exception:
     is_sequence = _rnn_cell._is_sequence
+from .. import config
 from .. import utils
 from .. import activations
 from .. import initializations
@@ -52,8 +53,7 @@ def _rnn_template(incoming, cell, dropout=None, return_seq=False,
             else:
                 raise Exception("Invalid dropout type (must be a 2-D tuple of "
                                 "float)")
-            cell = _rnn_cell.DropoutWrapper(cell, in_keep_prob,
-                                            out_keep_prob)
+            cell = DropoutWrapper(cell, in_keep_prob, out_keep_prob)
 
         inference = incoming
         # If a tensor given, convert it to a per timestep list
@@ -592,6 +592,75 @@ class GRUCell(_rnn_cell.RNNCell):
                 self.b.append(tf.get_variable('Bias'))
 
         return new_h, new_h
+
+
+class DropoutWrapper(_rnn_cell.RNNCell):
+    """Operator adding dropout to inputs and outputs of the given cell."""
+
+    def __init__(self, cell, input_keep_prob=1.0, output_keep_prob=1.0,
+                 seed=None):
+        """Create a cell with added input and/or output dropout.
+
+        Dropout is never used on the state.
+
+        Arguments:
+          cell: an RNNCell, a projection to output_size is added to it.
+          input_keep_prob: unit Tensor or float between 0 and 1, input keep
+            probability; if it is float and 1, no input dropout will be added.
+          output_keep_prob: unit Tensor or float between 0 and 1, output keep
+            probability; if it is float and 1, no output dropout will be added.
+          seed: (optional) integer, the randomness seed.
+
+        Raises:
+          TypeError: if cell is not an RNNCell.
+          ValueError: if keep_prob is not between 0 and 1.
+        """
+        if not isinstance(cell, _rnn_cell.RNNCell):
+            raise TypeError("The parameter cell is not a RNNCell.")
+        if (isinstance(input_keep_prob, float) and
+                not (input_keep_prob >= 0.0 and input_keep_prob <= 1.0)):
+            raise ValueError(
+                "Parameter input_keep_prob must be between 0 and 1: %d"
+                % input_keep_prob)
+        if (isinstance(output_keep_prob, float) and
+                not (output_keep_prob >= 0.0 and output_keep_prob <= 1.0)):
+            raise ValueError(
+                "Parameter input_keep_prob must be between 0 and 1: %d"
+                % output_keep_prob)
+        self._cell = cell
+        self._input_keep_prob = input_keep_prob
+        self._output_keep_prob = output_keep_prob
+        self._seed = seed
+
+    @property
+    def state_size(self):
+        return self._cell.state_size
+
+    @property
+    def output_size(self):
+        return self._cell.output_size
+
+    def __call__(self, inputs, state, scope=None):
+        """Run the cell with the declared dropouts."""
+
+        is_training = config.get_training_mode()
+
+        if (not isinstance(self._input_keep_prob, float) or
+                    self._input_keep_prob < 1):
+            inputs = tf.cond(is_training,
+                lambda: tf.nn.dropout(inputs,
+                                      self._input_keep_prob,
+                                      seed=self._seed),
+                lambda: inputs)
+        output, new_state = self._cell(inputs, state)
+        if (not isinstance(self._output_keep_prob, float) or
+                    self._output_keep_prob < 1):
+            output = tf.cond(is_training,
+                lambda: tf.nn.dropout(output,
+                                      self._output_keep_prob,
+                                      seed=self._seed),
+                lambda: output)
+        return output, new_state
 
 
 # --------------------
