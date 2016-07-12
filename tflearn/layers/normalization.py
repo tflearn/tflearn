@@ -30,7 +30,7 @@ def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: `str`. A name for this layer (optional).
 

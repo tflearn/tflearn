@@ -132,7 +132,7 @@ def simple_rnn(incoming, n_units, activation='sigmoid', dropout=None,
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: `str`. A name for this layer (optional).
 
@@ -196,7 +196,7 @@ def lstm(incoming, n_units, activation='tanh', inner_activation='sigmoid',
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: `str`. A name for this layer (optional).
 
@@ -268,7 +268,7 @@ def gru(incoming, n_units, activation='tanh', inner_activation='sigmoid',
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: `str`. A name for this layer (optional).
 
@@ -331,7 +331,7 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
             computation is performed, it will stop when it meets a step with
             a value of 0.
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: `str`. A name for this layer (optional).
 

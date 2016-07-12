@@ -51,7 +51,7 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: A name for this layer (optional). Default: 'Conv2D'.
 
@@ -163,7 +163,7 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: A name for this layer (optional). Default: 'Conv2DTranspose'.
 
@@ -391,7 +391,7 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
             name: A name for this layer (optional). Default: 'Upscore'.
 
@@ -495,7 +495,7 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: A name for this layer (optional). Default: 'Conv1D'.
 
@@ -694,7 +694,7 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: A name for this layer (optional). Default: 'Conv3D'.
 
@@ -905,7 +905,7 @@ def residual_block(incoming, nb_blocks, out_channels, downsample=False,
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: A name for this layer (optional). Default: 'ShallowBottleneck'.
 
@@ -1017,7 +1017,7 @@ def residual_bottleneck(incoming, nb_blocks, bottleneck_size, out_channels,
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: A name for this layer (optional). Default: 'DeepBottleneck'.
 
@@ -1126,7 +1126,7 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: A name for this layer (optional). Default: 'Conv2D'.
 
@@ -1244,7 +1244,7 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: A name for this layer (optional). Default: 'HighwayConv1D'.
 
