@@ -69,7 +69,7 @@ for i in range(50):
     if args['temp'] is not None:
         temp = args['temp'][0]
         print("-- Test with temperature of %s --" % temp)
-	print(m.generate(600, temperature=temp, seq_seed=seed))
+        print(m.generate(600, temperature=temp, seq_seed=seed))
     else:
         print("-- Test with temperature of 1.0 --")
         print(m.generate(600, temperature=1.0, seq_seed=seed))
