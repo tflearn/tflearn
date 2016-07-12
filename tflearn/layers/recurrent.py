@@ -22,7 +22,7 @@ from .. import utils
 from .. import activations
 from .. import initializations
 from .. import variables as va
-from normalization import batch_normalization
+from .normalization import batch_normalization
 
 
 # --------------------------
@@ -468,6 +468,7 @@ class BasicLSTMCell(_rnn_cell.RNNCell):
         self._num_units = num_units
         self._forget_bias = forget_bias
         self._state_is_tuple = state_is_tuple
+        self.batch_norm = batch_norm
         if isinstance(activation, str):
             self._activation = activations.get(activation)
         elif hasattr(activation, '__call__'):
@@ -517,11 +518,10 @@ class BasicLSTMCell(_rnn_cell.RNNCell):
                      self._activation(j))
             
             # hidden-to-hidden batch normalizaiton
-            if batch_norm == False:
-                new_h = self._activation(new_c) * self._inner_activation(o)
-            else:
-                batch_norm_new_c = batch_normalization(new_c, restore=False)
-                new_h = self._activation(batch_norm_new_c) * self._inner_activation(o)
+            if self.batch_norm == True:
+                new_c = batch_normalization(new_c, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
+
+            new_h = self._activation(new_c) * self._inner_activation(o)
 
             if self._state_is_tuple:
                 new_state = _rnn_cell.LSTMStateTuple(new_c, new_h)
