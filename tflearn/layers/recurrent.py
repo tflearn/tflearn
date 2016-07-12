@@ -148,7 +148,7 @@ def simple_rnn(incoming, n_units, activation='sigmoid', dropout=None,
     return x
 
 
-def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
+def lstm(incoming, n_units, activation='tanh', inner_activation='sigmoid',
          dropout=None, bias=True, weights_init=None, forget_bias=1.0,
          return_seq=False, return_state=False, initial_state=None,
          dynamic=False, trainable=True, restore=True, reuse=False,
@@ -169,9 +169,9 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
         n_units: `int`, number of units for this layer.
         activation: `str` (name) or `function` (returning a `Tensor`).
             Activation applied to this layer (see tflearn.activations).
-            Default: 'sigmoid'.
+            Default: 'tanh'.
         inner_activation: `str` (name) or `function` (returning a `Tensor`).
-            LSTM inner activation. Default: 'tanh'.
+            LSTM inner activation. Default: 'sigmoid'.
         dropout: `tuple` of `float`: (input_keep_prob, output_keep_prob). The
             input and output keep probability.
         bias: `bool`. If True, a bias is used.
@@ -222,7 +222,7 @@ def lstm(incoming, n_units, activation='sigmoid', inner_activation='tanh',
     return x
 
 
-def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
+def gru(incoming, n_units, activation='tanh', inner_activation='sigmoid',
         dropout=None, bias=True, weights_init=None, return_seq=False,
         return_state=False, initial_state=None, dynamic=False,
         trainable=True, restore=True, reuse=False, scope=None, name="GRU"):
@@ -242,9 +242,9 @@ def gru(incoming, n_units, activation='sigmoid', inner_activation='tanh',
         n_units: `int`, number of units for this layer.
         activation: `str` (name) or `function` (returning a `Tensor`).
             Activation applied to this layer (see tflearn.activations).
-            Default: 'sigmoid'.
+            Default: 'tanh'.
         inner_activation: `str` (name) or `function` (returning a `Tensor`).
-            GRU inner activation. Default: 'tanh'.
+            GRU inner activation. Default: 'sigmoid'.
         dropout: `tuple` of `float`: (input_keep_prob, output_keep_prob). The
             input and output keep probability.
         bias: `bool`. If True, a bias is used.
