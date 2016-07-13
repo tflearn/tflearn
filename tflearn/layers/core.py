@@ -110,7 +110,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: A name for this layer (optional). Default: 'FullyConnected'.
 
@@ -326,7 +326,7 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: A name for this layer (optional). Default: 'Linear'.
 
@@ -416,7 +416,7 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
         reuse: `bool`. If True and 'scope' is provided, this layer variables
             will be reused (shared).
         scope: `str`. Define this layer scope (optional). A scope can be
-            used to share varibales between layers. Note that scope will
+            used to share variables between layers. Note that scope will
             override name.
         name: A name for this layer (optional). Default: 'FullyConnectedHighway'.
 
