@@ -112,6 +112,9 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     inference.W = W
     inference.b = b
 
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
     return inference
 
 
@@ -239,6 +242,9 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
     inference.W = W
     inference.b = b
 
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
     return inference
 
 
@@ -280,6 +286,9 @@ def max_pool_2d(incoming, kernel_size, strides=None, padding='same',
 
     # Add attributes to Tensor to easy access weights
     inference.scope = scope
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
 
     return inference
 
@@ -323,6 +332,9 @@ def avg_pool_2d(incoming, kernel_size, strides=None, padding='same',
     # Add attributes to Tensor to easy access weights
     inference.scope = scope
 
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
     return inference
 
 
@@ -356,6 +368,9 @@ def upsample_2d(incoming, kernel_size, name="UpSample2D"):
 
     # Add attributes to Tensor to easy access weights
     inference.scope = scope
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
 
     return inference
 
@@ -454,6 +469,10 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
                                         strides=strides, padding='SAME')
 
     deconv.scope = scope
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, deconv)
+
     return deconv
 
 
@@ -562,6 +581,9 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     inference.W = W
     inference.b = b
 
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
     return inference
 
 
@@ -608,6 +630,9 @@ def max_pool_1d(incoming, kernel_size, strides=None, padding='same',
     # Add attributes to Tensor to easy access weights
     inference.scope = scope
 
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
     return inference
 
 
@@ -652,6 +677,9 @@ def avg_pool_1d(incoming, kernel_size, strides=None, padding='same',
 
     # Add attributes to Tensor to easy access weights
     inference.scope = scope
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
 
     return inference
 
@@ -754,6 +782,9 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
     inference.W = W
     inference.b = b
 
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
     return inference
 
 
@@ -795,6 +826,9 @@ def max_pool_3d(incoming, kernel_size, strides=1, padding='same',
 
     # Add attributes to Tensor to easy access weights
     inference.scope = scope
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
 
     return inference
 
@@ -838,6 +872,9 @@ def avg_pool_3d(incoming, kernel_size, strides=None, padding='same',
     # Add attributes to Tensor to easy access weights
     inference.scope = scope
 
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
     return inference
 
 
@@ -859,7 +896,12 @@ def global_avg_pool(incoming, name="GlobalAvgPool"):
     assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
 
     with tf.name_scope(name):
-        return tf.reduce_mean(incoming, [1, 2])
+        inference = tf.reduce_mean(incoming, [1, 2])
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
+    return inference
 
 
 def residual_block(incoming, nb_blocks, out_channels, downsample=False,
@@ -1204,6 +1246,9 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     inference.b = b
     inference.b_T = b_T
 
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
     return inference
 
 
@@ -1327,5 +1372,8 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     inference.W_T = W_T
     inference.b = b
     inference.b_T = b_T
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
 
     return inference

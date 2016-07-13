@@ -72,6 +72,9 @@ def input_data(shape=None, placeholder=None, dtype=tf.float32,
     tf.add_to_collection(tf.GraphKeys.DATA_PREP, data_preprocessing)
     tf.add_to_collection(tf.GraphKeys.DATA_AUG, data_augmentation)
 
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, placeholder)
+
     return placeholder
 
 
@@ -170,6 +173,9 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
     inference.W = W
     inference.b = b
 
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
     return inference
 
 
@@ -210,6 +216,9 @@ def dropout(incoming, keep_prob, name="Dropout"):
 
         is_training = tflearn.get_training_mode()
         inference = tf.cond(is_training, apply_dropout, lambda: inference)
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
 
     return inference
 
@@ -257,6 +266,9 @@ def reshape(incoming, new_shape, name="Reshape"):
 
     inference.scope = scope
 
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
     return inference
 
 
@@ -278,10 +290,15 @@ def flatten(incoming, name="Flatten"):
     input_shape = utils.get_incoming_shape(incoming)
     assert len(input_shape) > 1, "Incoming Tensor shape must be at least 2-D"
     dims = int(np.prod(input_shape[1:]))
-    return reshape(incoming, [-1, dims], name)
+    x = reshape(incoming, [-1, dims], name)
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, x)
+
+    return x
 
 
-def activation(incoming, activation='linear'):
+def activation(incoming, activation='linear', name='activation'):
 
     """ Activation.
 
@@ -296,11 +313,16 @@ def activation(incoming, activation='linear'):
     """
 
     if isinstance(activation, str):
-        return activations.get(activation)(incoming)
+        x = activations.get(activation)(incoming)
     elif hasattr(incoming, '__call__'):
-        return activation(incoming)
+        x = activation(incoming)
     else:
         raise ValueError('Unknown activation type.')
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, x)
+
+    return x
 
 
 def single_unit(incoming, activation='linear', bias=True, trainable=True,
@@ -376,6 +398,9 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
     inference.scope = scope
     inference.W = W
     inference.b = b
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
 
     return inference
 
@@ -496,6 +521,9 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
     inference.b = b
     inference.b_t = b_T
 
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
     return inference
 
 
@@ -527,5 +555,8 @@ def one_hot_encoding(target, n_classes, on_value=1.0, off_value=1.0,
         target = standard_ops.one_hot(target, n_classes,
                                       on_value=on_value,
                                       off_value=off_value)
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, target)
 
     return target

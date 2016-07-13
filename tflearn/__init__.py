@@ -26,8 +26,6 @@ from . import optimizers
 from . import summaries
 from . import optimizers
 from . import variables
-from . import utils
-from . import data_utils
 from . import collections # Add TFLearn collections to Tensorflow GraphKeys
 
 # Direct ops inclusion
@@ -61,6 +59,7 @@ from . import datasets
 # Utils
 from . import data_utils
 from . import utils
+from .utils import get_layer_by_name
 
 # Data Utils
 from .data_augmentation import DataAugmentation, ImageAugmentation, SequenceAugmentation

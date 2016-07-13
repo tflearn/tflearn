@@ -36,6 +36,27 @@ def get_from_module(identifier, module_params, module_name, instantiate=False, k
 #  Ops utils
 # ------------------
 
+def get_layer_by_name(name_or_scope):
+    """ get_layer.
+
+    Retrieve the output tensor of a layer with the given name or scope.
+
+    Arguments:
+        name_or_scope: `str`. The name (or scope) given to the layer to
+            retrieve.
+
+    Returns:
+        A Tensor.
+
+    """
+    # Track output tensor.
+    c = tf.get_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name_or_scope)
+    if len(c) == 0:
+        raise Exception("No layer found for this name.")
+    if len(c) > 1:
+        return c
+    return c[0]
+
 
 def get_incoming_shape(incoming):
     """ Returns the incoming data shape """

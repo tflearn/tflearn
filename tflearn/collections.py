@@ -25,6 +25,9 @@ tf.GraphKeys.TRAIN_OPS = 'trainops'
 # will have as many collections as layers with variables).
 tf.GraphKeys.LAYER_VARIABLES = 'layer_variables'
 
+# Collection to store all returned tensors for every layer
+tf.GraphKeys.LAYER_TENSOR = 'layer_tensor'
+
 # Collection to store all variables that will be restored
 tf.GraphKeys.EXCL_RESTORE_VARS = 'restore_variables'
 

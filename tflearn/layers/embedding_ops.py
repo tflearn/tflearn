@@ -68,4 +68,7 @@ def embedding(incoming, input_dim, output_dim, validate_indices=False,
     shape = [-1] + inference.get_shape().as_list()[1:3] + [1]
     inference.seq_length = retrieve_seq_length_op(tf.reshape(incoming, shape))
 
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
     return inference

@@ -108,6 +108,9 @@ def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
     inference.beta = beta
     inference.gamma = gamma
 
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
     return inference
 
 
@@ -140,5 +143,8 @@ def local_response_normalization(incoming, depth_radius=5, bias=1.0,
                               beta=beta, name=name)
 
     inference.scope = scope
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
 
     return inference
