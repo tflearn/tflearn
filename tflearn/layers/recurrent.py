@@ -508,20 +508,28 @@ class BasicLSTMCell(_rnn_cell.RNNCell):
                 c, h = array_ops.split(1, 2, state)
             concat = _linear([inputs, h], 4 * self._num_units, True, 0.,
                              self.weights_init, self.trainable, self.restore,
-                             self.reuse)
+                             self.reuse, batch_norm=self.batch_norm)
 
             # i = input_gate, j = new_input, f = forget_gate, o = output_gate
             i, j, f, o = array_ops.split(1, 4, concat)
-
+            
+            # apply batch normalization to inner state and gates
+            if self.batch_norm == True:
+                i = batch_normalization(i, gamma=0.1, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
+                j = batch_normalization(j, gamma=0.1, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
+                f = batch_normalization(f, gamma=0.1, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
+                o = batch_normalization(o, gamma=0.1, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
+            
             new_c = (c * self._inner_activation(f + self._forget_bias) +
                      self._inner_activation(i) *
                      self._activation(j))
             
             # hidden-to-hidden batch normalizaiton
             if self.batch_norm == True:
-                new_c = batch_normalization(new_c, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
-
-            new_h = self._activation(new_c) * self._inner_activation(o)
+                batch_norm_new_c = batch_normalization(new_c, gamma=0.1, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
+                new_h = self._activation(batch_norm_new_c) * self._inner_activation(o)
+            else:
+                new_h = self._activation(new_c) * self._inner_activation(o)
 
             if self._state_is_tuple:
                 new_state = _rnn_cell.LSTMStateTuple(new_c, new_h)
