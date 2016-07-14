@@ -508,11 +508,11 @@ class BasicLSTMCell(_rnn_cell.RNNCell):
                 c, h = array_ops.split(1, 2, state)
             concat = _linear([inputs, h], 4 * self._num_units, True, 0.,
                              self.weights_init, self.trainable, self.restore,
-                             self.reuse, batch_norm=self.batch_norm)
+                             self.reuse)
 
             # i = input_gate, j = new_input, f = forget_gate, o = output_gate
             i, j, f, o = array_ops.split(1, 4, concat)
-            
+
             # apply batch normalization to inner state and gates
             if self.batch_norm == True:
                 i = batch_normalization(i, gamma=0.1, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
