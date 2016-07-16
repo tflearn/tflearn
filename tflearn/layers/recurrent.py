@@ -22,6 +22,7 @@ from .. import utils
 from .. import activations
 from .. import initializations
 from .. import variables as va
+from .normalization import batch_normalization
 
 
 # --------------------------
@@ -463,7 +464,7 @@ class BasicLSTMCell(_rnn_cell.RNNCell):
     def __init__(self, num_units, forget_bias=1.0, input_size=None,
                  state_is_tuple=True, activation=tf.tanh,
                  inner_activation=tf.sigmoid, bias=True, weights_init=None,
-                 trainable=True, restore=True, reuse=False):
+                 trainable=True, restore=True, reuse=False, batch_norm = False):
         if not state_is_tuple:
             logging.warn(
                 "%s: Using a concatenated state is slower and will soon be "
@@ -473,6 +474,7 @@ class BasicLSTMCell(_rnn_cell.RNNCell):
         self._num_units = num_units
         self._forget_bias = forget_bias
         self._state_is_tuple = state_is_tuple
+        self.batch_norm = batch_norm
         if isinstance(activation, str):
             self._activation = activations.get(activation)
         elif hasattr(activation, '__call__'):
@@ -517,10 +519,23 @@ class BasicLSTMCell(_rnn_cell.RNNCell):
             # i = input_gate, j = new_input, f = forget_gate, o = output_gate
             i, j, f, o = array_ops.split(1, 4, concat)
 
+            # apply batch normalization to inner state and gates
+            if self.batch_norm == True:
+                i = batch_normalization(i, gamma=0.1, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
+                j = batch_normalization(j, gamma=0.1, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
+                f = batch_normalization(f, gamma=0.1, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
+                o = batch_normalization(o, gamma=0.1, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
+            
             new_c = (c * self._inner_activation(f + self._forget_bias) +
                      self._inner_activation(i) *
                      self._activation(j))
-            new_h = self._activation(new_c) * self._inner_activation(o)
+            
+            # hidden-to-hidden batch normalizaiton
+            if self.batch_norm == True:
+                batch_norm_new_c = batch_normalization(new_c, gamma=0.1, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
+                new_h = self._activation(batch_norm_new_c) * self._inner_activation(o)
+            else:
+                new_h = self._activation(new_c) * self._inner_activation(o)
 
             if self._state_is_tuple:
                 new_state = _rnn_cell.LSTMStateTuple(new_c, new_h)
