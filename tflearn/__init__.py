@@ -64,3 +64,6 @@ from .utils import get_layer_by_name
 # Data Utils
 from .data_augmentation import DataAugmentation, ImageAugmentation, SequenceAugmentation
 from .data_preprocessing import DataPreprocessing, ImagePreprocessing, SequencePreprocessing
+
+# Init training mode
+config.init_training_mode()
