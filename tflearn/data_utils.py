@@ -6,6 +6,7 @@ import random
 import numpy as np
 from PIL import Image
 import pickle
+import csv
 
 """
 Preprocessing provides some useful functions to preprocess data before
@@ -710,6 +711,46 @@ def directory_to_samples(directory, flags=None):
 # ==================
 #    OTHERS
 # ==================
+
+def load_csv(filepath, target_column=-1 , categorical_labels=False,
+             columns_to_ignore=None, has_header=True, dtype=np.float32,
+             target_type=np.int64):
+    """ load_csv.
+
+    Load data from a CSV file. By default the labels are considered to be the
+    last column, but it can be changed by filling 'target_column' parameter.
+
+    Arguments:
+        filepath: `str`. The csv file path.
+        target_column: The id of the column representing the labels.
+            Default: -1 (The last column).
+        categorical_labels: `bool`. If True, labels are returned as binary
+            vectors (to be used with 'categorical_crossentropy').
+        columns_to_ignore: `list of int`. A list of columns index to ignore.
+        has_header: `bool`. Whether the csv file has a header or not.
+        dtype: The data type. Default: float32.
+        target_type: The target type. Default: int64.
+
+    Returns:
+        A tuple (data, target).
+
+    """
+
+    from tensorflow.python.platform import gfile
+    with gfile.Open(filepath, 'rU') as csv_file:
+        data = csv.reader(csv_file, dialect=csv.excel_tab)
+        if has_header:
+            header = next(data)
+        data, target = [], []
+        for i, d in enumerate(data):
+            target.append(d.pop(target_column))
+            data.append([_d for j, _d in enumerate(d) if j not in columns_to_ignore])
+        data = np.asarray(data, dtype=dtype)
+        target = np.asarray(target, dtype=target_type)
+        if categorical_labels:
+            target = to_categorical(target, np.max(target))
+        return data, target
+
 
 class Preloader(object):
     def __init__(self, array, function):
