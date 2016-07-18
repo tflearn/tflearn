@@ -737,12 +737,14 @@ def load_csv(filepath, target_column=-1 , categorical_labels=False,
     """
 
     from tensorflow.python.platform import gfile
-    with gfile.Open(filepath, 'rU') as csv_file:
-        data = csv.reader(csv_file, dialect=csv.excel_tab)
+    with gfile.Open(filepath) as csv_file:
+        data_file = csv.reader(csv_file)
+        if not columns_to_ignore:
+            columns_to_ignore = []
         if has_header:
-            header = next(data)
+            header = next(data_file)
         data, target = [], []
-        for i, d in enumerate(data):
+        for i, d in enumerate(data_file):
             target.append(d.pop(target_column))
             data.append([_d for j, _d in enumerate(d) if j not in columns_to_ignore])
         data = np.asarray(data, dtype=dtype)
