@@ -31,7 +31,7 @@ def regression(incoming, placeholder=None, optimizer='adam',
             You can retrieve that placeholder through graph key: 'TARGETS',
             or the 'placeholder' attribute of this function's returned tensor.
         optimizer: `str` (name), `Optimizer` or `function`. Optimizer to use.
-            Default: 'sgd' (Stochastic Descent Gradient).
+            Default: 'adam' (Adaptive Moment Estimation).
         loss: `str` (name) or `function`. Loss function used by this layer
             optimizer. Default: 'categorical_crossentropy'.
         metric: `str`, `Metric` or `function`. The metric to be used.
