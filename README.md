@@ -53,7 +53,7 @@ There are many more examples available *[here](http://tflearn.org/examples)*.
 
 **TensorFlow Installation**
 
-TFLearn requires Tensorflow (version >= 0.8) to be installed: *[Tensorflow installation instructions](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md)*.
+TFLearn requires Tensorflow (version >= 0.9) to be installed: *[Tensorflow installation instructions](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md)*.
 
 **TFLearn Installation**
 
