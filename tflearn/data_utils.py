@@ -712,9 +712,8 @@ def directory_to_samples(directory, flags=None):
 #    OTHERS
 # ==================
 
-def load_csv(filepath, target_column=-1 , categorical_labels=False,
-             columns_to_ignore=None, has_header=True, dtype=np.float32,
-             target_type=np.int64):
+def load_csv(filepath, target_column=-1, columns_to_ignore=None,
+             has_header=True, categorical_labels=False, n_classes=None):
     """ load_csv.
 
     Load data from a CSV file. By default the labels are considered to be the
@@ -724,12 +723,12 @@ def load_csv(filepath, target_column=-1 , categorical_labels=False,
         filepath: `str`. The csv file path.
         target_column: The id of the column representing the labels.
             Default: -1 (The last column).
-        categorical_labels: `bool`. If True, labels are returned as binary
-            vectors (to be used with 'categorical_crossentropy').
         columns_to_ignore: `list of int`. A list of columns index to ignore.
         has_header: `bool`. Whether the csv file has a header or not.
-        dtype: The data type. Default: float32.
-        target_type: The target type. Default: int64.
+        categorical_labels: `bool`. If True, labels are returned as binary
+            vectors (to be used with 'categorical_crossentropy').
+        n_classes: `int`. Total number of class (needed if
+            categorical_labels is True).
 
     Returns:
         A tuple (data, target).
@@ -744,13 +743,16 @@ def load_csv(filepath, target_column=-1 , categorical_labels=False,
         if has_header:
             header = next(data_file)
         data, target = [], []
+        # Fix column to ignore ids after removing target_column
+        for i, c in enumerate(columns_to_ignore):
+            if c > target_column:
+                columns_to_ignore[i] -= 1
         for i, d in enumerate(data_file):
             target.append(d.pop(target_column))
             data.append([_d for j, _d in enumerate(d) if j not in columns_to_ignore])
-        data = np.asarray(data, dtype=dtype)
-        target = np.asarray(target, dtype=target_type)
         if categorical_labels:
-            target = to_categorical(target, np.max(target))
+            assert isinstance(n_classes, int), "n_classes not specified!"
+            target = to_categorical(target, n_classes)
         return data, target
 
 
