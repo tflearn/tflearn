@@ -158,7 +158,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
 
         b = None
         if bias:
-            if isinstance(bias, str):
+            if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
             b = va.variable('b', shape=[n_units], initializer=bias_init,
                             trainable=trainable, restore=restore)
