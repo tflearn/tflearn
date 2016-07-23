@@ -7,7 +7,8 @@ import tensorflow as tf
 def merge(tensors_list, mode, axis=1, name="Merge"):
     """ Merge.
 
-    Merge a list of `Tensor` into a single one.
+    Merge a list of `Tensor` into a single one. A merging 'mode' must be
+    specified, check below for the different options.
 
     Input:
         List of Tensors.
