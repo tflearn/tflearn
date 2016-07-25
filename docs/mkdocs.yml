@@ -1,8 +1,9 @@
-site_name: TFLearn
+site_name: TFLearn - TensorFlow Deep Learning Library
 site_url: http://tflearn.org
 repo_url: https://github.com/tflearn/tflearn
 site_description: Documentation for TFLearn, a deep learning library featuring a higher-level API for TensorFlow.
 site_author: Aymeric Damien
+google_analytics: ['UA-81255389-1', 'tflearn.org']
 
 theme: readthedocs
 docs_dir: templates
@@ -15,6 +16,7 @@ pages:
 - Index: doc_index.md
 - Installation: installation.md
 - Getting Started: getting_started.md
+- Tutorials: tutorials.md
 - Examples: examples.md
 - Models:
   - Deep Neural Network: models/dnn.md

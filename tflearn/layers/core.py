@@ -584,6 +584,15 @@ def time_distributed(incoming, fn, args=None, scope=None):
     Additional parameters for the custom function may be specified in 'args'
     argument (as a list).
 
+    Examples:
+        ```python
+        # Applying a fully_connected layer at every timestep
+        x = time_distributed(input_tensor, fully_connected, [64])
+
+        # Using a conv layer at every timestep with a scope
+        x = time_distributed(input_tensor, conv_2d, [64, 3], scope='tconv')
+        ```
+
     Input:
         (3+)-D Tensor [samples, timestep, input_dim].
 
@@ -600,15 +609,6 @@ def time_distributed(incoming, fn, args=None, scope=None):
             sharing weights. Each timestep tensor scope will be generated
             as 'scope'-'i' where i represents the timestep id. Note that your
             custom function will be required to have a 'scope' parameter.
-
-    Examples:
-        ```
-        # Applying a fully_connected layer at every timestep
-        x = time_distributed(input_tensor, fully_connected, [64])
-
-        # Using a conv layer at every timestep with a scope
-        x = time_distributed(input_tensor, conv_2d, [64, 3], scope='tconv')
-        ```
 
     Returns:
         A Tensor.
