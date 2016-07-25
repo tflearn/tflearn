@@ -1,4 +1,4 @@
-site_name: TFLearn - TensorFlow Deep Learning Library
+site_name: TFLearn
 site_url: http://tflearn.org
 repo_url: https://github.com/tflearn/tflearn
 site_description: Documentation for TFLearn, a deep learning library featuring a higher-level API for TensorFlow.
