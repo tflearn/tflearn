@@ -10,7 +10,7 @@ from ..utils import feed_dict_builder, is_none, get_tensor_parents_placeholders
 class DNN(object):
     """ Deep Neural Network Model.
 
-    #TODO: complete description
+    TODO: complete description
 
     Arguments:
         network: `Tensor`. Neural network to be used.

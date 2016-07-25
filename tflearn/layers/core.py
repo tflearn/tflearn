@@ -574,3 +574,55 @@ def one_hot_encoding(target, n_classes, on_value=1.0, off_value=1.0,
     tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, target)
 
     return target
+
+
+def time_distributed(incoming, fn, args=None, scope=None):
+    """ Time Distributed.
+
+    This layer applies a function to every timestep of the input tensor. The
+    custom function first argument must be the input tensor at every timestep.
+    Additional parameters for the custom function may be specified in 'args'
+    argument (as a list).
+
+    Input:
+        (3+)-D Tensor [samples, timestep, input_dim].
+
+    Output:
+        (3+)-D Tensor [samples, timestep, output_dim].
+
+    Arguments:
+        incoming: `Tensor`. The incoming tensor.
+        fn: `function`. A function to apply at every timestep. This function
+            first parameter must be the input tensor per timestep. Additional
+            parameters may be specified in 'args' argument.
+        args: `list`. A list of parameters to use with the provided function.
+        scope: `str`. A scope to give to each timestep tensor. Useful when
+            sharing weights. Each timestep tensor scope will be generated
+            as 'scope'-'i' where i represents the timestep id. Note that your
+            custom function will be required to have a 'scope' parameter.
+
+    Examples:
+        ```
+        # Applying a fully_connected layer at every timestep
+        x = time_distributed(input_tensor, fully_connected, [64])
+
+        # Using a conv layer at every timestep with a scope
+        x = time_distributed(input_tensor, conv_2d, [64, 3], scope='tconv')
+        ```
+
+    Returns:
+        A Tensor.
+
+    """
+    if not args: args = list()
+    assert isinstance(args, list), "'args' must be a list."
+
+    input_shape = utils.get_incoming_shape(incoming)
+    timestep = input_shape[1]
+    x = tf.split(1, timestep, incoming)
+    if scope:
+        x = [fn(x[i], scope=scope+'-'+str(i), *args)
+             for i in range(timestep)]
+    else:
+        x = [fn(x[i], *args) for i in range(timestep)]
+    return tf.concat(1, x)

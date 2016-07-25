@@ -3,7 +3,7 @@ from .conv import conv_2d, max_pool_2d, avg_pool_2d, conv_1d, \
     max_pool_1d, avg_pool_1d, residual_block, residual_bottleneck, \
     highway_conv_1d, highway_conv_2d
 from .core import input_data, dropout, custom_layer, reshape, flatten, \
-    activation, fully_connected, single_unit
+    activation, fully_connected, single_unit, one_hot_encoding, time_distributed
 from .normalization import batch_normalization, local_response_normalization
 from .estimator import regression
 from .recurrent import lstm, gru, simple_rnn, bidirectional_rnn, \
