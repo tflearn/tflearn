@@ -10,14 +10,15 @@ titanic.download_dataset('titanic_dataset.csv')
 
 # Load CSV file, indicate that the first column represents labels
 from tflearn.data_utils import load_csv
-data, labels = load_csv('titanic_dataset.csv', target_column=0)
+data, labels = load_csv('titanic_dataset.csv', target_column=0,
+                        categorical_labels=True, n_classes=2)
 
 
 # Preprocessing function
 def preprocess(data, columns_to_ignore):
     # Sort by descending id and delete columns
-    for id in columns_to_ignore.sort(reverse=True):
-        del columns_to_ignore[id]
+    for id in sorted(columns_to_ignore, reverse=True):
+        [r.pop(id) for r in data]
     for i in range(len(data)):
       # Converting 'sex' field to float (id is 1 after removing labels column)
       data[i][1] = 1. if data[i][1] == 'female' else 0.
@@ -45,7 +46,7 @@ model.fit(data, labels, n_epoch=10, batch_size=16, show_metric=True)
 dicaprio = [3, 'Jack Dawson', 'male', 19, 0, 0, 'N/A', 5.0000]
 winslet = [1, 'Rose DeWitt Bukater', 'female', 17, 1, 2, 'N/A', 100.0000]
 # Preprocess data
-dicaprio, winslet = preprocess([dicaprio, winslet])
+dicaprio, winslet = preprocess([dicaprio, winslet], to_ignore)
 # Predict surviving chances (class 1 results)
 pred = model.predict([dicaprio, winslet])
 print("DiCaprio Surviving Rate:", pred[0][1])
