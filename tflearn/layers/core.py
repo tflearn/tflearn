@@ -617,6 +617,9 @@ def time_distributed(incoming, fn, args=None, scope=None):
     if not args: args = list()
     assert isinstance(args, list), "'args' must be a list."
 
+    if not isinstance(incoming, tf.Tensor):
+        incoming = tf.transpose(tf.pack(incoming), [1, 0, 2])
+
     input_shape = utils.get_incoming_shape(incoming)
     timestep = input_shape[1]
     x = tf.split(1, timestep, incoming)
