@@ -82,7 +82,7 @@ data = preprocess(data, to_ignore)
 ```
 
 ## Build a Deep Neural Network
-We are building a 3-layers neural network using TFLearn. We need to specify the shape of our input data. In our case, each sample has a total of 6 features and we will process samples per batch to save memory, so our data input shape is [None, 6] ('None' stands for an unknown dimension, so we can change the total number of samples that are processed in a batch).
+We are building a 3-layers neural network using TFLearn. We need to specify the shape of our input data. In our case, each sample has a total of 6 features and we will process samples per batch to save memory, so our data input shape is \[None, 6\] ('None' stands for an unknown dimension, so we can change the total number of samples that are processed in a batch).
 ```python
 # Build neural network
 net = tflearn.input_data(shape=[None, 6])
