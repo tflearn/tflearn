@@ -541,7 +541,7 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
     return inference
 
 
-def one_hot_encoding(target, n_classes, on_value=1.0, off_value=1.0,
+def one_hot_encoding(target, n_classes, on_value=1.0, off_value=0.0,
                      name="OneHotEncoding"):
     """ One Hot Encoding.
 
