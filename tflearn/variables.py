@@ -124,7 +124,7 @@ def get_value(var, session=None):
 
 
 def set_value(var, value, session=None):
-    """ get_value.
+    """ set_value.
 
     Set a variable's value. If no session provided, use default one.
 
