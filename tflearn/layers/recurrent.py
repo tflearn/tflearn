@@ -115,7 +115,7 @@ def simple_rnn(incoming, n_units, activation='sigmoid', dropout=None,
         n_units: `int`, number of units for this layer.
         activation: `str` (name) or `function` (returning a `Tensor`).
             Activation applied to this layer (see tflearn.activations).
-            Default: 'linear'.
+            Default: 'sigmoid'.
         dropout: `tuple` of `float`: (input_keep_prob, output_keep_prob). The
             input and output keep probability.
         bias: `bool`. If True, a bias is used.
