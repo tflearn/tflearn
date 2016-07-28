@@ -2,6 +2,7 @@ from __future__ import division, print_function, absolute_import
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.framework import dtypes
 from tensorflow.python.ops import standard_ops
 
 import tflearn
@@ -563,7 +564,7 @@ def one_hot_encoding(target, n_classes, on_value=1.0, off_value=0.0,
     """
 
     with tf.name_scope(name):
-        if target.dtype == tf.dtypes.int32:
+        if target.dtype == dtypes.int32:
           target = standard_ops.to_int64(target)
 
         target = standard_ops.one_hot(target, n_classes,
