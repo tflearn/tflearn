@@ -86,7 +86,8 @@ def regression(incoming, placeholder=None, optimizer='adam',
     if placeholder is None:
         pscope = "TargetsData" if not name else name
         with tf.name_scope(pscope):
-            placeholder = tf.placeholder(shape=input_shape, dtype=dtype, name="Y")
+            p_shape = [None] if to_one_hot else input_shape
+            placeholder = tf.placeholder(shape=p_shape, dtype=dtype, name="Y")
 
     tf.add_to_collection(tf.GraphKeys.TARGETS, placeholder)
 
