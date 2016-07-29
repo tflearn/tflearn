@@ -11,7 +11,7 @@ def download_dataset(filename='titanic_dataset.csv', work_directory='./'):
         os.mkdir(work_directory)
     filepath = os.path.join(work_directory, filename)
     if not os.path.exists(filepath):
-        print('Downloading MNIST...')
+        print('Downloading Titanic dataset...')
         filepath, _ = urllib.request.urlretrieve(url, filepath)
         statinfo = os.stat(filepath)
         print('Succesfully downloaded', filename, statinfo.st_size, 'bytes.')
