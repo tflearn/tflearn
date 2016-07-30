@@ -101,7 +101,7 @@ def get_layer_variables_by_name(name):
         A list of Variables.
 
     """
-    return tf.get_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name + '/')
+    return tf.get_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name)
 
 
 def get_value(var, session=None):
