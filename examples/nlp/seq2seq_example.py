@@ -174,8 +174,8 @@ class TFLearnSeq2Seq(object):
             print ("decoder inputs: %s" % str(decoder_inputs))
             print ("len decoder inputs: %s" % len(decoder_inputs))
 
-        self.n_input_symbols = 10
-        self.n_output_symbols = 11		# extra "GO" symbol for decoder inputs
+        self.n_input_symbols = self.in_max_int + 1		# default is integers from 0 to 9 
+        self.n_output_symbols = self.out_max_int + 2		# extra "GO" symbol for decoder inputs
 
         single_cell = getattr(rnn_cell, cell_type)(cell_size, state_is_tuple=True)
         if num_layers==1:
