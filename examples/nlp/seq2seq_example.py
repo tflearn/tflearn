@@ -1,5 +1,6 @@
 '''
 Pedagogical example realization of seq2seq recurrent neural networks, using TensorFlow and TFLearn.
+More info at https://github.com/ichuang/tflearn_seq2seq
 '''
 
 from __future__ import division, print_function
