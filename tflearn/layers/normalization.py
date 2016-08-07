@@ -150,7 +150,7 @@ def local_response_normalization(incoming, depth_radius=5, bias=1.0,
     return inference
 
 
-def l2_normalize(x, dim, epsilon=1e-12, name=None):
+def l2_normalize(incoming, dim, epsilon=1e-12, name="l2_normalize"):
     """ L2 Normalization.
 
     Normalizes along dimension `dim` using an L2 norm.
@@ -164,17 +164,17 @@ def l2_normalize(x, dim, epsilon=1e-12, name=None):
     dimension `dim`.
 
     Arguments:
-        x: A `Tensor`.
-        dim: Dimension along which to normalize.
-        epsilon: A lower bound value for the norm. Will use `sqrt(epsilon)` as the
-            divisor if `norm < sqrt(epsilon)`.
-        name: A name for this operation (optional).
+        incoming: `Tensor`. Incoming Tensor.
+        dim: `int`. Dimension along which to normalize.
+        epsilon: `float`. A lower bound value for the norm. Will use
+            `sqrt(epsilon)` as the divisor if `norm < sqrt(epsilon)`.
+        name: `str`. A name for this layer (optional).
 
     Returns:
       A `Tensor` with the same shape as `x`.
     """
-    with tf.ops.op_scope([x], name, "l2_normalize") as name:
-        x = tf.ops.convert_to_tensor(x, name="x")
+    with tf.variable_op_scope([incoming], name) as name:
+        x = tf.ops.convert_to_tensor(incoming, name="x")
         square_sum = tf.reduce_sum(tf.square(x), [dim], keep_dims=True)
         x_inv_norm = tf.rsqrt(tf.maximum(square_sum, epsilon))
 
