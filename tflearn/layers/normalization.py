@@ -148,3 +148,34 @@ def local_response_normalization(incoming, depth_radius=5, bias=1.0,
     tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
 
     return inference
+
+
+def l2_normalize(x, dim, epsilon=1e-12, name=None):
+    """ L2 Normalization.
+
+    Normalizes along dimension `dim` using an L2 norm.
+
+    For a 1-D tensor with `dim = 0`, computes
+    ```
+    output = x / sqrt(max(sum(x**2), epsilon))
+    ```
+
+    For `x` with more dimensions, independently normalizes each 1-D slice along
+    dimension `dim`.
+
+    Arguments:
+        x: A `Tensor`.
+        dim: Dimension along which to normalize.
+        epsilon: A lower bound value for the norm. Will use `sqrt(epsilon)` as the
+            divisor if `norm < sqrt(epsilon)`.
+        name: A name for this operation (optional).
+
+    Returns:
+      A `Tensor` with the same shape as `x`.
+    """
+    with tf.ops.op_scope([x], name, "l2_normalize") as name:
+        x = tf.ops.convert_to_tensor(x, name="x")
+        square_sum = tf.reduce_sum(tf.square(x), [dim], keep_dims=True)
+        x_inv_norm = tf.rsqrt(tf.maximum(square_sum, epsilon))
+
+    return tf.mul(x, x_inv_norm, name=name)
