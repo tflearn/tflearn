@@ -41,6 +41,8 @@ class Trainer(object):
             ```
         checkpoint_path: `str`. Path to store model checkpoints. If None,
             no model checkpoint will be saved. Default: None.
+        best_checkpoint_path: `str`. Path to store the model when the validation rate reaches its
+            highest point of the current training session and also is above best_val_accuracy. Default: None.
         max_checkpoints: `int` or None. Maximum amount of checkpoints. If
             None, no limit. Default: None.
         keep_checkpoint_every_n_hours: `float`. Number of hours between each
