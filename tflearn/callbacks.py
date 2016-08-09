@@ -216,7 +216,6 @@ class ModelSaver(object):
         self.best_snapshot_path = best_snapshot_path
         self.snapshot_step = snapshot_step
         self.best_val_accuracy = best_val_accuracy
-        self.snapshot_step = snapshot_step
 
     def on_epoch_begin(self):
         pass
