@@ -3,7 +3,7 @@
 In this tutorial, you will learn to use TFLearn and TensorFlow to estimate Titanic passengers chance of surviving the sinking, using their personal information (such as gender, age, etc...). To tackle this classic machine learning task, we are going to build a deep neural network classifier.
 
 ## Prerequisite
-Make sure that you have tensorflow and tflearn installed. If you don't, please follow these [instructions](http://tflearn.org/installation).
+Make sure that you have tensorflow and tflearn (bleeding edge version) installed. If you don't, please follow these [instructions](http://tflearn.org/installation).
 
 # Overview
 ![Titanic](http://www.maritime-reproductions.com/images/1000_titanic_sinking_12x8.jpg)
