@@ -53,7 +53,7 @@ There are many more examples available *[here](http://tflearn.org/examples)*.
 
 **TensorFlow Installation**
 
-TFLearn requires Tensorflow (version >= 0.8) to be installed: *[Tensorflow installation instructions](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md)*.
+TFLearn requires Tensorflow (version >= 0.9) to be installed: *[Tensorflow installation instructions](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md)*.
 
 **TFLearn Installation**
 
@@ -76,7 +76,7 @@ python setup.py install
 
 ## Getting Started
 
-See *[Getting Started with TFLearn](http://tflearn.org/getting_started)* for a tutorial to learn more about TFLearn functionalities.
+See *[Getting Started with TFLearn](http://tflearn.org/getting_started)* to learn about TFLearn basic functionalities or start browsing *[TFLearn Tutorials](http://tflearn.org/tutorials)*.
 
 ## Examples
 
@@ -84,7 +84,7 @@ There are many neural network implementation available, see *[Examples](http://t
 
 ## Documentation
 
-[http://tflearn.org/doc_index](http://tflearn.org/doc_index).
+[http://tflearn.org/doc_index](http://tflearn.org/doc_index)
 
 ## Model Visualization
 

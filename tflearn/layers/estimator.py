@@ -18,6 +18,25 @@ def regression(incoming, placeholder=None, optimizer='adam',
                trainable_vars=None, restore=True, op_name=None, name=None):
     """ Regression.
 
+    The regression layer is used in TFLearn to apply a regression (linear or
+    logistic) to the provided input. It requires to specify a TensorFlow
+    gradient descent optimizer 'optimizer' that will minimize the provided
+    loss function 'loss' (which calculate the errors). A metric can also be
+    provided, to evaluate the model performance.
+
+    A 'TrainOp' is generated, holding all information about the optimization
+    process. It is added to TensorFlow collection 'tf.GraphKeys.TRAIN_OPS'
+    and later used by TFLearn 'models' classes to perform the training.
+
+    An optional placeholder 'placeholder' can be specified to use a custom
+    TensorFlow target placeholder instead of creating a new one. The target
+    placeholder is added to the 'tf.GraphKeys.TARGETS' TensorFlow
+    collection, so that it can be retrieved later.
+
+    Additionaly, a list of variables 'trainable_vars' can be specified,
+    so that only them will be updated when applying the backpropagation
+    algorithm.
+
     Input:
         2-D Tensor Layer.
 
@@ -67,7 +86,8 @@ def regression(incoming, placeholder=None, optimizer='adam',
     if placeholder is None:
         pscope = "TargetsData" if not name else name
         with tf.name_scope(pscope):
-            placeholder = tf.placeholder(shape=input_shape, dtype=dtype, name="Y")
+            p_shape = [None] if to_one_hot else input_shape
+            placeholder = tf.placeholder(shape=p_shape, dtype=dtype, name="Y")
 
     tf.add_to_collection(tf.GraphKeys.TARGETS, placeholder)
 

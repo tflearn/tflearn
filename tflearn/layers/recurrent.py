@@ -80,8 +80,11 @@ def _rnn_template(incoming, cell, dropout=None, return_seq=False,
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, outputs[-1])
 
     if dynamic:
-        outputs = tf.transpose(tf.pack(outputs), [1, 0, 2])
-        o = advanced_indexing_op(outputs, sequence_length)
+        if return_seq:
+            o = outputs
+        else:
+            outputs = tf.transpose(tf.pack(outputs), [1, 0, 2])
+            o = advanced_indexing_op(outputs, sequence_length)
     else:
         o = outputs if return_seq else outputs[-1]
 
@@ -112,7 +115,7 @@ def simple_rnn(incoming, n_units, activation='sigmoid', dropout=None,
         n_units: `int`, number of units for this layer.
         activation: `str` (name) or `function` (returning a `Tensor`).
             Activation applied to this layer (see tflearn.activations).
-            Default: 'linear'.
+            Default: 'sigmoid'.
         dropout: `tuple` of `float`: (input_keep_prob, output_keep_prob). The
             input and output keep probability.
         bias: `bool`. If True, a bias is used.
@@ -382,8 +385,11 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, outputs[-1])
 
     if dynamic:
-        outputs = tf.transpose(tf.pack(outputs), [1, 0, 2])
-        o = advanced_indexing_op(outputs, sequence_length)
+        if return_seq:
+            o = outputs
+        else:
+            outputs = tf.transpose(tf.pack(outputs), [1, 0, 2])
+            o = advanced_indexing_op(outputs, sequence_length)
     else:
         o = outputs if return_seq else outputs[-1]
 

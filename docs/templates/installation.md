@@ -2,18 +2,45 @@
 
 ## Tensorflow Installation
 
-TFLearn requires Tensorflow (version >= 0.7.0) to be installed.
+TFLearn requires Tensorflow (version >= 0.9.0) to be installed.
 
+Select the correct binary to install, according to your system:
 ```python
-# Ubuntu/Linux 64-bit, CPU only:
-pip install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.7.1-cp27-none-linux_x86_64.whl
+# Ubuntu/Linux 64-bit, CPU only, Python 2.7
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0-cp27-none-linux_x86_64.whl
 
-# Ubuntu/Linux 64-bit, GPU enabled:
-pip install --upgrade https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.7.1-cp27-none-linux_x86_64.whl
+# Ubuntu/Linux 64-bit, GPU enabled, Python 2.7 
+# Requires CUDA toolkit 7.5 and CuDNN v4. For other versions, see "Install from sources" below.
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.9.0-cp27-none-linux_x86_64.whl
 
-# Mac OS X, CPU only:
-easy_install --upgrade six
-pip install --upgrade https://storage.googleapis.com/tensorflow/mac/tensorflow-0.7.1-cp27-none-any.whl
+# Mac OS X, CPU only, Python 2.7:
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/mac/tensorflow-0.9.0-py2-none-any.whl
+
+# Ubuntu/Linux 64-bit, CPU only, Python 3.4
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0-cp34-cp34m-linux_x86_64.whl
+
+# Ubuntu/Linux 64-bit, GPU enabled, Python 3.4 
+# Requires CUDA toolkit 7.5 and CuDNN v4. For other versions, see "Install from sources" below.
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.9.0-cp34-cp34m-linux_x86_64.whl
+
+# Ubuntu/Linux 64-bit, CPU only, Python 3.5
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0-cp35-cp35m-linux_x86_64.whl
+
+# Ubuntu/Linux 64-bit, GPU enabled, Python 3.5 
+# Requires CUDA toolkit 7.5 and CuDNN v4. For other versions, see "Install from sources" below.
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.9.0-cp35-cp35m-linux_x86_64.whl
+
+# Mac OS X, CPU only, Python 3.4 or 3.5:
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/mac/tensorflow-0.9.0-py3-none-any.whl
+```
+
+Then install TensorFlow:
+```python
+# Python 2
+$ sudo pip install $TF_BINARY_URL
+
+# Python 3
+$ sudo pip3 install $TF_BINARY_URL
 ```
 
 - For more details: [Tensorflow installation instructions](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md).
@@ -37,7 +64,7 @@ python setup.py install
 
 ## Upgrade Tensorflow
 
-If you version for Tensorflow is too old (under 0.8.0), you may upgrade Tensorflow to avoid some incompatibilities with TFLearn.
+If you version for Tensorflow is too old (under 0.9.0), you may upgrade Tensorflow to avoid some incompatibilities with TFLearn.
 To upgrade Tensorflow, you first need to uninstall Tensorflow and Protobuf:
 
 ```python
@@ -47,17 +74,43 @@ pip uninstall tensorflow
 
 Then you can re-install Tensorflow:
 
+Select the correct binary to install, according to your system:
 ```python
-# Ubuntu/Linux 64-bit, CPU only, Python 2.7:
-$ sudo pip install --upgrade https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.8.0-cp27-none-linux_x86_64.whl
+# Ubuntu/Linux 64-bit, CPU only, Python 2.7
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0-cp27-none-linux_x86_64.whl
 
-# Ubuntu/Linux 64-bit, GPU enabled, Python 2.7. Requires CUDA toolkit 7.5 and cuDNN v4.
-# For other versions, see "Install from sources" below.
-$ sudo pip install --upgrade https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.8.0-cp27-none-linux_x86_64.whl
+# Ubuntu/Linux 64-bit, GPU enabled, Python 2.7 
+# Requires CUDA toolkit 7.5 and CuDNN v4. For other versions, see "Install from sources" below.
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.9.0-cp27-none-linux_x86_64.whl
 
-# Mac OS X, CPU only:
-$ sudo easy_install --upgrade six
-$ sudo pip install --upgrade https://storage.googleapis.com/tensorflow/mac/tensorflow-0.8.0-py2-none-any.whl
+# Mac OS X, CPU only, Python 2.7:
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/mac/tensorflow-0.9.0-py2-none-any.whl
+
+# Ubuntu/Linux 64-bit, CPU only, Python 3.4
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0-cp34-cp34m-linux_x86_64.whl
+
+# Ubuntu/Linux 64-bit, GPU enabled, Python 3.4 
+# Requires CUDA toolkit 7.5 and CuDNN v4. For other versions, see "Install from sources" below.
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.9.0-cp34-cp34m-linux_x86_64.whl
+
+# Ubuntu/Linux 64-bit, CPU only, Python 3.5
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.9.0-cp35-cp35m-linux_x86_64.whl
+
+# Ubuntu/Linux 64-bit, GPU enabled, Python 3.5 
+# Requires CUDA toolkit 7.5 and CuDNN v4. For other versions, see "Install from sources" below.
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow-0.9.0-cp35-cp35m-linux_x86_64.whl
+
+# Mac OS X, CPU only, Python 3.4 or 3.5:
+$ export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/mac/tensorflow-0.9.0-py3-none-any.whl
+```
+
+Then install TensorFlow:
+```python
+# Python 2
+$ sudo pip install --upgrade $TF_BINARY_URL
+
+# Python 3
+$ sudo pip3 install --upgrade $TF_BINARY_URL
 ```
 
 ## Using Latest Tensorflow

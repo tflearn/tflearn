@@ -2,6 +2,7 @@ from __future__ import division, print_function, absolute_import
 
 import numpy as np
 import tensorflow as tf
+from tensorflow.python.framework import dtypes
 from tensorflow.python.ops import standard_ops
 
 import tflearn
@@ -18,12 +19,20 @@ def input_data(shape=None, placeholder=None, dtype=tf.float32,
                name="InputData"):
     """ Input Data.
 
-    This layer is used as a data entry (placeholder) of a network. The inner
-    placeholder will then be feeded with data when training.
+    This layer is used for inputting (aka. feeding) data to a network.
+    A TensorFlow placeholder will be used if it is supplied,
+    otherwise a new placeholder will be created with the given shape.
 
-    This layer is used to keep track of the network inputs, by adding the
-    placeholder to INPUTS graphkey. TFLearn training functions may retrieve
-    these variables to setup the network training process.
+    Either a shape or placeholder must be provided, otherwise an
+    exception will be raised.
+
+    Furthermore, the placeholder is added to TensorFlow collections
+    so it can be retrieved using tf.get_collection(tf.GraphKeys.INPUTS)
+    as well as tf.GraphKeys.LAYER_TENSOR + '/' + name. Similarly for
+    the data preprocessing and augmentation objects which are stored in
+    the collections with tf.GraphKeys.DATA_PREP and tf.GraphKeys.DATA_AUG.
+    This allows other parts of TFLearn to easily retrieve and use these
+    objects by referencing these graph-keys.
 
     Input:
         List of `int` (Shape), to create a new placeholder.
@@ -35,7 +44,7 @@ def input_data(shape=None, placeholder=None, dtype=tf.float32,
 
     Arguments:
         shape: list of `int`. An array or tuple representing input data shape.
-            It is required if no placeholder provided. First element should
+            It is required if no placeholder is provided. First element should
             be 'None' (representing batch size), if not provided, it will be
             added automatically.
         placeholder: A Placeholder to use for feeding this layer (optional).
@@ -53,27 +62,33 @@ def input_data(shape=None, placeholder=None, dtype=tf.float32,
         name: `str`. A name for this layer (optional).
 
     """
-    if not shape and placeholder is None:
-        raise Exception("`shape` or `placeholder` argument is required.")
 
+    # We need either a placeholder or a shape, otherwise raise an exception.
     if placeholder is None:
-        # Add 'None' if missing
-        assert shape is not None, "A shape or a placeholder must be provided."
-        if len(shape) > 1:
-            if shape[0] is not None:
-                shape = list(shape)
-                shape = [None] + shape
-        with tf.name_scope(name) as scope:
+        if shape is None:
+            raise Exception("Either a `shape` or `placeholder` argument is required to consruct an input layer.")
+
+        # We have a shape but no placeholder, so we must now create a placeholder.
+
+        # Ensure the first element of shape is None by prepending None if necessary.
+        # TODO: Why is there a len(shape)>1 condition? Please explain here.
+        if len(shape) > 1 and shape[0] is not None:
+            shape = list(shape)
+            shape = [None] + shape
+
+        # Create a new tf.placeholder with the given shape.
+        with tf.name_scope(name):
             placeholder = tf.placeholder(shape=shape, dtype=dtype, name="X")
 
-    # Keep track of inputs
+    # Store the placeholder object in TensorFlow collections so it can be
+    # retrieved and used elsewhere.
     tf.add_to_collection(tf.GraphKeys.INPUTS, placeholder)
-    # Keep track of data preprocessing and augmentation
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, placeholder)
+
+    # Store the objects for data-preprocessing and -augmentation
+    # in TensorFlow collections so they can be retrieved and used elsewhere.
     tf.add_to_collection(tf.GraphKeys.DATA_PREP, data_preprocessing)
     tf.add_to_collection(tf.GraphKeys.DATA_AUG, data_augmentation)
-
-    # Track output tensor.
-    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, placeholder)
 
     return placeholder
 
@@ -144,7 +159,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
 
         b = None
         if bias:
-            if isinstance(bias, str):
+            if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
             b = va.variable('b', shape=[n_units], initializer=bias_init,
                             trainable=trainable, restore=restore)
@@ -527,7 +542,7 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
     return inference
 
 
-def one_hot_encoding(target, n_classes, on_value=1.0, off_value=1.0,
+def one_hot_encoding(target, n_classes, on_value=1.0, off_value=0.0,
                      name="OneHotEncoding"):
     """ One Hot Encoding.
 
@@ -549,8 +564,8 @@ def one_hot_encoding(target, n_classes, on_value=1.0, off_value=1.0,
     """
 
     with tf.name_scope(name):
-        if target.dtype == tf.dtypes.int32:
-          target = standard_ops.to_int64(target)
+        if target.dtype != dtypes.int64:
+            target = standard_ops.to_int64(target)
 
         target = standard_ops.one_hot(target, n_classes,
                                       on_value=on_value,
@@ -560,3 +575,58 @@ def one_hot_encoding(target, n_classes, on_value=1.0, off_value=1.0,
     tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, target)
 
     return target
+
+
+def time_distributed(incoming, fn, args=None, scope=None):
+    """ Time Distributed.
+
+    This layer applies a function to every timestep of the input tensor. The
+    custom function first argument must be the input tensor at every timestep.
+    Additional parameters for the custom function may be specified in 'args'
+    argument (as a list).
+
+    Examples:
+        ```python
+        # Applying a fully_connected layer at every timestep
+        x = time_distributed(input_tensor, fully_connected, [64])
+
+        # Using a conv layer at every timestep with a scope
+        x = time_distributed(input_tensor, conv_2d, [64, 3], scope='tconv')
+        ```
+
+    Input:
+        (3+)-D Tensor [samples, timestep, input_dim].
+
+    Output:
+        (3+)-D Tensor [samples, timestep, output_dim].
+
+    Arguments:
+        incoming: `Tensor`. The incoming tensor.
+        fn: `function`. A function to apply at every timestep. This function
+            first parameter must be the input tensor per timestep. Additional
+            parameters may be specified in 'args' argument.
+        args: `list`. A list of parameters to use with the provided function.
+        scope: `str`. A scope to give to each timestep tensor. Useful when
+            sharing weights. Each timestep tensor scope will be generated
+            as 'scope'-'i' where i represents the timestep id. Note that your
+            custom function will be required to have a 'scope' parameter.
+
+    Returns:
+        A Tensor.
+
+    """
+    if not args: args = list()
+    assert isinstance(args, list), "'args' must be a list."
+
+    if not isinstance(incoming, tf.Tensor):
+        incoming = tf.transpose(tf.pack(incoming), [1, 0, 2])
+
+    input_shape = utils.get_incoming_shape(incoming)
+    timestep = input_shape[1]
+    x = tf.split(1, timestep, incoming)
+    if scope:
+        x = [fn(x[i], scope=scope+'-'+str(i), *args)
+             for i in range(timestep)]
+    else:
+        x = [fn(x[i], *args) for i in range(timestep)]
+    return tf.concat(1, x)
