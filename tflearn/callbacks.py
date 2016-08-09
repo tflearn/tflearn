@@ -238,7 +238,7 @@ class ModelSaver(object):
         if not None in (best_checkpoint_path, val_accuracy, self.best_val_accuracy):
             if val_accuracy > self.best_val_accuracy:
                 self.best_val_accuracy = val_accuracy
-                self.save_best(1000 * round(val_accuracy, 4))
+                self.save_best(10000 * round(val_accuracy, 4))
 
     def on_sub_batch_begin(self):
         pass
