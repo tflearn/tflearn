@@ -234,6 +234,7 @@ class Trainer(object):
                                               self.checkpoint_path,
                                               self.best_checkpoint_path,
                                               self.best_val_accuracy,
+                                              snapshot_step,
                                               snapshot_epoch)
 
             for i, train_op in enumerate(self.train_ops):
