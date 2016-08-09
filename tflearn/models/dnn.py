@@ -39,8 +39,8 @@ class DNN(object):
     """
 
     def __init__(self, network, clip_gradients=5.0, tensorboard_verbose=0,
-                 tensorboard_dir="/tmp/tflearn_logs/", checkpoint_path=None,
-                 max_checkpoints=None, session=None):
+                 tensorboard_dir="/tmp/tflearn_logs/", checkpoint_path=None, best_checkpoint_path=None,
+                 max_checkpoints=None, session=None, best_val_accuracy=0.0):
         assert isinstance(network, tf.Tensor), "'network' arg is not a Tensor!"
         self.net = network
         self.train_ops = tf.get_collection(tf.GraphKeys.TRAIN_OPS)
@@ -49,8 +49,10 @@ class DNN(object):
                                tensorboard_dir=tensorboard_dir,
                                tensorboard_verbose=tensorboard_verbose,
                                checkpoint_path=checkpoint_path,
+                               best_checkpoint_path=best_checkpoint_path,
                                max_checkpoints=max_checkpoints,
-                               session=session)
+                               session=session,
+                               best_val_accuracy=best_val_accuracy)
         self.session = self.trainer.session
 
         self.inputs = tf.get_collection(tf.GraphKeys.INPUTS)

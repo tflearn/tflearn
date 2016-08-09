@@ -207,11 +207,13 @@ class TermLogger(Callback):
 
 
 class ModelSaver(object):
-    def __init__(self, save_func, training_step, snapshot_path, snapshot_epoch):
+    def __init__(self, save_func, training_step, snapshot_path, best_snapshot_path, best_val_accuracy, snapshot_epoch):
         self.save_func = save_func
         self.training_step = training_step
         self.snapshot_path = snapshot_path
         self.snapshot_epoch = snapshot_epoch
+        self.best_snapshot_path = best_snapshot_path
+        self.best_val_accuracy = best_val_accuracy
 
     def on_epoch_begin(self):
         pass
@@ -229,10 +231,14 @@ class ModelSaver(object):
     def on_batch_begin(self):
         pass
 
-    def on_batch_end(self, snapshot_model=False):
+    def on_batch_end(self, snapshot_model=False, best_checkpoint_path=None, val_accuracy=None):
         self.training_step += 1
         if snapshot_model:
             self.save()
+        if not None in (best_checkpoint_path, val_accuracy, self.best_val_accuracy):
+            if val_accuracy > self.best_val_accuracy:
+                self.best_val_accuracy = val_accuracy
+                self.save_best(1000 * round(val_accuracy, 4))
 
     def on_sub_batch_begin(self):
         pass
@@ -249,3 +255,8 @@ class ModelSaver(object):
     def save(self):
         if self.snapshot_path:
             self.save_func(self.snapshot_path, self.training_step)
+
+    def save_best(self, val_accuracy):
+        if self.best_snapshot_path:
+            snapshot_path = self.best_snapshot_path + str(val_accuracy)
+            self.save_func(snapshot_path)
