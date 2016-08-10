@@ -41,6 +41,8 @@ class Trainer(object):
             ```
         checkpoint_path: `str`. Path to store model checkpoints. If None,
             no model checkpoint will be saved. Default: None.
+        best_checkpoint_path: `str`. Path to store the model when the validation rate reaches its
+            highest point of the current training session and also is above best_val_accuracy. Default: None.
         max_checkpoints: `int` or None. Maximum amount of checkpoints. If
             None, no limit. Default: None.
         keep_checkpoint_every_n_hours: `float`. Number of hours between each
@@ -50,15 +52,19 @@ class Trainer(object):
         session: `Session`. A session for running ops. If None, a new one will
             be created. Note: When providing a session, variables must have been
             initialized already, otherwise an error will be raised.
+        best_val_accuracy: `float` The minimum validation accuracy that needs to be
+            achieved before a model weight's are saved to the best_checkpoint_path. This
+            allows the user to skip early saves and also set a minimum save point when continuing
+            to train a reloaded model. Default: 0.0.
 
     """
 
     def __init__(self, train_ops, graph=None, clip_gradients=5.0,
                  tensorboard_dir="/tmp/tflearn_logs/",
-                 tensorboard_verbose=0, checkpoint_path=None,
+                 tensorboard_verbose=0, checkpoint_path=None, best_checkpoint_path=None,
                  max_checkpoints=None,
                  keep_checkpoint_every_n_hours=10000.0, random_seed=None,
-                 session=None):
+                 session=None, best_val_accuracy=0.0):
 
         self.graph = tf.get_default_graph()
         if graph:
@@ -85,6 +91,8 @@ class Trainer(object):
                                            trainable=False)
             self.incr_global_step = tf.assign(self.global_step,
                                               tf.add(self.global_step, 1))
+            self.best_val_accuracy = best_val_accuracy
+            self.best_checkpoint_path = best_checkpoint_path
 
             config = None
             tflearn_conf = tf.get_collection(tf.GraphKeys.GRAPH_CONFIG)
@@ -230,6 +238,9 @@ class Trainer(object):
             modelsaver = callbacks.ModelSaver(self.save,
                                               self.training_step,
                                               self.checkpoint_path,
+                                              self.best_checkpoint_path,
+                                              self.best_val_accuracy,
+                                              snapshot_step,
                                               snapshot_epoch)
 
             for i, train_op in enumerate(self.train_ops):
@@ -279,7 +290,7 @@ class Trainer(object):
                             modelsaver.on_sub_batch_begin()
 
                             snapshot = train_op._train(self.training_step,
-                                                       snapshot_epoch,
+                                                       (bool(self.best_checkpoint_path) | snapshot_epoch),
                                                        snapshot_step,
                                                        show_metric)
                             global_loss += train_op.loss_value
@@ -303,7 +314,9 @@ class Trainer(object):
                         self.session.run(self.incr_global_step)
                         termlogger.on_batch_end(global_loss, global_acc,
                                                 snapshot)
-                        modelsaver.on_batch_end(snapshot)
+                        modelsaver.on_batch_end(snapshot, self.best_checkpoint_path, train_op.val_acc)
+                        if self.best_checkpoint_path:
+                            self.best_val_accuracy = modelsaver.best_val_accuracy
 
                     # Epoch end
                     termlogger.on_epoch_end()

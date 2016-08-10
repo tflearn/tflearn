@@ -27,11 +27,17 @@ class DNN(object):
             Default: "/tmp/tflearn_logs/"
         checkpoint_path: `str`. Path to store model checkpoints. If None,
             no model checkpoint will be saved. Default: None.
+        best_checkpoint_path: `str`. Path to store the model when the validation rate reaches its
+            highest point of the current training session and also is above best_val_accuracy. Default: None.
         max_checkpoints: `int` or None. Maximum amount of checkpoints. If
             None, no limit. Default: None.
         session: `Session`. A session for running ops. If None, a new one will
             be created. Note: When providing a session, variables must have been
             initialized already, otherwise an error will be raised.
+        best_val_accuracy: `float` The minimum validation accuracy that needs to be
+            achieved before a model weight's are saved to the best_checkpoint_path. This
+            allows the user to skip early saves and also set a minimum save point when continuing
+            to train a reloaded model. Default: 0.0.
 
     Attributes:
         trainer: `Trainer`. Handle model training.
@@ -41,8 +47,8 @@ class DNN(object):
     """
 
     def __init__(self, network, clip_gradients=5.0, tensorboard_verbose=0,
-                 tensorboard_dir="/tmp/tflearn_logs/", checkpoint_path=None,
-                 max_checkpoints=None, session=None):
+                 tensorboard_dir="/tmp/tflearn_logs/", checkpoint_path=None, best_checkpoint_path=None,
+                 max_checkpoints=None, session=None, best_val_accuracy=0.0):
         assert isinstance(network, tf.Tensor), "'network' arg is not a Tensor!"
         self.net = network
         self.train_ops = tf.get_collection(tf.GraphKeys.TRAIN_OPS)
@@ -51,8 +57,10 @@ class DNN(object):
                                tensorboard_dir=tensorboard_dir,
                                tensorboard_verbose=tensorboard_verbose,
                                checkpoint_path=checkpoint_path,
+                               best_checkpoint_path=best_checkpoint_path,
                                max_checkpoints=max_checkpoints,
-                               session=session)
+                               session=session,
+                               best_val_accuracy=best_val_accuracy)
         self.session = self.trainer.session
 
         self.inputs = tf.get_collection(tf.GraphKeys.INPUTS)
