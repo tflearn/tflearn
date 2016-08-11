@@ -92,7 +92,6 @@ class Trainer(object):
             else:
                 self.global_step = tf.Variable(0., name='Global_Step',
                                                trainable=False)
-            self.global_step = global_step
             self.incr_global_step = tf.assign(self.global_step,
                                               tf.add(self.global_step, 1))
             self.best_val_accuracy = best_val_accuracy
