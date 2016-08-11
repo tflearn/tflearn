@@ -56,7 +56,7 @@ class Trainer(object):
             achieved before a model weight's are saved to the best_checkpoint_path. This
             allows the user to skip early saves and also set a minimum save point when continuing
             to train a reloaded model. Default: 0.0.
-
+        global_counter: `int`. A Tensorflow variable to hold a global counter of the update steps.
     """
 
     def __init__(self, train_ops, graph=None, clip_gradients=5.0,
@@ -64,7 +64,7 @@ class Trainer(object):
                  tensorboard_verbose=0, checkpoint_path=None, best_checkpoint_path=None,
                  max_checkpoints=None,
                  keep_checkpoint_every_n_hours=10000.0, random_seed=None,
-                 session=None, best_val_accuracy=0.0):
+                 session=None, best_val_accuracy=0.0, global_step=None):
 
         self.graph = tf.get_default_graph()
         if graph:
@@ -87,8 +87,12 @@ class Trainer(object):
             self.validate_trainop_names()
 
             self.global_loss = None
-            self.global_step = tf.Variable(0., name='Global_Step',
-                                           trainable=False)
+            if global_step:
+                self.global_step = global_step
+            else:
+                self.global_step = tf.Variable(0., name='Global_Step',
+                                               trainable=False)
+            self.global_step = global_step
             self.incr_global_step = tf.assign(self.global_step,
                                               tf.add(self.global_step, 1))
             self.best_val_accuracy = best_val_accuracy
