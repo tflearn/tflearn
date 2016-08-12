@@ -226,7 +226,7 @@ class DNN(object):
         #with self.graph.as_default():
         self.trainer.save(model_file)
 
-    def load(self, model_file, weights_only=False):
+    def load(self, model_file, weights_only=False, **optargs):
         """ Load.
 
         Restore model weights.
@@ -237,8 +237,12 @@ class DNN(object):
                 and not intermediate variable, such as step counter, moving
                 averages...). Note that if you are using batch normalization,
                 averages will not be restored as well.
+            optargs: optional extra arguments for trainer.restore (see helpers/trainer.py)
+                     These optional arguments may be used to limit the scope of
+                     variables restored, and to control whether a new session is 
+                     created for the restored variables.
         """
-        self.trainer.restore(model_file, weights_only)
+        self.trainer.restore(model_file, weights_only, **optargs)
         self.session = self.trainer.session
         self.predictor = Evaluator([self.net],
                                    session=self.session,

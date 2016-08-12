@@ -28,6 +28,13 @@ class TestModels(unittest.TestCase):
             m.save("test_dnn.tflearn")
             self.assertTrue(os.path.exists("test_dnn.tflearn"))
 
+        with tf.Graph().as_default():
+            input = tflearn.input_data(shape=[None])
+            linear = tflearn.single_unit(input)
+            regression = tflearn.regression(linear, optimizer='sgd', loss='mean_square',
+                                            metric='R2', learning_rate=0.01)
+            m = tflearn.DNN(regression)
+
             # Testing load method
             m.load("test_dnn.tflearn")
             res = m.predict([3.2])[0]
