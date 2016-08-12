@@ -11,8 +11,8 @@ import numpy
 SOURCE_URL = 'http://yann.lecun.com/exdb/mnist/'
 
 
-def load_data(one_hot=False):
-    mnist = read_data_sets("mnist/", one_hot=one_hot)
+def load_data(data_dir="mnist/", one_hot=False):
+    mnist = read_data_sets(data_dir, one_hot=one_hot)
     return mnist.train.images, mnist.train.labels, mnist.test.images, mnist.test.labels
 
 
