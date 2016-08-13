@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""" AlexNet.
+""" GoogLeNet.
 Applying 'GoogLeNet' to Oxford's 17 Category Flower Dataset classification task.
 References:
     - Szegedy, Christian, et al.
