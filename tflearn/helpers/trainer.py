@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 
+import re
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.training import optimizer as tf_optimizer
@@ -139,6 +140,8 @@ class Trainer(object):
                 max_to_keep=max_checkpoints,
                 keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours)
 
+            self.to_restore = to_restore
+            self.to_restore_trainvars = to_restore_trainvars
             self.checkpoint_path = checkpoint_path
 
             if not self.restored:
@@ -390,7 +393,8 @@ class Trainer(object):
         for t in l3_tags:
             tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, t)
 
-    def restore(self, model_file, trainable_variable_only=False):
+    def restore(self, model_file, trainable_variable_only=False, variable_name_map=None, scope_for_restore=None,
+                create_new_session=True, verbose=False):
         """ restore.
 
         Restore a Tensorflow model
@@ -398,12 +402,57 @@ class Trainer(object):
         Arguments:
             model_file: path of tensorflow model to restore
             trainable_variable_only: If True, only restore trainable variables.
-
+            variable_name_map: - a (pattern, repl) tuple providing a regular expression pattern
+                                 and replacement, which is applied to variable names, before
+                                 restoration from the model file
+                               - OR, a function map_func, used to perform the mapping, called as:
+                                 name_in_file = map_func(existing_var_op_name)
+                                 The function may return None to indicate a variable is not to be
+                                 restored.
+            scope_for_restore: string specifying the scope to limit to, when restoring variables.
+                               Also removes the scope name prefix from the var name to use when restoring.
+            create_new_session: Set to False if the current session is to be kept.  
+                                Set to True (the default) to create a new session, and re-init all variables.
+            verbose           : Set to True to see a printout of what variables are being restored,
+                                when using scope_for_restore or variable_name_map
+        
         """
-        self.close_session()
-        self.session = tf.Session()
-        self.session.run(tf.initialize_all_variables())
-        if not trainable_variable_only:
+        if create_new_session:
+            self.close_session()
+            self.session = tf.Session()
+            self.session.run(tf.initialize_all_variables())
+
+        if scope_for_restore is not None:	# allow variables to be restored into a different scope
+            sname = scope_for_restore
+            def vn_map_func(existing_name):		# variable name map function which removes the scope name, e.g.
+                if not existing_name.startswith(sname):  # so that "scope_name/var_name/... is retrieved from var_name/...
+                    return None			# and variables outside of scope_name are not restored
+                name_in_file = re.sub("^%s/" % sname, "", existing_name)
+                if verbose:
+                    print ("[%s] Restoring %s <- %s" % (sname, existing_name, name_in_file))
+                return name_in_file
+            variable_name_map = vn_map_func
+
+        if variable_name_map is not None:	# general-purpose remapping of variable names (name in file vs existing name)
+            if type(variable_name_map)==tuple:	# tuple interpreted as regular expression pattern substitution
+                (pattern, repl) = variable_name_map
+                def vn_map_func(existing_name):
+                    name_in_file = re.sub(pattern, repl, existing_name)
+                    if verbose:
+                        print ("Restoring %s <- %s" % (existing_name, name_in_file))
+                    return name_in_file
+            else:
+                vn_map_func = variable_name_map	# allow arbitrary user-provided mapping function
+            if trainable_variable_only:		# restore either trainingable variables only, or all variables
+                to_restore = self.to_restore_trainvars
+            else:
+                to_restore = self.to_restore
+            renamed_to_restore = {vn_map_func(v.op.name): v for v in to_restore}
+            if None in renamed_to_restore:
+                renamed_to_restore.pop(None)
+            restorer = tf.train.Saver(var_list=renamed_to_restore)
+            restorer.restore(self.session, model_file)
+        elif not trainable_variable_only:
             self.restorer.restore(self.session, model_file)
         else:
             self.restorer_trainvars.restore(self.session, model_file)
