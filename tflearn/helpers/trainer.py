@@ -419,7 +419,11 @@ class Trainer(object):
         """
         if create_new_session:
             self.close_session()
-            self.session = tf.Session()
+            config = None
+            tflearn_conf = tf.get_collection(tf.GraphKeys.GRAPH_CONFIG)
+            if tflearn_conf:
+                config = tflearn_conf[0]
+            self.session = tf.Session(config=config)
             self.session.run(tf.initialize_all_variables())
 
         if scope_for_restore is not None:	# allow variables to be restored into a different scope
