@@ -88,7 +88,7 @@ class DNN(object):
     def fit(self, X_inputs, Y_targets, n_epoch=10, validation_set=None,
             show_metric=False, batch_size=None, shuffle=None,
             snapshot_epoch=True, snapshot_step=None, excl_trainops=None,
-            run_id=None):
+            run_id=None, callbacks=[]):
         """ Fit.
 
         Train model, feeding X_inputs and Y_targets to the network.
@@ -137,6 +137,8 @@ class DNN(object):
                 exclude from training process (TrainOps can be retrieve
                 through `tf.get_collection_ref(tf.GraphKeys.TRAIN_OPS)`).
             run_id: `str`. Give a name for this run. (Useful for Tensorboard).
+            callbacks: `Callback` or `list`. Custom callbacks to use in the
+                training life cycle
 
         """
         if len(self.train_ops) == 0:
@@ -196,7 +198,8 @@ class DNN(object):
                          dprep_dict=dprep_dict,
                          daug_dict=daug_dict,
                          excl_trainops=excl_trainops,
-                         run_id=run_id)
+                         run_id=run_id,
+                         callbacks=callbacks)
 
     def predict(self, X):
         """ Predict.

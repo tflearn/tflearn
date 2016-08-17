@@ -7,7 +7,7 @@ import tensorflow as tf
 from tensorflow.python.training import optimizer as tf_optimizer
 
 import tflearn
-from .. import callbacks
+from .. import callbacks as tf_callbacks
 from ..config import init_training_mode
 from ..utils import to_list, id_generator, check_dir_name, standarize_dict, \
     get_dict_first_element, make_batches, slice_array, check_scope_path, \
@@ -149,7 +149,7 @@ class Trainer(object):
 
     def fit(self, feed_dicts, n_epoch=10, val_feed_dicts=None, show_metric=False,
             snapshot_step=None, snapshot_epoch=True, shuffle_all=None,
-            dprep_dict=None, daug_dict=None, excl_trainops=None, run_id=None):
+            dprep_dict=None, daug_dict=None, excl_trainops=None, run_id=None, callbacks=[]):
         """ fit.
 
         Train network with feeded data dicts.
@@ -200,7 +200,8 @@ class Trainer(object):
                 exclude from training process.
             run_id: `str`. A name for the current run. Used for Tensorboard
                 display. If no name provided, a random one will be generated.
-
+            callbacks: `Callback` or `list`. Custom callbacks to use in the
+                training life cycle
         """
 
         if not run_id:
@@ -236,8 +237,8 @@ class Trainer(object):
                 [standarize_dict(d) for d in val_feed_dicts if not
                  isinstance(d, float)]
 
-            termlogger = callbacks.TermLogger()
-            modelsaver = callbacks.ModelSaver(self.save,
+            termlogger = tf_callbacks.TermLogger()
+            modelsaver = tf_callbacks.ModelSaver(self.save,
                                               self.checkpoint_path,
                                               self.best_checkpoint_path,
                                               self.best_val_accuracy,
@@ -265,18 +266,23 @@ class Trainer(object):
 
             max_batches_len = np.max([t.n_batches for t in self.train_ops])
 
-            termlogger.on_train_begin(self.training_state)
-            modelsaver.on_train_begin(self.training_state)
+            caller = tf_callbacks.ChainCallback(callbacks=[termlogger, modelsaver])
 
+            callbacks = to_list(callbacks)
+
+            if callbacks:
+                [caller.add(cb) for cb in callbacks]
+
+            caller.on_train_begin(self.training_state)
             train_ops_count = len(self.train_ops)
+            snapshot = snapshot_epoch
 
             try:
                 for epoch in range(n_epoch):
 
                     self.training_state.increaseEpoch()
 
-                    termlogger.on_epoch_begin(self.training_state)
-                    modelsaver.on_epoch_begin(self.training_state)
+                    caller.on_epoch_begin(self.training_state)
 
                     # Global epoch are defined as loop over all data (whatever
                     # which data input), so one epoch loop in a multi-inputs
@@ -286,13 +292,11 @@ class Trainer(object):
                         self.training_state.increaseStep()
                         self.training_state.resetGlobal()
 
-                        termlogger.on_batch_begin(self.training_state)
-                        modelsaver.on_batch_begin(self.training_state)
+                        caller.on_batch_begin(self.training_state)
 
                         for i, train_op in enumerate(self.train_ops):
 
-                            termlogger.on_sub_batch_begin(self.training_state)
-                            modelsaver.on_sub_batch_begin(self.training_state)
+                            caller.on_sub_batch_begin(self.training_state)
 
                             snapshot = train_op._train(self.training_state.step,
                                                        (bool(self.best_checkpoint_path) | snapshot_epoch),
@@ -303,21 +307,17 @@ class Trainer(object):
                             self.training_state.update(train_op, train_ops_count)
 
                             # Optimizer batch end
-                            termlogger.on_sub_batch_end(self.training_state, i)
-                            modelsaver.on_sub_batch_end(self.training_state, i)
+                            caller.on_sub_batch_end(self.training_state, i)
 
                         # All optimizers batch end
                         self.session.run(self.incr_global_step)
-                        termlogger.on_batch_end(self.training_state, snapshot)
-                        modelsaver.on_batch_end(self.training_state, snapshot)
+                        caller.on_batch_end(self.training_state, snapshot)
 
                     # Epoch end
-                    termlogger.on_epoch_end(self.training_state)
-                    modelsaver.on_epoch_end(self.training_state)
+                    caller.on_epoch_end(self.training_state)
 
             finally:
-                termlogger.on_train_end(self.training_state)
-                modelsaver.on_train_end(self.training_state)
+                caller.on_train_end(self.training_state)
                 for t in self.train_ops:
                     t.train_dflow.interrupt()
                 # Set back train_ops
