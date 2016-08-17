@@ -82,12 +82,11 @@ class Trainer(object):
                 tf.set_random_seed(random_seed)
             self.restored = False
             self.tensorboard_dir = check_dir_name(tensorboard_dir)
-            self.training_step = 0
+            self.training_state = TrainingState()
 
             self.train_ops = to_list(train_ops)
             self.validate_trainop_names()
 
-            self.global_loss = None
             self.global_step = tf.Variable(0., name='Global_Step',
                                            trainable=False)
             self.incr_global_step = tf.assign(self.global_step,
@@ -237,9 +236,8 @@ class Trainer(object):
                 [standarize_dict(d) for d in val_feed_dicts if not
                  isinstance(d, float)]
 
-            termlogger = callbacks.TermLogger(self.training_step)
+            termlogger = callbacks.TermLogger()
             modelsaver = callbacks.ModelSaver(self.save,
-                                              self.training_step,
                                               self.checkpoint_path,
                                               self.best_checkpoint_path,
                                               self.best_val_accuracy,
@@ -267,67 +265,59 @@ class Trainer(object):
 
             max_batches_len = np.max([t.n_batches for t in self.train_ops])
 
-            termlogger.on_train_begin()
-            modelsaver.on_epoch_begin()
+            termlogger.on_train_begin(self.training_state)
+            modelsaver.on_train_begin(self.training_state)
+
+            train_ops_count = len(self.train_ops)
 
             try:
                 for epoch in range(n_epoch):
 
-                    termlogger.on_epoch_begin()
-                    modelsaver.on_epoch_begin()
+                    self.training_state.increaseEpoch()
+
+                    termlogger.on_epoch_begin(self.training_state)
+                    modelsaver.on_epoch_begin(self.training_state)
 
                     # Global epoch are defined as loop over all data (whatever
                     # which data input), so one epoch loop in a multi-inputs
                     # model is equal to max(data_input) size.
                     for batch_step in range(max_batches_len):
 
-                        self.training_step += 1
-                        termlogger.on_batch_begin()
-                        modelsaver.on_batch_begin()
+                        self.training_state.increaseStep()
+                        self.training_state.resetGlobal()
 
-                        global_loss, global_acc = 0., 0.
+                        termlogger.on_batch_begin(self.training_state)
+                        modelsaver.on_batch_begin(self.training_state)
 
                         for i, train_op in enumerate(self.train_ops):
 
-                            termlogger.on_sub_epoch_begin()
-                            modelsaver.on_sub_batch_begin()
+                            termlogger.on_sub_batch_begin(self.training_state)
+                            modelsaver.on_sub_batch_begin(self.training_state)
 
-                            snapshot = train_op._train(self.training_step,
+                            snapshot = train_op._train(self.training_state.step,
                                                        (bool(self.best_checkpoint_path) | snapshot_epoch),
                                                        snapshot_step,
                                                        show_metric)
-                            global_loss += train_op.loss_value
-                            if train_op.acc_value and global_acc:
-                                global_acc += train_op.acc_value / len(
-                                    self.train_ops)
-                            else:
-                                global_acc = None
 
-                            data_status = train_op.train_dflow.data_status
+                            # Update training state
+                            self.training_state.update(train_op, train_ops_count)
+
                             # Optimizer batch end
-                            termlogger.on_sub_batch_end(i, data_status.epoch,
-                                                        data_status.current_iter,
-                                                        train_op.loss_value,
-                                                        train_op.acc_value,
-                                                        train_op.val_loss,
-                                                        train_op.val_acc)
-                            modelsaver.on_sub_batch_end()
+                            termlogger.on_sub_batch_end(self.training_state, i)
+                            modelsaver.on_sub_batch_end(self.training_state, i)
 
                         # All optimizers batch end
                         self.session.run(self.incr_global_step)
-                        termlogger.on_batch_end(global_loss, global_acc,
-                                                snapshot)
-                        modelsaver.on_batch_end(snapshot, self.best_checkpoint_path, train_op.val_acc)
-                        if self.best_checkpoint_path:
-                            self.best_val_accuracy = modelsaver.best_val_accuracy
+                        termlogger.on_batch_end(self.training_state, snapshot)
+                        modelsaver.on_batch_end(self.training_state, snapshot)
 
                     # Epoch end
-                    termlogger.on_epoch_end()
-                    modelsaver.on_epoch_end()
+                    termlogger.on_epoch_end(self.training_state)
+                    modelsaver.on_epoch_end(self.training_state)
 
             finally:
-                termlogger.on_train_end()
-                modelsaver.on_train_end()
+                termlogger.on_train_end(self.training_state)
+                modelsaver.on_train_end(self.training_state)
                 for t in self.train_ops:
                     t.train_dflow.interrupt()
                 # Set back train_ops
@@ -340,7 +330,7 @@ class Trainer(object):
 
         Arguments:
             model_file: `str`. Saving path of tensorflow model
-            global_step: `float`. The training step to append to the
+            global_step: `int`. The training step to append to the
                 model file name (optional).
 
         """
@@ -463,7 +453,9 @@ class Trainer(object):
         for o in self.train_ops:
             o.session = self.session
         self.restored = True
-        self.training_step = int(self.global_step.eval(self.session))
+
+        # Restore the training step
+        self.training_state.step = int(self.global_step.eval(self.session))
 
     def close_session(self):
         """ Close session """
@@ -954,3 +946,53 @@ def evaluate(session, op_to_evaluate, feed_dict, batch_size):
                     feed_batch[key] = feed_dict[key]
             avg += session.run(op_to_evaluate, feed_batch) / len(batches)
         return avg
+
+class TrainingState(object):
+
+    def __init__(self):
+        self.epoch = 0
+        self.step = 0
+        self.current_iter = 0
+
+        self.acc_value = None
+        self.loss_value = None
+
+        self.val_acc = None
+        self.val_loss = None
+
+        self.best_accuracy = 0.0
+
+        self.global_acc = 0.0
+        self.global_loss = 0.0
+
+    def update(self, train_op, train_ops_count = 1):
+
+        data_status = train_op.train_dflow.data_status
+
+        self.acc_value = train_op.acc_value
+        self.loss_value = train_op.loss_value
+        self.val_acc = train_op.val_acc
+        self.val_loss = train_op.val_loss
+        self.current_iter = data_status.current_iter
+
+        # Update best validation accuracy
+        if self.val_acc is not None and self.val_acc > self.best_accuracy:
+            self.best_accuracy = self.val_acc
+
+        # Update global values
+        self.global_loss += self.loss_value
+
+        if self.acc_value and self.global_acc:
+            self.global_acc += self.acc_value / train_ops_count
+        else:
+            self.global_acc = None
+
+    def increaseEpoch(self):
+        self.epoch += 1
+
+    def increaseStep(self):
+        self.step += 1
+
+    def resetGlobal(self):
+        self.global_acc = 0.0
+        self.global_loss = 0.0
