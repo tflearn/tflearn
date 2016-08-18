@@ -235,12 +235,12 @@ class TermLogger(Callback):
 
 class ModelSaver(Callback):
     def __init__(self, save_func, snapshot_path, best_snapshot_path,
-                 snapshot_step, snapshot_epoch, best_val_accuracy=0.0):
+                 best_val_accuracy, snapshot_step, snapshot_epoch):
         self.save_func = save_func
         self.snapshot_path = snapshot_path
         self.snapshot_epoch = snapshot_epoch
-        self.best_snapshot_path = best_snapshot_path,
-        self.best_val_accuracy = best_val_accuracy,
+        self.best_snapshot_path = best_snapshot_path
+        self.best_val_accuracy = best_val_accuracy
         self.snapshot_step = snapshot_step
 
     def on_epoch_begin(self, training_state):
