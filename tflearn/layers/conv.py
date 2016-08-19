@@ -878,6 +878,32 @@ def avg_pool_3d(incoming, kernel_size, strides=None, padding='same',
     return inference
 
 
+def global_max_pool(incoming, name="GlobalMaxPool"):
+    """ Global Max Pooling.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        2-D Tensor [batch, pooled dim]
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Tensor.
+        name: A name for this layer (optional). Default: 'GlobalMaxPool'.
+
+    """
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+
+    with tf.name_scope(name):
+        inference = tf.reduce_max(incoming, [1, 2])
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
+    return inference
+
+
 def global_avg_pool(incoming, name="GlobalAvgPool"):
     """ Global Average Pooling.
 
