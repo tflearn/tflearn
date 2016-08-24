@@ -18,7 +18,7 @@ m.fit(X, Y, n_epoch=1000, show_metric=True, snapshot_epoch=False)
 
 print("\nRegression result:")
 print("Y = " + str(m.get_weights(linear.W)) +
-      ".X + " + str(m.get_weights(linear.b)))
+      ". X = " + str(m.get_weights(linear.b)))
 
-print("\nTest prediction for y = 3.2 and y = 4.5:")
+print("\nTest prediction for x = 3.2 and y = 4.5:")
 print(m.predict([3.2, 4.5]))
