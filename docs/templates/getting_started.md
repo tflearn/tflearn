@@ -229,11 +229,11 @@ network = input_data(shape=[None, 32, 32, 3],
                      data_augmentation=img_aug)
 ```
 
-For more details, see [Data Preprocessing](http://tflearn.org/data_preprocessing) and [Data Augmentation](http://tflearn.org/data_augmentation)
+For more details, see [Data Preprocessing](http://tflearn.org/data_preprocessing) and [Data Augmentation](http://tflearn.org/data_augmentation).
 
 ### Scopes & Weights sharing
 
-All layers are built over 'variable_op_scope', that make it easy to share variables among multiple layers and make TFLearn suitable for distributed training. All layers with inner variables support a 'scope' argument to place variables under; layers with same scope name will then share the same weights.
+All layers are built over 'variable_op_scope', that makes it easy to share variables among multiple layers and make TFLearn suitable for distributed training. All layers with inner variables support a 'scope' argument to place variables under; layers with same scope name will then share the same weights.
 
 ```python
 # Define a model builder
@@ -242,14 +242,14 @@ def my_model(x):
     x = tflearn.fully_connected(x, 32, scope='fc2')
     x = tflearn.fully_connected(x, 2, scope='out')
 
-# 2 different computation graph but sharing the same weights
-with tf.device('/gpu:0')
+# 2 different computation graphs but sharing the same weights
+with tf.device('/gpu:0'):
     # Force all Variables to reside on the CPU.
     with tf.arg_ops([tflearn.variables.variable], device='/cpu:0'):
         model1 = my_model(placeholder_X)
 # Reuse Variables for the next model
 tf.get_variable_scope().reuse_variables()
-with tf.device('/gpu:1')
+with tf.device('/gpu:1'):
     with tf.arg_ops([tflearn.variables.variable], device='/cpu:0'):
         model2 = my_model(placeholder_X)
 
@@ -259,7 +259,7 @@ with tf.device('/gpu:1')
 
 ### Graph Initialization
 
-It might be useful to limit resources, or assigns more or less GPU RAM memory while training. To do so, a graph initializer can be used to configure a graph before run:
+It might be useful to limit resources, or assign more or less GPU RAM memory while training. To do so, a graph initializer can be used to configure a graph before run:
 
 ```python
 tflearn.init_graph(set_seed=8888, num_cores=16, gpu_memory_fraction=0.5)
@@ -293,7 +293,7 @@ net = tf.nn.max_pool(net, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAM
 
 ### Built-in Operations
 
-TFLearn built-in ops makes Tensorflow graphs writing faster and more readable. So, similar to layers, built-in ops are fully compatible with any TensorFlow expression. The following code example shows how to use them along with pure Tensorflow API.
+TFLearn built-in ops make Tensorflow graphs writing faster and more readable. So, similar to layers, built-in ops are fully compatible with any TensorFlow expression. The following code example shows how to use them along with pure Tensorflow API.
 
 - See: [builtin_ops.py](https://github.com/tflearn/tflearn/blob/master/examples/extending_tensorflow/builtin_ops.py).
 
@@ -376,7 +376,7 @@ tflearn.is_training(False)
 
 TFLearn defines a set of functions for users to quickly define variables.
 
-While in Tensorflow, variable creation requires predefined value or initializer, as well as an explicit device placement, TFLearn simplify variable definition:
+While in Tensorflow, variable creation requires predefined value or initializer, as well as an explicit device placement, TFLearn simplifies variable definition:
 
 ```python
 import tflearn.variables as vs
