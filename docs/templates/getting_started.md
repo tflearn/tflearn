@@ -13,7 +13,7 @@ Layers are a core feature of TFLearn. While completely defining a model using Te
 - Create and initialize weights and biases variables
 - Apply convolution over incoming tensor
 - Add an activation function after the convolution
-- etc...
+- Etc...
 
 In Tensorflow, writing these kinds of operations can be quite tedious:
 
@@ -45,7 +45,7 @@ File | Layers
 
 ### Built-in Operations
 
-Besides layers concept, TFLearn also provides many different ops to be used when building a neural network. These ops are firstly mean to be be part of the above 'layers' arguments, but they can also be used independently in any other Tensorflow graph for convenience. In practice, just providing the op name as argument is enough (such as activation='relu' or regularizer='L2' for conv_2d), but a function can also be provided for further customization.
+Besides layers concept, TFLearn also provides many different ops to be used when building a neural network. These ops are firstly mean to be part of the above 'layers' arguments, but they can also be used independently in any other Tensorflow graph for convenience. In practice, just providing the op name as argument is enough (such as activation='relu' or regularizer='L2' for conv_2d), but a function can also be provided for further customization.
 
 File | Ops
 -----|----
@@ -233,7 +233,7 @@ For more details, see [Data Preprocessing](http://tflearn.org/data_preprocessing
 
 ### Scopes & Weights sharing
 
-All layers are built over 'variable_op_scope', that make it easy to share variables among multiple layers and make TFLearn suitable for distributed training. All layers with inner  variables support a 'scope' argument to place variables under; layers with same scope name will then share the same weights.
+All layers are built over 'variable_op_scope', that make it easy to share variables among multiple layers and make TFLearn suitable for distributed training. All layers with inner variables support a 'scope' argument to place variables under; layers with same scope name will then share the same weights.
 
 ```python
 # Define a model builder
@@ -321,7 +321,7 @@ TFLearn implements a `TrainOp` class to represent an optimization process (i.e. 
 trainop = TrainOp(net=my_network, loss=loss, metric=accuracy)
 ```
 
-Then, all TrainOp can be feeded into a `Trainer` class, that will handle the whole training process, considering all TrainOp together as a whole model.
+Then, all TrainOp can be fed into a `Trainer` class, that will handle the whole training process, considering all TrainOp together as a whole model.
 
 ```python
 model = Trainer(trainops=trainop, tensorboard_dir='/tmp/tflearn')
