@@ -37,9 +37,20 @@ class TestValidationMonitors(unittest.TestCase):
         network = dropout(network, 0.8)
         network = fully_connected(network, 256, activation='tanh')
         network = dropout(network, 0.8)
+
+        # construct two varaibles to add as additional "valiation monitors"
+        # these varaibles are evaluated each time validation happens (eg at a snapshot)
+        # and the results are summarized and output to the tensorboard events file,
+        # together with the accuracy and loss plots.
+        #
+        # Here, we generate a dummy variable given by the sum over the current
+        # network tensor, and a constant variable.  In practice, the validation
+        # monitor may present useful information, like confusion matrix
+        # entries, or an AUC metric.
         with tf.name_scope('CustomMonitor'):
             test_var = tf.reduce_sum(tf.cast(network, tf.float32), name="test_var")
             test_const = tf.constant(32.0, name="custom_constant")
+
         print ("network=%s, test_var=%s" % (network, test_var))
         network = fully_connected(network, 10, activation='softmax')
         network = regression(network, optimizer='adam', learning_rate=0.01,
@@ -54,7 +65,7 @@ class TestValidationMonitors(unittest.TestCase):
         # check for validation monitor variables
         ats = tf.get_collection("Adam_testing_summaries")
         print ("ats=%s" % ats)
-        self.assertTrue(len(ats)==4)	# [loss, test_var, test_const, accuracy]
+        self.assertTrue(len(ats)==4)	# should be four variables being summarized: [loss, test_var, test_const, accuracy]
         
         session = model.session
         print ("session=%s" % session)
@@ -67,7 +78,7 @@ class TestValidationMonitors(unittest.TestCase):
             ats_var_val = tflearn.variables.get_value(vmtset[0])
             ats_const_val = tflearn.variables.get_value(vmtset[1])
         print ("summary values: var=%s, const=%s" % (ats_var_val, ats_const_val))
-        self.assertTrue(ats_const_val==32)
+        self.assertTrue(ats_const_val==32)	# test to make sure the constant made it through
 
         # TBD: parse the recorded tensorboard events and ensure the validation monitor variables show up there
 
