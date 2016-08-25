@@ -17,7 +17,7 @@ from tflearn.layers.estimator import regression
 X, Y = your_dataset()
 num_classes = 10
 
-# Redeinition of convnet_cifar10 network
+# Redefinition of convnet_cifar10 network
 network = input_data(shape=[None, 32, 32, 3])
 network = conv_2d(network, 32, 3, activation='relu')
 network = max_pool_2d(network, 2)

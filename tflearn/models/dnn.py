@@ -88,7 +88,7 @@ class DNN(object):
     def fit(self, X_inputs, Y_targets, n_epoch=10, validation_set=None,
             show_metric=False, batch_size=None, shuffle=None,
             snapshot_epoch=True, snapshot_step=None, excl_trainops=None,
-            run_id=None):
+            run_id=None, callbacks=[]):
         """ Fit.
 
         Train model, feeding X_inputs and Y_targets to the network.
@@ -137,6 +137,8 @@ class DNN(object):
                 exclude from training process (TrainOps can be retrieve
                 through `tf.get_collection_ref(tf.GraphKeys.TRAIN_OPS)`).
             run_id: `str`. Give a name for this run. (Useful for Tensorboard).
+            callbacks: `Callback` or `list`. Custom callbacks to use in the
+                training life cycle
 
         """
         if len(self.train_ops) == 0:
@@ -196,7 +198,8 @@ class DNN(object):
                          dprep_dict=dprep_dict,
                          daug_dict=daug_dict,
                          excl_trainops=excl_trainops,
-                         run_id=run_id)
+                         run_id=run_id,
+                         callbacks=callbacks)
 
     def predict(self, X):
         """ Predict.
@@ -226,7 +229,7 @@ class DNN(object):
         #with self.graph.as_default():
         self.trainer.save(model_file)
 
-    def load(self, model_file, weights_only=False):
+    def load(self, model_file, weights_only=False, **optargs):
         """ Load.
 
         Restore model weights.
@@ -237,8 +240,12 @@ class DNN(object):
                 and not intermediate variable, such as step counter, moving
                 averages...). Note that if you are using batch normalization,
                 averages will not be restored as well.
+            optargs: optional extra arguments for trainer.restore (see helpers/trainer.py)
+                     These optional arguments may be used to limit the scope of
+                     variables restored, and to control whether a new session is 
+                     created for the restored variables.
         """
-        self.trainer.restore(model_file, weights_only)
+        self.trainer.restore(model_file, weights_only, **optargs)
         self.session = self.trainer.session
         self.predictor = Evaluator([self.net],
                                    session=self.session,

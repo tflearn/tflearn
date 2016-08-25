@@ -16,12 +16,15 @@ import pickle
 from ..data_utils import to_categorical
 
 
-def load_data(dirname="cifar-10-batches-py", one_hot=False):
+def load_data(dirname="./cifar-10-batches-py", one_hot=False):
     tarpath = maybe_download("cifar-10-python.tar.gz",
                              "http://www.cs.toronto.edu/~kriz/",
                              dirname)
     X_train = []
     Y_train = []
+
+    if dirname != './cifar-10-batches-py':
+        dirname = os.path.join(dirname, 'cifar-10-batches-py')
 
     for i in range(1, 6):
         fpath = os.path.join(dirname, 'data_batch_' + str(i))
@@ -92,7 +95,7 @@ def reporthook(blocknum, blocksize, totalsize):
 def untar(fname):
     if (fname.endswith("tar.gz")):
         tar = tarfile.open(fname)
-        tar.extractall()
+        tar.extractall(path = '/'.join(fname.split('/')[:-1]))
         tar.close()
         print("File Extracted in Current Directory")
     else:

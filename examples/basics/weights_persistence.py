@@ -65,7 +65,7 @@ print("Dense1 layer biases:")
 with model.session.as_default():
     print(tflearn.variables.get_value(dense1_vars[1]))
 
-# It is also possible to retrieve a layer weights throught its attributes `W`
+# It is also possible to retrieve a layer weights through its attributes `W`
 # and `b` (if available).
 # Get variable's value, using model `get_weights` method:
 print("Dense2 layer weights:")

@@ -240,16 +240,20 @@ class SequenceGenerator(object):
         """
         self.trainer.save(model_file)
 
-    def load(self, model_file):
+    def load(self, model_file, **optargs):
         """ Load.
 
         Restore model weights.
 
         Arguments:
             model_file: `str`. Model path.
+            optargs: optional extra arguments for trainer.restore (see helpers/trainer.py)
+                     These optional arguments may be used to limit the scope of
+                     variables restored, and to control whether a new session is 
+                     created for the restored variables.
 
         """
-        self.trainer.restore(model_file)
+        self.trainer.restore(model_file, **optargs)
         self.session = self.trainer.session
         self.predictor = Evaluator([self.net],
                                    session=self.session,

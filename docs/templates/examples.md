@@ -27,6 +27,7 @@
 - [Highway Convolutional Network](https://github.com/tflearn/tflearn/blob/master/examples/images/convnet_highway_mnist.py). Highway Convolutional Network implementation for classifying MNIST dataset.
 - [Residual Network (MNIST)](https://github.com/tflearn/tflearn/blob/master/examples/images/residual_network_mnist.py). A bottleneck residual network applied to MNIST classification task.
 - [Residual Network (CIFAR-10)](https://github.com/tflearn/tflearn/blob/master/examples/images/residual_network_cifar10.py). A residual network applied to CIFAR-10 classification task.
+- [Google Inception (v3)](https://github.com/tflearn/tflearn/blob/master/examples/images/googlenet.py). Google's Inception v3 network applied to Oxford Flowers 17 classification task.
 - [Auto Encoder](https://github.com/tflearn/tflearn/blob/master/examples/images/autoencoder.py). An auto encoder applied to MNIST handwritten digits.
 
 ## Natural Language Processing
@@ -35,7 +36,8 @@
 - [Dynamic RNN (LSTM)](https://github.com/tflearn/tflearn/blob/master/examples/nlp/dynamic_lstm.py). Apply a dynamic LSTM to classify variable length text from IMDB dataset.
 - [City Name Generation](https://github.com/tflearn/tflearn/blob/master/examples/nlp/lstm_generator_cityname.py). Generates new US-cities name, using LSTM network.
 - [Shakespeare Scripts Generation](https://github.com/tflearn/tflearn/blob/master/examples/nlp/lstm_generator_shakespeare.py). Generates new Shakespeare scripts, using LSTM network.
-- [Seq2seq](https://github.com/tflearn/tflearn/blob/master/examples/nlp/seq2seq_example.py). Pedagogical example of seq2seq reccurent network. See [this repo](https://github.com/ichuang/tflearn_seq2seq) for full instructions.
+- [Seq2seq](https://github.com/tflearn/tflearn/blob/master/examples/nlp/seq2seq_example.py). Pedagogical example of seq2seq recurrent network. See [this repo](https://github.com/ichuang/tflearn_seq2seq) for full instructions.
+- [CNN Seq](https://github.com/tflearn/tflearn/blob/master/examples/nlp/cnn_sequence_classification.py). Apply a 1-D convolutional network to classify sequence of words from IMDB sentiment dataset.
 
 ## Reinforcement Learning
 - [Atari Pacman 1-step Q-Learning](https://github.com/tflearn/tflearn/blob/master/examples/reinforcement_learning/atari_1step_qlearning.py). Teach a machine to play Atari games (Pacman by default) using 1-step Q-learning.
