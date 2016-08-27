@@ -96,7 +96,8 @@ def regression(incoming, placeholder=None, optimizer='adam',
             p_shape = [None] if to_one_hot else input_shape
             placeholder = tf.placeholder(shape=p_shape, dtype=dtype, name="Y")
 
-    tf.add_to_collection(tf.GraphKeys.TARGETS, placeholder)
+    if placeholder not in tf.get_collection(tf.GraphKeys.TARGETS):
+        tf.add_to_collection(tf.GraphKeys.TARGETS, placeholder)
 
     if to_one_hot:
         if n_classes is None:
