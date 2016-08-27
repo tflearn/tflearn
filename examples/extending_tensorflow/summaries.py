@@ -1,4 +1,5 @@
-"""This example introduces the use of TFLearn functions to easily summarize
+"""
+This example introduces the use of TFLearn functions to easily summarize
 variables into tensorboard.
 
 TFLearn can summarize:
