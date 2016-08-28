@@ -515,6 +515,9 @@ class TrainOp(object):
             used to periodically record a confusion matrix or AUC metric, 
             during training.  Each variable should have rank 1, i.e. 
             shape [None].
+        validation_batch_size: `int` or None. If `int`, specifies the batch
+            size to be used for the validation data feed; otherwise 
+            defaults to being th esame as `batch_size`.
         name: `str`. A name for this class (optional).
         graph: `tf.Graph`. Tensorflow Graph to use for training. Default:
             default tf graph.
@@ -523,7 +526,7 @@ class TrainOp(object):
 
     def __init__(self, loss, optimizer, metric=None, batch_size=64, ema=0.,
                  trainable_vars=None, shuffle=True, step_tensor=None,
-                 validation_monitors=None, name=None, graph=None):
+                 validation_monitors=None, validation_batch_size=None, name=None, graph=None):
         self.graph = tf.get_default_graph()
         if graph:
             self.graph = graph
@@ -550,6 +553,7 @@ class TrainOp(object):
         self.shuffle = shuffle
 
         self.batch_size = batch_size
+        self.validation_batch_size = validation_batch_size or batch_size
         self.n_batches = 0
 
         self.ema = ema
@@ -726,7 +730,7 @@ class TrainOp(object):
         # every time testing
         if val_feed_dict:
             self.test_dflow = data_flow.FeedDictFlow(val_feed_dict, coord,
-                                                     batch_size=self.batch_size,
+                                                     batch_size=self.validation_batch_size,
                                                      dprep_dict=dprep_dict,
                                                      daug_dict=None,
                                                      index_array=self.val_index_array,
