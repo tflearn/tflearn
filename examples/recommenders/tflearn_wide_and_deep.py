@@ -22,6 +22,7 @@ from __future__ import division, print_function
 
 import os
 import sys
+import argparse
 import tflearn
 import tempfile
 import urllib
@@ -47,12 +48,19 @@ CONTINUOUS_COLUMNS = ["age", "education_num", "capital_gain", "capital_loss",
 
 class TFLearnWideAndDeep(object):
     '''
-    seq2seq recurrent neural network, implemented using TFLearn.
+    Wide and deep model, implemented using TFLearn
     '''
     AVAILABLE_MODELS = ["wide", "deep", "wide+deep"]
     def __init__(self, model_type="wide+deep", verbose=None, name=None, tensorboard_verbose=3, 
-                 wide_learning_rate=0.001, deep_learning_rate=0.001):
+                 wide_learning_rate=0.001, deep_learning_rate=0.001, checkpoints_dir=None):
         '''
+        model_type = `str`: wide or deep or wide+deep
+        verbose = `bool`
+        name = `str` used for run_id (defaults to model_type)
+        tensorboard_verbose = `int`: logging level for tensorboard (0, 1, 2, or 3)
+        wide_learning_rate = `float`: defaults to 0.001
+        deep_learning_rate = `float`: defaults to 0.001
+        checkpoints_dir = `str`: where checkpoint files will be stored (defaults to "CHECKPOINTS")
         '''
         self.model_type = model_type or "wide+deep"
         assert self.model_type in self.AVAILABLE_MODELS
@@ -63,6 +71,10 @@ class TFLearnWideAndDeep(object):
         self.continuous_columns = CONTINUOUS_COLUMNS
         self.categorical_columns = CATEGORICAL_COLUMNS	# dict with category_name: category_size
         self.label_column = LABEL_COLUMN
+        self.checkpoints_dir = checkpoints_dir or "CHECKPOINTS"
+        if not os.path.exists(self.checkpoints_dir):
+            os.mkdir(self.checkpoints_dir)
+            print("Created checkpoints directory %s" % self.checkpoints_dir)
         self.build_model([wide_learning_rate, deep_learning_rate])
 
     def load_data(self, train_dfn="adult.data", test_dfn="adult.test"):
@@ -129,7 +141,9 @@ class TFLearnWideAndDeep(object):
         # add validation monitor summaries giving confusion matrix entries
         with tf.name_scope('Monitors'):
             predictions = tf.cast(tf.greater(network, 0), tf.int64)
+            print ("predictions=%s" % predictions)
             Ybool = tf.cast(Y_in, tf.bool)
+            print ("Ybool=%s" % Ybool)
             pos = tf.boolean_mask(predictions, Ybool)
             neg = tf.boolean_mask(predictions, ~Ybool)
             psize = tf.cast(tf.shape(pos)[0], tf.int64)
@@ -161,7 +175,7 @@ class TFLearnWideAndDeep(object):
                                optimizer='sgd', 
                                #loss='roc_auc_score',
                                loss='binary_crossentropy',
-                               metric="binary_accuracy",
+                               metric="accuracy",
                                learning_rate=learning_rate[0],
                                validation_monitors=vmset,
                                trainable_vars=tv_wide,
@@ -176,7 +190,7 @@ class TFLearnWideAndDeep(object):
                                optimizer='adam', 
                                #loss='roc_auc_score',
                                loss='binary_crossentropy',
-                               metric="binary_accuracy",
+                               metric="accuracy",
                                learning_rate=learning_rate[1],
                                validation_monitors=vmset if not 'wide' in self.model_type else None,
                                trainable_vars=tv_deep,
@@ -188,7 +202,7 @@ class TFLearnWideAndDeep(object):
                                placeholder=Y_in,
                                optimizer='adam', 
                                loss='binary_crossentropy',
-                               metric="binary_accuracy",
+                               metric="accuracy",
                                learning_rate=learning_rate[0],	# use wide learning rate
                                trainable_vars=[central_bias],
                                op_name="central_bias_regression",
@@ -197,7 +211,7 @@ class TFLearnWideAndDeep(object):
         self.model = tflearn.DNN(network,
                                  tensorboard_verbose=self.tensorboard_verbose,
                                  max_checkpoints=5,
-                                 checkpoint_path="CHECKPOINTS/%s.tfl" % self.name,
+                                 checkpoint_path="%s/%s.tfl" % (self.checkpoints_dir, self.name),
         )
 
         if self.verbose:
@@ -233,6 +247,7 @@ class TFLearnWideAndDeep(object):
         if self.verbose:
             print ("Deep model network before output %s" % network)
         network = tflearn.fully_connected(network, 1, activation="linear", name="deep_fc_output", bias=False)
+        network = tf.reshape(network, [-1, 1])	# so that accuracy is binary_accuracy
         if self.verbose:
             print ("Deep model network %s" % network)
         return network
@@ -245,7 +260,7 @@ class TFLearnWideAndDeep(object):
         # use fully_connected (instad of single_unit) because fc works properly with batches, whereas single_unit is 1D only
         network = tflearn.fully_connected(network, n_inputs, activation="linear", name="wide_linear", bias=False)	# x*W (no bias)
         network = tf.reduce_sum(network, 1, name="reduce_sum")	# batched sum, to produce logits
-        network = tf.reshape(network, [-1, 1])
+        network = tf.reshape(network, [-1, 1])	# so that accuracy is binary_accuracy
         if self.verbose:
             print ("Wide model network %s" % network)
         return network
@@ -328,7 +343,7 @@ class TFLearnWideAndDeep(object):
         probs =  1.0 / (1.0 + np.exp(-logits))
         y_pred = pd.Series((probs > 0.5).astype(np.int32))
         Y = pd.Series(self.testY_dict['Y'].astype(np.int32).reshape([-1]))
-        self.output_confusion_matrix(Y, y_pred)
+        self.confusion_matrix = self.output_confusion_matrix(Y, y_pred)
         print ("="*60)
 
     def output_confusion_matrix(self, y, y_pred):
@@ -339,38 +354,95 @@ class TFLearnWideAndDeep(object):
         print(y_pred.value_counts())
         print()
         print("Confusion matrix:")
-        print(pd.crosstab(y_pred, y, rownames=['predictions'], colnames=['actual']))
+        cmat = pd.crosstab(y_pred, y, rownames=['predictions'], colnames=['actual'])
+        print(cmat)
         sys.stdout.flush()
+        return cmat
     
 #-----------------------------------------------------------------------------
 
-def CommandLine():
+def CommandLine(args=None):
     '''
     Main command line.  Accepts args, to allow for simple unit testing.
     '''
     flags = tf.app.flags
     FLAGS = flags.FLAGS
+    if args:
+        FLAGS.__init__()
+        FLAGS.__dict__.update(args)
 
-    flags.DEFINE_string("model_type", "wide+deep","Valid model types: {'wide', 'deep', 'wide+deep'}.")
-    flags.DEFINE_string("run_name", None, "name for this run (defaults to model type)")
-    flags.DEFINE_string("load_weights", None, "filename with initial weights to load")
-    flags.DEFINE_integer("n_epoch", 200, "Number of training epoch steps")
-    flags.DEFINE_integer("snapshot_step", 100, "Step number when snapshot (and validation testing) is done")
-    flags.DEFINE_float("wide_learning_rate", 0.001, "learning rate for the wide part of the model")
-    flags.DEFINE_float("deep_learning_rate", 0.001, "learning rate for the deep part of the model")
-    flags.DEFINE_boolean("verbose", False, "Verbose output")
+    try:
+        flags.DEFINE_string("model_type", "wide+deep","Valid model types: {'wide', 'deep', 'wide+deep'}.")
+        flags.DEFINE_string("run_name", None, "name for this run (defaults to model type)")
+        flags.DEFINE_string("load_weights", None, "filename with initial weights to load")
+        flags.DEFINE_string("checkpoints_dir", None, "name of directory where checkpoints should be saved")
+        flags.DEFINE_integer("n_epoch", 200, "Number of training epoch steps")
+        flags.DEFINE_integer("snapshot_step", 100, "Step number when snapshot (and validation testing) is done")
+        flags.DEFINE_float("wide_learning_rate", 0.001, "learning rate for the wide part of the model")
+        flags.DEFINE_float("deep_learning_rate", 0.001, "learning rate for the deep part of the model")
+        flags.DEFINE_boolean("verbose", False, "Verbose output")
+    except argparse.ArgumentError:
+        pass	# so that CommandLine can be run more than once, for testing
 
     twad = TFLearnWideAndDeep(model_type=FLAGS.model_type, verbose=FLAGS.verbose, 
                               name=FLAGS.run_name, wide_learning_rate=FLAGS.wide_learning_rate,
-                              deep_learning_rate=FLAGS.deep_learning_rate)
+                              deep_learning_rate=FLAGS.deep_learning_rate,
+                              checkpoints_dir=FLAGS.checkpoints_dir)
     twad.load_data()
     if FLAGS.load_weights:
         print ("Loading initial weights from %s" % FLAGS.load_weights)
         twad.model.load(FLAGS.load_weights)
     twad.train(n_epoch=FLAGS.n_epoch, snapshot_step=FLAGS.snapshot_step)
     twad.evaluate()
+    return twad
+
+#-----------------------------------------------------------------------------
+# unit tests
+
+def test_wide_and_deep():
+    import glob
+    tf.reset_default_graph()
+    cdir = "test_checkpoints"
+    if os.path.exists(cdir):
+        os.system("rm -rf %s" % cdir)
+    twad = CommandLine(args=dict(verbose=True, n_epoch=5, model_type="wide+deep", snapshot_step=5, 
+                                 wide_learning_rate=0.0001, checkpoints_dir=cdir))
+    cfiles = glob.glob("%s/*.tfl-*" % cdir)
+    print ("cfiles=%s" % cfiles)
+    assert(len(cfiles))
+    cm = twad.confusion_matrix.values.astype(np.float32)
+    assert(cm[1][1])
+
+def test_deep():
+    import glob
+    tf.reset_default_graph()
+    cdir = "test_checkpoints"
+    if os.path.exists(cdir):
+        os.system("rm -rf %s" % cdir)
+    twad = CommandLine(args=dict(verbose=True, n_epoch=5, model_type="deep", snapshot_step=5, 
+                                 wide_learning_rate=0.0001, checkpoints_dir=cdir))
+    cfiles = glob.glob("%s/*.tfl-*" % cdir)
+    print ("cfiles=%s" % cfiles)
+    assert(len(cfiles))
+    cm = twad.confusion_matrix.values.astype(np.float32)
+    assert(cm[1][1])
+
+def test_wide():
+    import glob
+    tf.reset_default_graph()
+    cdir = "test_checkpoints"
+    if os.path.exists(cdir):
+        os.system("rm -rf %s" % cdir)
+    twad = CommandLine(args=dict(verbose=True, n_epoch=5, model_type="wide", snapshot_step=5, 
+                                 wide_learning_rate=0.0001, checkpoints_dir=cdir))
+    cfiles = glob.glob("%s/*.tfl-*" % cdir)
+    print ("cfiles=%s" % cfiles)
+    assert(len(cfiles))
+    cm = twad.confusion_matrix.values.astype(np.float32)
+    assert(cm[1][1])
 
 #-----------------------------------------------------------------------------
 
 if __name__=="__main__":
     CommandLine()
+    None
