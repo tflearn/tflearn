@@ -64,9 +64,17 @@ class Metric(object):
 class Accuracy(Metric):
     """ Accuracy.
 
-    Computes the model accuracy, based on categorical outcomes.  
-    Assumes the inputs (both the model predictions and the labels)
-    are one-hot encoded.  Uses tf.argmax to obtain categorical
+    Computes the model accuracy.  The target predictions are assumed
+    to be logits.  
+
+    If the predictions tensor is 1D (ie shape [?], or [?, 1]), then the 
+    labels are assumed to be binary (cast as float32), and accuracy is
+    computed based on the average number of equal binary outcomes,
+    thresholding predictions on logits > 0.  
+
+    Otherwise, accuracy is computed based on categorical outcomes,
+    and assumes the inputs (both the model predictions and the labels)
+    are one-hot encoded.  tf.argmax is used to obtain categorical
     predictions, for equality comparison.
 
     Examples:
@@ -81,50 +89,23 @@ class Accuracy(Metric):
 
     """
 
-    def __init__(self, name='acc'):
+    def __init__(self, name=None):
         super(Accuracy, self).__init__(name)
 
     def build(self, predictions, targets, inputs=None):
         """ Build accuracy, comparing predictions and targets. """
         self.built = True
-        self.tensor = accuracy_op(predictions, targets)
+        pshape = predictions.get_shape()
+        if len(pshape)==1 or (len(pshape)==2 and int(pshape[1])==1):
+            self.name = self.name or "binary_acc"   # clearly indicate binary accuracy being used
+            self.tensor = binary_accuracy_op(predictions, targets)
+        else:
+            self.name = self.name or "acc"   	    # traditional categorical accuracy
+            self.tensor = accuracy_op(predictions, targets)
         # Add a special name to that tensor, to be used by monitors
         self.tensor.m_name = self.name
 
 accuracy = Accuracy
-
-class BinaryAccuracy(Metric):
-    """ BinaryAccuracy.
-
-    Computes the model accuracy, based on binary outcomes.  
-    Assumes the labels are binary (cast as float32), and model output
-    predictions are logits.  Thresholds based on logits > 0, to
-    obtain binary predictions, for equality comparison.
-
-    Examples:
-        ```python
-        # To be used with TFLearn estimators
-        acc = BinaryAccuracy()
-        regression = regression(net, metric=acc)
-        ```
-
-    Arguments:
-        name: The name to display.
-
-    """
-
-    def __init__(self, name='binary_acc'):
-        super(BinaryAccuracy, self).__init__(name)
-
-    def build(self, predictions, targets, inputs=None):
-        """ Build accuracy, comparing predictions and targets. """
-        self.built = True
-        self.tensor = binary_accuracy_op(predictions, targets)
-        # Add a special name to that tensor, to be used by monitors
-        self.tensor.m_name = self.name
-
-binary_accuracy = BinaryAccuracy
-
 
 class Top_k(Metric):
     """ Top-k.
