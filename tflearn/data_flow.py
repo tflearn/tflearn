@@ -180,15 +180,7 @@ class FeedDictFlow(DataFlow):
             batch_ids = self.batch_ids_queue.get()
             if batch_ids is False:
                 break
-            # ichuang DEBUG
-            try:
-                data = self.retrieve_data(batch_ids)
-            except Exception as err:
-                print ("Failed in FeedDictFlow.fill_feed_dict_queue with err=%s" % (str(err)))
-                print ("    batch_size=%s, feed_dict_size=%s" % (self.batch_size, len(self.feed_dict)))
-                fdx = self.feed_dict.keys()[0]
-                print ("    feed dict %s shape %s" % (fdx, self.feed_dict[fdx].shape))
-                raise
+            data = self.retrieve_data(batch_ids)
             # Apply augmentation according to daug dict
             if self.daug_dict:
                 for k in self.daug_dict:
