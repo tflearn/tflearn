@@ -171,6 +171,31 @@ class R2(Metric):
         self.tensor.m_name = self.name
 
 
+class Prediction_Counts(Metric):
+    """ Prints the count of each category of prediction that is present in the predictions.
+    Can be useful to see, for example, to see if the model only gives one type of predictions,
+    or if the predictions given are in the expected proportions """
+
+    def __init__(self, name=None):
+        super(Prediction_Counts, self).__init__(name)
+
+    def build(self, predictions, targets, inputs=None):
+        """ Prints the number of each kind of prediction """
+        self.built = True
+        pshape = predictions.get_shape()
+
+        if len(pshape) == 1 or (len(pshape) == 2 and int(pshape[1]) == 1):
+            self.name = self.name or "binary_prediction_counts"
+            self.tensor = tf.unique_with_counts(predictions)
+        else:
+            self.name = self.name or "categorical_prediction_counts"
+            self.tensor = self.tensor = tf.unique_with_counts(
+                tf.argmax(predictions, dimension=1))
+        self.tensor.m_name = self.name
+
+prediction_counts = Prediction_Counts
+
+
 # ----------
 # Metric ops
 # ----------
@@ -209,6 +234,7 @@ def accuracy_op(predictions, targets):
         correct_pred = tf.equal(tf.argmax(predictions, 1), tf.argmax(targets, 1))
         acc = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
     return acc
+
 
 def binary_accuracy_op(predictions, targets):
     """ binary_accuracy_op.
@@ -312,26 +338,3 @@ def r2_op(predictions, targets, inputs):
         a = tf.reduce_sum(tf.square(predictions - inputs))
         b = tf.reduce_sum(tf.square(targets - inputs))
         return tf.div(a, b)
-        
-class prediction_counts(tflearn.metrics.Metric):
-    """ Prints the count of each category of prediction that is present in the predictions. Can be useful to see, for
-        example, to see if the model only gives one type of predictions, or if the predictions given are in the 
-        expected proportions """
-        
-    def __init__(self, name=None):
-        super(Counts, self).__init__(name)
-
-    def build(self, predictions, targets, inputs=None):
-        """ Prints the number of each kind of prediction """
-        self.built = True
-        pshape = predictions.get_shape()
-
-        if len(pshape) == 1 or (len(pshape) == 2 and int(pshape[1]) == 1):
-            self.name = self.name or "binary_prediction_counts"
-            self.tensor = tf.unique_with_counts(predictions)
-        else:
-            self.name = self.name or "categorical_prediction_counts"
-            self.tensor = self.tensor = tf.unique_with_counts(tf.argmax(predictions, dimension=1))
-        self.tensor.m_name = self.name
-
-
