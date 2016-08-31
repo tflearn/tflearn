@@ -42,5 +42,8 @@
 ## Reinforcement Learning
 - [Atari Pacman 1-step Q-Learning](https://github.com/tflearn/tflearn/blob/master/examples/reinforcement_learning/atari_1step_qlearning.py). Teach a machine to play Atari games (Pacman by default) using 1-step Q-learning.
 
+## Others
+- [Recommender - Wide & Deep Network](https://github.com/tflearn/tflearn/blob/master/examples/others/recommender_wide_and_deep.py). Pedagogical example of wide & deep networks for recommender systems.
+
 ## Notebooks
 - [Spiral Classification Problem](https://github.com/tflearn/tflearn/blob/master/examples/notebooks/spiral.ipynb). TFLearn implementation of spiral classification problem from Stanford CS231n.
