@@ -9,6 +9,9 @@ except:
 
 class Callback(object):
     """ Callback base class. """
+    def __init__():
+        pass
+
     def on_train_begin(self, training_state):
         pass
 
