@@ -372,6 +372,54 @@ tflearn.is_training(False)
 
 - See: [training config](http://tflearn.org/config#is_training).
 
+### Training Callbacks
+
+During the training cycle, TFLearn gives you the possibility to track and interact with the metrics of the training throughout a set of functions given by the [Callback](https://github.com/tflearn/tflearn/blob/master/tflearn/callbacks.py#L10) interface.
+To simplify the metrics retreivement, each callback method received a [TrainingState](https://github.com/tflearn/tflearn/blob/master/tflearn/helpers/trainer.py#L950) which track the state (e.g. : current epoch, step, batch iteration) and metrics (e.g. : current validation accuracy, global accuracy etc..)
+
+Callback methods which relate to the training cycle : 
+- `on_train_begin(training_state)`
+- `on_epoch_begin(training_state)`
+- `on_batch_begin(training_state)`
+- `on_sub_batch_begin(training_state)`
+- `on_sub_batch_end(training_state, train_index)`
+- `on_batch_end(training_state, snapshot)`
+- `on_epoch_end(training_state)`
+- `on_train_end(training_state)`
+
+# How to use it:
+Imagine you have your own monitor which track all your training jobs and you need to send metrics to it. You can easily do this by creating a custom callback which will get data and send it to the distant monitor.
+We need to create a CustomCallback and add your logic in the `on_epoch_end` which is called at the end of an epoch.
+
+This will give you something like that:
+```python
+class MonitorCallback(tflearn.callbacks.Callback):
+    def __init__(self, api):
+        self.my_monitor_api = api
+    
+    def on_epoch_end(self, training_state):
+        self.my_monitor_api.send({
+            accuracy: training_state.global_acc,
+            loss: training_state.global_loss,
+        });
+
+```
+
+Then you just need to add it on the `model.fit` call
+
+```python
+
+
+monitorCallback = new MonitorCallback(api)
+model = ...
+
+model.fit(..., callbacks=monitorCallback)
+
+```
+
+The `callbacks` argument can take a `Callback` or a `list` of callbacks.
+That's it, your custom callback will be automatically called at each epoch end.
+
 ### Variables
 
 TFLearn defines a set of functions for users to quickly define variables.
