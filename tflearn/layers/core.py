@@ -630,3 +630,18 @@ def time_distributed(incoming, fn, args=None, scope=None):
     else:
         x = [fn(x[i], *args) for i in range(timestep)]
     return tf.concat(1, x)
+
+
+def get_layer_by_name(name):
+    """ get_layer_by_name.
+
+    Retrieve a layer, given its name.
+
+    Arguments:
+        name: `str`. The layer name.
+
+    Returns:
+        A list of Variables.
+
+    """
+    return tf.get_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name)
