@@ -387,7 +387,7 @@ Callback methods which relate to the training cycle :
 - `on_epoch_end(training_state)`
 - `on_train_end(training_state)`
 
-# How to use it:
+#### How to use it:
 Imagine you have your own monitor which track all your training jobs and you need to send metrics to it. You can easily do this by creating a custom callback which will get data and send it to the distant monitor.
 We need to create a CustomCallback and add your logic in the `on_epoch_end` which is called at the end of an epoch.
 
@@ -401,7 +401,7 @@ class MonitorCallback(tflearn.callbacks.Callback):
         self.my_monitor_api.send({
             accuracy: training_state.global_acc,
             loss: training_state.global_loss,
-        });
+        })
 
 ```
 
