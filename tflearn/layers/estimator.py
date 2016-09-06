@@ -15,7 +15,8 @@ def regression(incoming, placeholder=None, optimizer='adam',
                loss='categorical_crossentropy', metric='default',
                learning_rate=0.001, dtype=tf.float32, batch_size=64,
                shuffle_batches=True, to_one_hot=False, n_classes=None,
-               trainable_vars=None, restore=True, op_name=None, name=None):
+               trainable_vars=None, restore=True, op_name=None, 
+               validation_monitors=None, validation_batch_size=None, name=None):
     """ Regression.
 
     The regression layer is used in TFLearn to apply a regression (linear or
@@ -74,6 +75,14 @@ def regression(incoming, placeholder=None, optimizer='adam',
             pre-trained model.
         op_name: A name for this layer optimizer (optional).
             Default: optimizer op name.
+        validation_monitors: `list` of `Tensor` objects.  List of variables
+            to compute during validation, which are also used to produce
+            summaries for output to TensorBoard.  For example, this can be
+            used to periodically record a confusion matrix or AUC metric, 
+            during training.  Each variable should have rank 1, i.e. 
+            shape [None].
+        validation_batch_size: `int` or None. Specifies the batch
+            size to be used for the validation data feed.
         name: A name for this layer's placeholder scope.
 
     Attributes:
@@ -89,7 +98,8 @@ def regression(incoming, placeholder=None, optimizer='adam',
             p_shape = [None] if to_one_hot else input_shape
             placeholder = tf.placeholder(shape=p_shape, dtype=dtype, name="Y")
 
-    tf.add_to_collection(tf.GraphKeys.TARGETS, placeholder)
+    if placeholder not in tf.get_collection(tf.GraphKeys.TARGETS):
+        tf.add_to_collection(tf.GraphKeys.TARGETS, placeholder)
 
     if to_one_hot:
         if n_classes is None:
@@ -181,6 +191,8 @@ def regression(incoming, placeholder=None, optimizer='adam',
                     batch_size=batch_size,
                     shuffle=shuffle_batches,
                     step_tensor=step_tensor,
+                    validation_monitors=validation_monitors,
+                    validation_batch_size=validation_batch_size,
                     name=op_name)
 
     tf.add_to_collection(tf.GraphKeys.TRAIN_OPS, tr_op)

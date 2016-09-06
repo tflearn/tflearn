@@ -277,7 +277,8 @@ def feed_dict_builder(X, Y, net_inputs, net_targets):
                                     "make sure that you didn't run graph "
                                     "construction cell multiple time, "
                                     "or try to enclose your graph within "
-                                    "`with tf.Graph().as_default():`")
+                                    "`with tf.Graph().as_default():` or "
+                                    "use `tf.reset_default_graph()`")
                 except Exception:
                     # Skip verif
                     pass
@@ -293,7 +294,11 @@ def feed_dict_builder(X, Y, net_inputs, net_targets):
                 if isinstance(key, tf.Tensor):
                     continue
                 else: # Else retrieve placeholder with its name
-                    feed_dict[vs.get_inputs_placeholder_by_name(key)] = val
+                    var = vs.get_inputs_placeholder_by_name(key)
+                    if var is None:
+                        raise Exception("Feed dict asks for variable named '%s' but no "
+                                        "such variable is known to exist" % key)
+                    feed_dict[var] = val
 
     if not (is_none(Y) or is_none(net_targets)):
         if not isinstance(Y, dict):
@@ -326,7 +331,11 @@ def feed_dict_builder(X, Y, net_inputs, net_targets):
                 if isinstance(key, tf.Tensor):
                     continue
                 else: # Else retrieve placeholder with its name
-                    feed_dict[vs.get_targets_placeholder_by_name(key)] = val
+                    var = vs.get_targets_placeholder_by_name(key)
+                    if var is None:
+                        raise Exception("Feed dict asks for variable named '%s' but no "
+                                        "such variable is known to exist" % key)
+                    feed_dict[var] = val
 
     return feed_dict
 

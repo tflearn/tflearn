@@ -88,7 +88,7 @@ class DNN(object):
     def fit(self, X_inputs, Y_targets, n_epoch=10, validation_set=None,
             show_metric=False, batch_size=None, shuffle=None,
             snapshot_epoch=True, snapshot_step=None, excl_trainops=None,
-            run_id=None, callbacks=[]):
+            validation_batch_size=None, run_id=None, callbacks=[]):
         """ Fit.
 
         Train model, feeding X_inputs and Y_targets to the network.
@@ -124,7 +124,11 @@ class DNN(object):
                 `float` (<1) to performs a data split over training data.
             show_metric: `bool`. Display or not accuracy at every step.
             batch_size: `int` or None. If `int`, overrides all network
-                estimators 'batch_size' by this value.
+                estimators 'batch_size' by this value.  Also overrides
+                `valiation_batch_size` if `int`, and if `valudation_batch_size`
+                is None.
+            validation_batch_size: `int` or None. If `int`, overrides all network
+                estimators 'validation_batch_size' by this value.
             shuffle: `bool` or None. If `bool`, overrides all network
                 estimators 'shuffle' by this value.
             snapshot_epoch: `bool`. If True, it will snapshot model at the end
@@ -149,6 +153,13 @@ class DNN(object):
         if batch_size:
             for train_op in self.train_ops:
                 train_op.batch_size = batch_size
+
+        if batch_size is not None and validation_batch_size is None:
+            validation_batch_size = batch_size
+
+        if validation_batch_size:
+            for train_op in self.train_ops:
+                train_op.validation_batch_size = validation_batch_size
 
         valX, valY = None, None
         if validation_set:

@@ -12,6 +12,14 @@ TFLearn can summarize:
     to add each decay into tf.Graphkeys.REGULARIZATION_LOSSES collection)
 - Sparsity: Sparsity of trainable variables.
 
+It is useful to also be able to periodically monitor various variables
+during training, e.g. confusion matrix entries or AUC metrics. This
+can be done using "validation_monitors", an argument to regression or
+TrainOp; this argument takes a list of Tensor variables, and passes
+them to the trainer, where they are evaluated each time a validation
+step happens. The evaluation results are then summarized, and saved
+for tensorboard visualization.
+
 Summaries are monitored according to the following verbose levels:
 - 0: Loss & Metric (Best speed).
 - 1: Loss, Metric & Gradients.
@@ -21,6 +29,7 @@ Summaries are monitored according to the following verbose levels:
 
 Note: If you are using TFLearn layers, summaries are automatically handled,
 so you do not need to manually add them.
+
 """
 
 import tensorflow as tf
@@ -71,8 +80,22 @@ with tf.Graph().as_default():
         tf.cast(tf.equal(tf.argmax(net, 1), tf.argmax(Y, 1)), tf.float32),
         name="acc")
 
+    # construct two varaibles to add as additional "valiation monitors"
+    # these varaibles are evaluated each time validation happens (eg at a snapshot)
+    # and the results are summarized and output to the tensorboard events file,
+    # together with the accuracy and loss plots.
+    #
+    # Here, we generate a dummy variable given by the sum over the current
+    # network tensor, and a constant variable.  In practice, the validation
+    # monitor may present useful information, like confusion matrix
+    # entries, or an AUC metric.
+    with tf.name_scope('CustomMonitor'):
+        test_var = tf.reduce_sum(tf.cast(net, tf.float32), name="test_var")
+        test_const = tf.constant(32.0, name="custom_constant")
+
     # Define a train op
     trainop = tflearn.TrainOp(loss=loss, optimizer=optimizer,
+                              validation_monitors=[test_var, test_const],
                               metric=accuracy, batch_size=128)
 
     # Tensorboard logs stored in /tmp/tflearn_logs/. Using verbose level 2.

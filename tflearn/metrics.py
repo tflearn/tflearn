@@ -64,7 +64,18 @@ class Metric(object):
 class Accuracy(Metric):
     """ Accuracy.
 
-    Computes the model accuracy.
+    Computes the model accuracy.  The target predictions are assumed
+    to be logits.  
+
+    If the predictions tensor is 1D (ie shape [?], or [?, 1]), then the 
+    labels are assumed to be binary (cast as float32), and accuracy is
+    computed based on the average number of equal binary outcomes,
+    thresholding predictions on logits > 0.  
+
+    Otherwise, accuracy is computed based on categorical outcomes,
+    and assumes the inputs (both the model predictions and the labels)
+    are one-hot encoded.  tf.argmax is used to obtain categorical
+    predictions, for equality comparison.
 
     Examples:
         ```python
@@ -78,18 +89,23 @@ class Accuracy(Metric):
 
     """
 
-    def __init__(self, name='acc'):
+    def __init__(self, name=None):
         super(Accuracy, self).__init__(name)
 
     def build(self, predictions, targets, inputs=None):
         """ Build accuracy, comparing predictions and targets. """
         self.built = True
-        self.tensor = accuracy_op(predictions, targets)
+        pshape = predictions.get_shape()
+        if len(pshape)==1 or (len(pshape)==2 and int(pshape[1])==1):
+            self.name = self.name or "binary_acc"   # clearly indicate binary accuracy being used
+            self.tensor = binary_accuracy_op(predictions, targets)
+        else:
+            self.name = self.name or "acc"   	    # traditional categorical accuracy
+            self.tensor = accuracy_op(predictions, targets)
         # Add a special name to that tensor, to be used by monitors
         self.tensor.m_name = self.name
 
 accuracy = Accuracy
-
 
 class Top_k(Metric):
     """ Top-k.
@@ -155,6 +171,31 @@ class R2(Metric):
         self.tensor.m_name = self.name
 
 
+class Prediction_Counts(Metric):
+    """ Prints the count of each category of prediction that is present in the predictions.
+    Can be useful to see, for example, to see if the model only gives one type of predictions,
+    or if the predictions given are in the expected proportions """
+
+    def __init__(self, name=None):
+        super(Prediction_Counts, self).__init__(name)
+
+    def build(self, predictions, targets, inputs=None):
+        """ Prints the number of each kind of prediction """
+        self.built = True
+        pshape = predictions.get_shape()
+
+        if len(pshape) == 1 or (len(pshape) == 2 and int(pshape[1]) == 1):
+            self.name = self.name or "binary_prediction_counts"
+            self.tensor = tf.unique_with_counts(predictions)
+        else:
+            self.name = self.name or "categorical_prediction_counts"
+            self.tensor = self.tensor = tf.unique_with_counts(
+                tf.argmax(predictions, dimension=1))
+        self.tensor.m_name = self.name
+
+prediction_counts = Prediction_Counts
+
+
 # ----------
 # Metric ops
 # ----------
@@ -163,7 +204,8 @@ class R2(Metric):
 def accuracy_op(predictions, targets):
     """ accuracy_op.
 
-    An op that calculates mean accuracy.
+    An op that calculates mean accuracy, assuming predictiosn are targets
+    are both one-hot encoded.
 
     Examples:
         ```python
@@ -190,6 +232,42 @@ def accuracy_op(predictions, targets):
 
     with tf.name_scope('Accuracy'):
         correct_pred = tf.equal(tf.argmax(predictions, 1), tf.argmax(targets, 1))
+        acc = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
+    return acc
+
+
+def binary_accuracy_op(predictions, targets):
+    """ binary_accuracy_op.
+
+    An op that calculates mean accuracy, assuming predictions are logits, and
+    targets are binary encoded (and represented as int32).
+
+    Examples:
+        ```python
+        input_data = placeholder(shape=[None, 784])
+        y_pred = my_network(input_data) # Apply some ops
+        y_true = placeholder(shape=[None, 10]) # Labels
+        acc_op = binary_accuracy_op(y_pred, y_true)
+
+        # Calculate accuracy by feeding data X and labels Y
+        binary_accuracy = sess.run(acc_op, feed_dict={input_data: X, y_true: Y})
+        ```
+
+    Arguments:
+        predictions: `Tensor` of `float` type.
+        targets: `Tensor` of `float` type.
+
+    Returns:
+        `Float`. The mean accuracy.
+
+    """
+    if not isinstance(targets, tf.Tensor):
+        raise ValueError("mean_accuracy 'input' argument only accepts type "
+                         "Tensor, '" + str(type(input)) + "' given.")
+
+    with tf.name_scope('BinaryAccuracy'):
+        predictions = tf.cast(tf.greater(predictions, 0), tf.float32)
+        correct_pred = tf.equal(predictions, tf.cast(targets, tf.float32))
         acc = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
     return acc
 

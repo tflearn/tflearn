@@ -95,7 +95,7 @@ class Evaluator(object):
         coord = tf.train.Coordinator()
         inputs = tf.get_collection(tf.GraphKeys.INPUTS)
         # Data Preprocessing
-        dprep_dict = []
+        dprep_dict = {}
         dprep_collection = tf.get_collection(tf.GraphKeys.DATA_PREP)
         for i in range(len(inputs)):
             # Support for custom inputs not using dprep/daug

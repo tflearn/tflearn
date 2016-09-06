@@ -20,5 +20,6 @@ print("\nRegression result:")
 print("Y = " + str(m.get_weights(linear.W)) +
       "*X + " + str(m.get_weights(linear.b)))
 
-print("\nTest prediction for x = 3.2 and y = 4.5:")
-print(m.predict([3.2, 4.5]))
+print("\nTest prediction for x = 3.2, 3.3, 3.4:")
+print(m.predict([3.2, 3.3, 3.4]))
+# should output (close, not exact) y = [1.5315033197402954, 1.5585315227508545, 1.5855598449707031]
