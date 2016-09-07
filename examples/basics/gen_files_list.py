@@ -27,16 +27,7 @@ def gen_files_list(data_path, write_file):
         label += 1
     with open(write_file, "w") as fwrite:
         for index, i in enumerate(samples):
-            try:
-                img = Image.open(i)
-                img.load()
-                img = np.asarray(img)
-                # filter the images which the channel is not 3
-                if img.shape[2] == 3:
-                    line = i + ' ' + str(targets[index]) + '\n'
-                    fwrite.write(line)
-            except:
-                continue
+            line = i + ' ' + str(targets[index]) + '\n'
             fwrite.write(line)
 
 
