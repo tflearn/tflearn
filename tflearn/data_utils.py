@@ -37,7 +37,7 @@ def to_categorical(y, nb_classes):
     """
     y = np.asarray(y, dtype='int32')
     if not nb_classes:
-        nb_classes = np.max(y) + 1
+        nb_classes = np.max(y)+1
     Y = np.zeros((len(y), nb_classes))
     for i in range(len(y)):
         Y[i, y[i]] = 1.
@@ -154,7 +154,6 @@ def random_sequence_from_string(string, seq_maxlen):
 def random_sequence_from_textfile(path, seq_maxlen):
     text = open(path).read()
     return random_sequence_from_string(text, seq_maxlen)
-
 
 try:
     from tensorflow.contrib.learn.python.learn.preprocessing.text import \
@@ -375,7 +374,7 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
     d_imgshape = (len(images), image_shape[0], image_shape[1], 3) \
         if not grayscale else (len(images), image_shape[0], image_shape[1])
     d_labelshape = (len(images), n_classes) \
-        if categorical_labels else (len(images),)
+        if categorical_labels else (len(images), )
 
     dataset = h5py.File(output_path, 'w')
     dataset.create_dataset('X', d_imgshape, chunks=chunks)
@@ -579,7 +578,7 @@ def build_image_dataset_from_dir(directory,
     except Exception:
         X, Y = image_dirs_to_samples(directory, resize, convert_gray, filetypes)
         if categorical_Y:
-            Y = to_categorical(Y, np.max(Y) + 1)  # First class is '0'
+            Y = to_categorical(Y, np.max(Y) + 1) # First class is '0'
         if shuffle_data:
             X, Y = shuffle(X, Y)
         pickle.dump((X, Y), open(dataset_file, 'wb'))
@@ -710,15 +709,15 @@ def directory_to_samples(directory, flags=None, filter_channel=False):
     samples = []
     targets = []
     label = 0
-    try:  # Python 2
+    try: # Python 2
         classes = sorted(os.walk(directory).next()[1])
-    except Exception:  # Python 3
+    except Exception: # Python 3
         classes = sorted(os.walk(directory).__next__()[1])
     for c in classes:
         c_dir = os.path.join(directory, c)
-        try:  # Python 2
+        try: # Python 2
             walk = os.walk(c_dir).next()
-        except Exception:  # Python 3
+        except Exception: # Python 3
             walk = os.walk(c_dir).__next__()
         for sample in walk[2]:
             if not flags or any(flag in sample for flag in flags):
@@ -821,8 +820,8 @@ class LabelPreloader(Preloader):
 
     def preload(self, label, n_class, categorical_label):
         if categorical_label:
-            # TODO: inspect assert bug
-            # assert isinstance(n_class, int)
+            #TODO: inspect assert bug
+            #assert isinstance(n_class, int)
             return to_categorical([label], n_class)[0]
         else:
             return label
