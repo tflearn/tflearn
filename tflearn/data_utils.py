@@ -402,14 +402,17 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
 
 def img_channel(image_path):
     """
-
+    Load a image and return the channel of the image
     :param image_path:
-    :return:
+    :return: the channel of the image
     """
-    img = Image.open(image_path)
-    img.load()
-    img = np.asarray(img)
-    return img.shape[2]
+    img = load_image(image_path)
+    img = pil_to_nparray(img)
+    try:
+        channel = img.shape[2]
+    except:
+        channel = 1
+    return channel
 
 def image_preloader(target_path, image_shape, mode='file', normalize=True,
                     grayscale=False, categorical_labels=True,
@@ -496,11 +499,12 @@ def image_preloader(target_path, image_shape, mode='file', normalize=True,
             images, labels = [], []
             for l in f.readlines():
                 l = l.strip('\n').split()
-                if filter_channel:
-                    if img_channel(l[0]) != 3:
-                        continue
-                images.append(l[0])
-                labels.append(int(l[1]))
+                if not files_extension or any(flag in l(0) for flag in files_extension):
+                    if filter_channel:
+                        if img_channel(l[0]) != 3:
+                            continue
+                    images.append(l[0])
+                    labels.append(int(l[1]))
 
     n_classes = np.max(labels) + 1
     X = ImagePreloader(images, image_shape, normalize, grayscale)
@@ -719,7 +723,7 @@ def directory_to_samples(directory, flags=None, filter_channel=False):
         for sample in walk[2]:
             if not flags or any(flag in sample for flag in flags):
                 if filter_channel:
-                    if img_channel(sample) != 3:
+                    if img_channel(os.path.join(c_dir, sample)) != 3:
                         continue
                 samples.append(os.path.join(c_dir, sample))
                 targets.append(label)
