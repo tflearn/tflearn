@@ -399,7 +399,7 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
         else:
             dataset['Y'][i] = labels[i]
 
-def img_channel(image_path):
+def get_img_channel(image_path):
     """
     Load a image and return the channel of the image
     :param image_path:
@@ -500,7 +500,7 @@ def image_preloader(target_path, image_shape, mode='file', normalize=True,
                 l = l.strip('\n').split()
                 if not files_extension or any(flag in l(0) for flag in files_extension):
                     if filter_channel:
-                        if img_channel(l[0]) != 3:
+                        if get_img_channel(l[0]) != 3:
                             continue
                     images.append(l[0])
                     labels.append(int(l[1]))
@@ -722,7 +722,7 @@ def directory_to_samples(directory, flags=None, filter_channel=False):
         for sample in walk[2]:
             if not flags or any(flag in sample for flag in flags):
                 if filter_channel:
-                    if img_channel(os.path.join(c_dir, sample)) != 3:
+                    if get_img_channel(os.path.join(c_dir, sample)) != 3:
                         continue
                 samples.append(os.path.join(c_dir, sample))
                 targets.append(label)

@@ -9,7 +9,7 @@ from tflearn.layers.estimator import regression
 import os
 
 
-def vgg16(placeholderX=None):
+def vgg16(num_class, placeholderX=None):
     x = tflearn.input_data(shape=[None, 224, 224, 3], name='input',
                            placeholder=placeholderX)
 
@@ -42,7 +42,7 @@ def vgg16(placeholderX=None):
     x = tflearn.fully_connected(x, 4096, activation='relu', scope='fc7')
     x = tflearn.dropout(x, 0.5, name='dropout2')
 
-    x = tflearn.fully_connected(x, 12, activation='softmax', scope='fc8', restore=False)
+    x = tflearn.fully_connected(x, num_class, activation='softmax', scope='fc8', restore=False)
 
     return x
 
@@ -61,7 +61,7 @@ X, Y = image_preloader(files_list, image_shape=(224, 224), mode='file', categori
 #                        files_extension=['.jpg', '.png'], filter_channel=True)
 num_classes = 10 # num of your dataset
 
-softmax = vgg16()
+softmax = vgg16(num_classes)
 regression = regression(softmax, optimizer='adam',
                         loss='categorical_crossentropy',
                         learning_rate=0.001, restore=False)
