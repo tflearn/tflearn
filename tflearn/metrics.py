@@ -172,7 +172,7 @@ class R2(Metric):
 
 
 
-class Prediction_Counts(tflearn.metrics.Metric):
+class Prediction_Counts(Metric):
     """ Prints the count of each category of prediction that is present in the predictions.
     Can be useful to see, for example, to see if the model only gives one type of predictions,
     or if the predictions given are in the expected proportions """
