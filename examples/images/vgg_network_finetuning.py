@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-Finetuning Example with vgg.tflearn. Using weights from VGG model to retrain
+Retraining (Finetuning) Example with vgg.tflearn. Using weights from VGG model to retrain
 network for a new task (your own dataset).All weights are restored except
 last layer (softmax) that will be retrained to match the new task (finetuning).
 '''
