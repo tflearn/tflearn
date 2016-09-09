@@ -399,10 +399,23 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
         else:
             dataset['Y'][i] = labels[i]
 
+def get_img_channel(image_path):
+    """
+    Load a image and return the channel of the image
+    :param image_path:
+    :return: the channel of the image
+    """
+    img = load_image(image_path)
+    img = pil_to_nparray(img)
+    try:
+        channel = img.shape[2]
+    except:
+        channel = 1
+    return channel
 
 def image_preloader(target_path, image_shape, mode='file', normalize=True,
                     grayscale=False, categorical_labels=True,
-                    files_extension=None):
+                    files_extension=None, filter_channel=False):
     """ Image PreLoader.
 
     Create a python array (`Preloader`) that loads images on the fly (from
@@ -469,6 +482,8 @@ def image_preloader(target_path, image_shape, mode='file', normalize=True,
         files_extension: `list of str`. A list of allowed image file
             extension, for example ['.jpg', '.jpeg', '.png']. If None,
             all files are allowed.
+        filter_channel: `bool`. If true, images which the channel is not 3 should
+            be filter.
 
     Returns:
         (X, Y): with X the images array and Y the labels array.
@@ -477,14 +492,18 @@ def image_preloader(target_path, image_shape, mode='file', normalize=True,
     assert mode in ['folder', 'file']
     if mode == 'folder':
         images, labels = directory_to_samples(target_path,
-                                              flags=files_extension)
+                                              flags=files_extension, filter_channel=filter_channel)
     else:
         with open(target_path, 'r') as f:
             images, labels = [], []
             for l in f.readlines():
                 l = l.strip('\n').split()
-                images.append(l[0])
-                labels.append(int(l[1]))
+                if not files_extension or any(flag in l(0) for flag in files_extension):
+                    if filter_channel:
+                        if get_img_channel(l[0]) != 3:
+                            continue
+                    images.append(l[0])
+                    labels.append(int(l[1]))
 
     n_classes = np.max(labels) + 1
     X = ImagePreloader(images, image_shape, normalize, grayscale)
@@ -685,7 +704,7 @@ def featurewise_std_normalization(X, std=None):
         return X / std
 
 
-def directory_to_samples(directory, flags=None):
+def directory_to_samples(directory, flags=None, filter_channel=False):
     """ Read a directory, and list all subdirectories files as class sample """
     samples = []
     targets = []
@@ -702,6 +721,9 @@ def directory_to_samples(directory, flags=None):
             walk = os.walk(c_dir).__next__()
         for sample in walk[2]:
             if not flags or any(flag in sample for flag in flags):
+                if filter_channel:
+                    if get_img_channel(os.path.join(c_dir, sample)) != 3:
+                        continue
                 samples.append(os.path.join(c_dir, sample))
                 targets.append(label)
         label += 1
