@@ -188,7 +188,7 @@ def leaky_relu(x, alpha=0.1, name="LeakyReLU"):
 leakyrelu = leaky_relu
 
 
-def prelu(x, weights_init='zeros', restore=True, name="PReLU"):
+def prelu(x, channel_shared=False, weights_init='zeros', restore=True, name="PReLU"):
     """ PReLU.
 
     Parametric Rectified Linear Unit.
@@ -196,6 +196,7 @@ def prelu(x, weights_init='zeros', restore=True, name="PReLU"):
     Arguments:
         x: A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
             `int16`, or `int8`.
+        channel_shared: `bool`. Single weight is shared by all channels
         weights_init: `str`. Weights initialization. Default: zeros.
         restore: `bool`. Restore or not alphas
         name: A name for this activation op (optional).
@@ -216,7 +217,10 @@ def prelu(x, weights_init='zeros', restore=True, name="PReLU"):
         (http://arxiv.org/pdf/1502.01852v1.pdf)
 
     """
-    w_shape = tflearn.utils.get_incoming_shape(x)[1:]
+    if channel_shared:
+        w_shape = (1,)
+    else:
+        w_shape = tflearn.utils.get_incoming_shape(x)[-1:]
 
     # If incoming Tensor has a scope, this op is defined inside it
     i_scope = ""
