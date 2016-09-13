@@ -149,6 +149,7 @@ class FeedDictFlow(DataFlow):
                       for i in range(self.num_threads)]
         self.threads = bi_threads + fd_threads
         for t in self.threads:
+            t.daemon = True
             t.start()
 
     def stop(self):
@@ -161,7 +162,9 @@ class FeedDictFlow(DataFlow):
         for i in range(self.num_threads):
             self.batch_ids_queue.put(False)
         # Launch a Thread to wait for processing scripts to finish
-        threading.Thread(target=self.wait_for_threads).start()
+        t = threading.Thread(target=self.wait_for_threads)
+        t.daemon = True
+        t.start()
 
     def reset(self):
         """ reset.
