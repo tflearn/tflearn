@@ -957,6 +957,7 @@ def evaluate(session, op_to_evaluate, feed_dict, batch_size):
             avg += session.run(op_to_evaluate, feed_batch) / len(batches)
         return avg
 
+
 class TrainingState(object):
 
     def __init__(self):

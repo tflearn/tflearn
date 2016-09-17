@@ -59,7 +59,7 @@ TFLearn requires Tensorflow (version >= 0.9) to be installed: *[Tensorflow insta
 
 To install TFLearn, the easiest way is to run
 
-For the bleeding edge version:
+For the bleeding edge version (recommended):
 ```python
 pip install git+https://github.com/tflearn/tflearn.git
 ```
