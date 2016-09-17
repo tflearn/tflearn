@@ -78,7 +78,7 @@ class DNN(object):
         #           "that collection.")
 
         self.targets = tf.get_collection(tf.GraphKeys.TARGETS)
-        if len(self.inputs) == 0:
+        if len(self.targets) == 0:
             raise Exception("No target data! Please add a 'regression' layer "
                             "to your model (or add your target data "
                             "placeholder to tf.GraphKeys.TARGETS collection).")
