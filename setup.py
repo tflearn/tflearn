@@ -16,6 +16,7 @@ setup(name='tflearn',
           'six',
           'Pillow'
       ],
+      test_suite='tests',
       classifiers=[
           'Programming Language :: Python',
           'Operating System :: OS Independent',
