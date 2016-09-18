@@ -2,9 +2,14 @@ language: python
 python:
   - 2.7.11
   - 3.5.1
-
 virtualenv:
   system_site_package: true
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
 
 install:
   - echo $TRAVIS_PYTHON_VERSION
