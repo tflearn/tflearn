@@ -171,29 +171,34 @@ class R2(Metric):
         self.tensor.m_name = self.name
 
 
+
 class Prediction_Counts(Metric):
     """ Prints the count of each category of prediction that is present in the predictions.
     Can be useful to see, for example, to see if the model only gives one type of predictions,
     or if the predictions given are in the expected proportions """
 
-    def __init__(self, name=None):
+    def __init__(self, inner_metric, name=None):
         super(Prediction_Counts, self).__init__(name)
+        self.inner_metric = inner_metric
 
     def build(self, predictions, targets, inputs=None):
         """ Prints the number of each kind of prediction """
         self.built = True
         pshape = predictions.get_shape()
+        self.inner_metric.build(predictions, targets, inputs)
 
-        if len(pshape) == 1 or (len(pshape) == 2 and int(pshape[1]) == 1):
-            self.name = self.name or "binary_prediction_counts"
-            self.tensor = tf.unique_with_counts(predictions)
-        else:
-            self.name = self.name or "categorical_prediction_counts"
-            self.tensor = self.tensor = tf.unique_with_counts(
-                tf.argmax(predictions, dimension=1))
-        self.tensor.m_name = self.name
+        with tf.name_scope(self.name):
+            if len(pshape) == 1 or (len(pshape) == 2 and int(pshape[1]) == 1):
+                self.name = self.name or "binary_prediction_counts"
+                y, idx, count = tf.unique_with_counts(tf.argmax(predictions))
+                self.tensor = tf.Print(self.inner_metric, [y, count], name=self.inner_metric.name)
+            else:
+                self.name = self.name or "categorical_prediction_counts"
+                y, idx, count = tf.unique_with_counts(tf.argmax(predictions, dimension=1))
+                self.tensor = tf.Print(self.inner_metric.tensor, [y, count], name=self.inner_metric.name)
 
 prediction_counts = Prediction_Counts
+
 
 
 # ----------

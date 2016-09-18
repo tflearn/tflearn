@@ -15,7 +15,7 @@ def embedding(incoming, input_dim, output_dim, validate_indices=False,
               reuse=False, scope=None, name="Embedding"):
     """ Embedding.
 
-    Embedding layer for a sequence of integer ids.
+    Embedding layer for a sequence of integer ids or floats.
 
     Input:
         2-D Tensor [samples, ids].

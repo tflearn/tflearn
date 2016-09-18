@@ -366,9 +366,6 @@ class Trainer(object):
         l3_tags = list(l3)
         del l3[:]
 
-        # Temp workaround for tensorflow 0.7.0 relative path issue
-        if model_file[0] not in ['/', '~']: model_file = './' + model_file
-
         self.saver.save(self.session, model_file, global_step=global_step)
 
         # 0.7 workaround, restore values
@@ -959,6 +956,7 @@ def evaluate(session, op_to_evaluate, feed_dict, batch_size):
                     feed_batch[key] = feed_dict[key]
             avg += session.run(op_to_evaluate, feed_batch) / len(batches)
         return avg
+
 
 class TrainingState(object):
 

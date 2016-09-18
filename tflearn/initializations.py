@@ -14,6 +14,7 @@ except Exception:
     variance_scaling_initializer = None
 from .utils import get_from_module
 
+
 def get(identifier):
     if hasattr(identifier, '__call__'):
         return identifier
