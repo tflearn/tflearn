@@ -103,6 +103,9 @@ def get_layer_variables_by_name(name):
     """
     return tf.get_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name)
 
+# Shortcut
+get_layer_variables = get_layer_variables_by_name
+
 
 def get_value(var, session=None):
     """ get_value.
