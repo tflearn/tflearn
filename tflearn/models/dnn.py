@@ -78,10 +78,11 @@ class DNN(object):
         #           "that collection.")
 
         self.targets = tf.get_collection(tf.GraphKeys.TARGETS)
-        if len(self.targets) == 0:
-            raise Exception("No target data! Please add a 'regression' layer "
-                            "to your model (or add your target data "
-                            "placeholder to tf.GraphKeys.TARGETS collection).")
+        # TODO: error tracking when targets are actually used
+        # if len(self.targets) == 0:
+        #     raise Exception("No target data! Please add a 'regression' layer "
+        #                     "to your model (or add your target data "
+        #                     "placeholder to tf.GraphKeys.TARGETS collection).")
         self.predictor = Evaluator([self.net],
                                    session=self.session)
 
