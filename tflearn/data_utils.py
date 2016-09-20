@@ -55,7 +55,7 @@ def pad_sequences(sequences, maxlen=None, dtype='int32', padding='post',
 
     Pad each sequence to the same length: the length of the longest sequence.
     If maxlen is provided, any sequence longer than maxlen is truncated to
-    maxlen. Truncation happens off either the beginning or the end (default) 
+    maxlen. Truncation happens off either the beginning or the end (default)
     of the sequence. Supports pre-padding and post-padding (default).
 
     Arguments:
@@ -98,7 +98,7 @@ def pad_sequences(sequences, maxlen=None, dtype='int32', padding='post',
     return x
 
 
-def string_to_semi_redundant_sequences(string, seq_maxlen=25, redun_step=3):
+def string_to_semi_redundant_sequences(string, seq_maxlen=25, redun_step=3, char_idx=None):
     """ string_to_semi_redundant_sequences.
 
     Vectorize a string and returns parsed sequences and targets, along with
@@ -108,14 +108,18 @@ def string_to_semi_redundant_sequences(string, seq_maxlen=25, redun_step=3):
         string: `str`. Lower-case text from input text file.
         seq_maxlen: `int`. Maximum length of a sequence. Default: 25.
         redun_step: `int`. Redundancy step. Default: 3.
+        char_idx: 'dict'. A dictionary to convert chars to positions. Will be automatically generated if None
 
     Returns:
         A tuple: (inputs, targets, dictionary)
     """
 
     print("Vectorizing text...")
-    chars = set(string)
-    char_idx = {c: i for i, c in enumerate(chars)}
+
+    if char_idx is None:
+      char_idx = chars_to_dictionary(string)
+
+    len_chars = len(char_idx)
 
     sequences = []
     next_chars = []
@@ -123,28 +127,34 @@ def string_to_semi_redundant_sequences(string, seq_maxlen=25, redun_step=3):
         sequences.append(string[i: i + seq_maxlen])
         next_chars.append(string[i + seq_maxlen])
 
-    X = np.zeros((len(sequences), seq_maxlen, len(chars)), dtype=np.bool)
-    Y = np.zeros((len(sequences), len(chars)), dtype=np.bool)
+    X = np.zeros((len(sequences), seq_maxlen, len_chars), dtype=np.bool)
+    Y = np.zeros((len(sequences), len_chars), dtype=np.bool)
     for i, seq in enumerate(sequences):
         for t, char in enumerate(seq):
             X[i, t, char_idx[char]] = 1
         Y[i, char_idx[next_chars[i]]] = 1
 
-    print("Text total length: " + str(len(string)))
-    print("Distinct chars: " + str(len(chars)))
-    print("Total sequences: " + str(len(sequences)))
+    print("Text total length: {:,}".format(len(string)))
+    print("Distinct chars   : {:,}".format(len_chars))
+    print("Total sequences  : {:,}".format(len(sequences)))
 
     return X, Y, char_idx
 
 
 def textfile_to_semi_redundant_sequences(path, seq_maxlen=25, redun_step=3,
-                                         to_lower_case=False):
+                                         to_lower_case=False, pre_defined_char_idx=None):
     """ Vectorize Text file """
     text = open(path).read()
     if to_lower_case:
         text = text.lower()
-    return string_to_semi_redundant_sequences(text, seq_maxlen, redun_step)
+    return string_to_semi_redundant_sequences(text, seq_maxlen, redun_step, pre_defined_char_idx)
 
+def chars_to_dictionary(string):
+    """ Creates a dictionary char:integer for each unique character """
+    chars = set(string)
+    # sorted tries to keep a consistent dictionary, if you run a second time for the same char set
+    char_idx = {c: i for i, c in enumerate(sorted(chars))}
+    return char_idx
 
 def random_sequence_from_string(string, seq_maxlen):
     rand_index = random.randint(0, len(string) - seq_maxlen - 1)
