@@ -529,11 +529,11 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
-    # filter_size = [1, filter_size[1], 1, 1]
-    filter_size[1] = 1
+    filter_size = [1, filter_size[1], 1, 1]
+    #filter_size[1] = 1
     strides = utils.autoformat_kernel_2d(strides)
-    # strides = [1, strides[1], 1, 1]
-    strides[1] = 1
+    strides = [1, strides[1], 1, 1]
+    #strides[1] = 1
     padding = utils.autoformat_padding(padding)
 
     with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
