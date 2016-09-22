@@ -6,3 +6,9 @@ __pycache__
 build/*
 dist/*
 *~
+.cache
+.coverage
+checkpoint
+htmlcov
+mnist
+test*tflearn*
