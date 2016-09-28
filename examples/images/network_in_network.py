@@ -45,7 +45,7 @@ network = conv_2d(network, 10, 1, activation='relu')
 network = avg_pool_2d(network, 8)
 network = flatten(network)
 network = regression(network, optimizer='adam',
-                     loss='categorical_crossentropy',
+                     loss='softmax_categorical_crossentropy',
                      learning_rate=0.001)
 
 # Training
