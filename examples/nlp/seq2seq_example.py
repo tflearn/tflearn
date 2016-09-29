@@ -17,6 +17,8 @@ import tensorflow as tf
 from tensorflow.python.ops import seq2seq
 from tensorflow.python.ops import rnn_cell
 
+NUM_CLASS = 10
+
 #-----------------------------------------------------------------------------
 
 class SequencePattern(object):
@@ -136,7 +138,8 @@ class TFLearnSeq2Seq(object):
         values.
         '''
         pred_idx = tf.to_int32(tf.argmax(y_pred, 2))		# [-1, self.out_seq_len]
-        if self.verbose > 2: print ("my_accuracy pred_idx = %s" % pred_idx)
+        if self.verbose > 2:
+            print ("my_accuracy pred_idx = %s" % pred_idx)
         accuracy = tf.reduce_mean(tf.cast(tf.equal(pred_idx, y_true), tf.float32), name='acc')
         return accuracy
     
@@ -207,8 +210,10 @@ class TFLearnSeq2Seq(object):
             
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + "seq2seq_model", model_outputs)	# for TFLearn to know what to save and restore
 
-        # model_outputs: list of the same length as decoder_inputs of 2D Tensors with shape [batch_size x output_size] containing the generated outputs.
-        if self.verbose > 2: print ("model outputs: %s" % model_outputs)
+        # model_outputs: list of the same length as decoder_inputs of 2D Tensors 
+        # with shape [batch_size x output_size] containing the generated outputs.
+        if self.verbose > 2: 
+            print ("model outputs: %s" % model_outputs)
         network = tf.pack(model_outputs, axis=1)		# shape [-1, n_decoder_inputs (= self.out_seq_len), num_decoder_symbols]
         if self.verbose > 2: print ("packed model outputs: %s" % network)
         
@@ -271,7 +276,7 @@ class TFLearnSeq2Seq(object):
         '''
         Construct canonical weights filename, based on model and pattern names.
         '''
-        if not type(iteration_num)==int:
+        if not isinstance(iteration_num, int):
             try:
                 iteration_num = int(iteration_num)
             except Exception as err:
@@ -294,7 +299,7 @@ class TFLearnSeq2Seq(object):
         model = self.model_instance or self.model(mode=mode, **model_params)
         self.model_instance = model
         if weights_input_fn:
-            if type(weights_input_fn)==int:
+            if isintance(weights_input_fn,int):
                 weights_input_fn = self.canonical_weights_fn(weights_input_fn)
             if os.path.exists(weights_input_fn):
                 model.load(weights_input_fn)
@@ -328,11 +333,13 @@ class TFLearnSeq2Seq(object):
 
         XY = np.append(X, np.array(Yin).astype(np.float32))
         XY = XY.reshape([-1, self.in_seq_len + self.out_seq_len])		# batch size 1
-        if self.verbose > 1: print ("XY Input shape=%s, data=%s" % (XY.shape, XY))
+        if self.verbose > 1:
+            print ("XY Input shape=%s, data=%s" % (XY.shape, XY))
 
         res = model.predict(XY)
         res = np.array(res)
-        if self.verbose > 1: print ("prediction shape = %s" % str(res.shape))
+        if self.verbose > 1: 
+            print ("prediction shape = %s" % str(res.shape))
         y = res.reshape(self.out_seq_len, self.n_output_symbols)
         prediction = np.argmax(y, axis=1)
         if self.verbose:
@@ -344,7 +351,7 @@ class TFLearnSeq2Seq(object):
 class VAction(argparse.Action):
     def __call__(self, parser, args, values, option_string=None):
         curval = getattr(args, self.dest, 0) or 0
-        values=values.count('v')+1
+        values = values.count('v')+1
         setattr(args, self.dest, values + curval)
     
 #-----------------------------------------------------------------------------
@@ -484,7 +491,7 @@ def test_predict1():
     print ("using weights filename %s" % wfn)
     tf.reset_default_graph()
     prediction, y = ts2s.predict(Xin=range(10), weights_input_fn=wfn)
-    assert len(prediction==10)
+    assert len(prediction)==10
 
 def test_train_predict2():
     '''
@@ -501,7 +508,7 @@ def test_train_predict2():
     tf.reset_default_graph()
     ts2s = TFLearnSeq2Seq(sp, seq2seq_model="embedding_attention", data_dir="DATA", name="attention", verbose=1)
     prediction, y = ts2s.predict(Xin=range(10), weights_input_fn=1)
-    assert len(prediction==10)
+    assert len(prediction)==10
 
     os.system("rm -rf %s" % tempdir)
 
@@ -523,7 +530,7 @@ def test_train_predict3():
     ts2s = TFLearnSeq2Seq(sp, seq2seq_model="embedding_attention", data_dir="DATA", name="attention", verbose=1)
     x = np.random.randint(0, 9, 20)
     prediction, y = ts2s.predict(x, weights_input_fn=1)
-    assert len(prediction==8)
+    assert len(prediction)==8
 
     os.system("rm -rf %s" % tempdir)
 
@@ -557,7 +564,7 @@ def test_main2():
     arglist = arglist.split(' ')
     tf.reset_default_graph()
     ts2s = CommandLine(arglist=arglist)
-    assert len(ts2s.prediction_results[0][0])==10
+    assert len(ts2s.prediction_results[0][0])==NUM_CLASS
 
     os.system("rm -rf %s" % tempdir)
 
@@ -579,7 +586,7 @@ def test_main3():
     arglist = arglist.split(' ')
     tf.reset_default_graph()
     ts2s = CommandLine(arglist=arglist)
-    assert len(ts2s.prediction_results[0][0])==10
+    assert len(ts2s.prediction_results[0][0])==NUM_CLASS
 
 #-----------------------------------------------------------------------------
 
