@@ -205,10 +205,12 @@ def header_style(header):
     bold_name = '<span style="color:black;"><b>' + name + '</b></span>'
     header = header.replace('self, ', '').replace('(', ' (').replace(' ', '  ')
     header = header.replace(name, bold_name)
-    # return '<span style="display: inline-block;margin: 6px 0;font-size: ' \
-    #        '90%;line-height: 140%;background: #e7f2fa;color: #2980B9;' \
-    #        'border-top: solid 3px #6ab0de;padding: 6px;position: relative;' \
-    #        'font-weight:600">' + header + '</span>'
+    """
+    return '<span style="display: inline-block;margin: 6px 0;font-size: ' \
+            '90%;line-height: 140%;background: #e7f2fa;color: #2980B9;' \
+            'border-top: solid 3px #6ab0de;padding: 6px;position: relative;' \
+            'font-weight:600">' + header + '</span>'
+    """
     return '<span class="extra_h1">' + header + '</span>'
 
 
