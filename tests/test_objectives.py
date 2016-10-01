@@ -5,7 +5,7 @@ import numpy as np
 import tensorflow as tf
 
 
-class TestMetrics(unittest.TestCase):
+class TestObjectives(unittest.TestCase):
     """
     Testing objective functions from tflearn/objectives
     """
