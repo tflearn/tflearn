@@ -126,7 +126,7 @@ class DNN(object):
             show_metric: `bool`. Display or not accuracy at every step.
             batch_size: `int` or None. If `int`, overrides all network
                 estimators 'batch_size' by this value.  Also overrides
-                `valiation_batch_size` if `int`, and if `valudation_batch_size`
+                `validation_batch_size` if `int`, and if `validation_batch_size`
                 is None.
             validation_batch_size: `int` or None. If `int`, overrides all network
                 estimators 'validation_batch_size' by this value.
