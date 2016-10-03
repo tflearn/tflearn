@@ -141,7 +141,7 @@ def set_value(var, value, session=None):
     op = tf.assign(var, value=value)
     if not session:
         session = tf.get_default_session()
-    return op.eval(session)
+    return op.eval(session=session)
 
 
 def get_inputs_placeholder_by_name(name):
