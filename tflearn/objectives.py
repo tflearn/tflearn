@@ -177,16 +177,19 @@ def weak_cross_entropy_2d(y_pred, y_true, num_classes=None, epsilon=0.0001,
         y_pred: `tensor, float` - [batch_size, width, height, num_classes].
         y_true: `Labels tensor, int32` - [batch_size, width, height, num_classes].
             The ground truth of your data.
+        num_classes: `int`. Number of classes.
+        epsilon: `float`. Small number to add to `y_pred`.
         head: `numpy array` - [num_classes]. Weighting the loss of each class.
 
     Returns:
         Loss tensor of type float.
     """
     if num_classes is None:
-        num_classes = y_true.get_shape()[-1]
-        # This only works, if y_true if shape of y_true is defined
+        num_classes = y_true.get_shape().as_list()[-1]
+        # This only works if shape of y_true is defined
         assert (num_classes is not None)
-    with tf.name_scope('loss'):
+
+    with tf.name_scope("weakCrossEntropy2d"):
         y_pred = tf.reshape(y_pred, (-1, num_classes))
         shape = [y_pred.get_shape()[0], num_classes]
         epsilon = tf.constant(value=epsilon, shape=shape)
@@ -203,8 +206,6 @@ def weak_cross_entropy_2d(y_pred, y_true, num_classes=None, epsilon=0.0001,
                                            reduction_indices=[1])
 
         cross_entropy_mean = tf.reduce_mean(cross_entropy,
-                                            name='xentropy_mean')
-        tf.add_to_collection('losses', cross_entropy_mean)
+                                            name="xentropy_mean")
 
-        loss = tf.add_n(tf.get_collection('losses'), name='total_loss')
-    return loss
+    return cross_entropy_mean
