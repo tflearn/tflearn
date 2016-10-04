@@ -25,7 +25,7 @@ def load_data(dirname="17flowers", resize_pics=(224, 224), shuffle=True,
                                  "http://www.robots.ox.ac.uk/~vgg/data/flowers/17/",
                                  dirname)
 
-    X, Y = build_image_dataset_from_dir('17flowers/jpg/',
+    X, Y = build_image_dataset_from_dir(os.path.join(dirname, 'jpg/'),
                                         dataset_file=dataset_file,
                                         resize=resize_pics,
                                         filetypes=['.jpg', '.jpeg'],
