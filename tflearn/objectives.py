@@ -191,9 +191,7 @@ def weak_cross_entropy_2d(y_pred, y_true, num_classes=None, epsilon=0.0001,
 
     with tf.name_scope("weakCrossEntropy2d"):
         y_pred = tf.reshape(y_pred, (-1, num_classes))
-        shape = [y_pred.get_shape()[0], num_classes]
-        epsilon = tf.constant(value=epsilon, shape=shape)
-        y_pred = y_pred + epsilon
+        y_pred = y_pred + tf.constant(epsilon, dtype=y_pred.dtype)
         y_true = tf.to_float(tf.reshape(y_true, (-1, num_classes)))
 
         softmax = tf.nn.softmax(y_pred)
