@@ -88,7 +88,7 @@ def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
 
         # Retrieve variable managing training mode
         is_training = tflearn.get_training_mode()
-        mean, var = tf.python.control_flow_ops.cond(
+        mean, var = tf.cond(
             is_training, update_mean_var, lambda: (moving_mean, moving_variance))
 
         try:
