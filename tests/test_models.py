@@ -61,7 +61,7 @@ class TestModels(unittest.TestCase):
                                           seq_maxlen=maxlen,
                                           clip_gradients=5.0)
             m.fit(X, Y, validation_set=0.1, n_epoch=100, snapshot_epoch=False)
-            res = m.generate(10, temperature=1., seq_seed="12345")
+            res = m.generate(10, temperature=.5, seq_seed="12345")
             self.assertEqual(res, "123456789101234", "SequenceGenerator test failed! Generated sequence: " + res + " expected '123456789101234'")
 
             # Testing save method
@@ -70,7 +70,7 @@ class TestModels(unittest.TestCase):
 
             # Testing load method
             m.load("test_seqgen.tflearn")
-            res = m.generate(10, temperature=1., seq_seed="12345")
+            res = m.generate(10, temperature=.5, seq_seed="12345")
             self.assertEqual(res, "123456789101234", "SequenceGenerator test failed after loading model! Generated sequence: " + res + " expected '123456789101234'")
 
 if __name__ == "__main__":
