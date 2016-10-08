@@ -149,12 +149,14 @@ def textfile_to_semi_redundant_sequences(path, seq_maxlen=25, redun_step=3,
         text = text.lower()
     return string_to_semi_redundant_sequences(text, seq_maxlen, redun_step, pre_defined_char_idx)
 
+
 def chars_to_dictionary(string):
     """ Creates a dictionary char:integer for each unique character """
     chars = set(string)
     # sorted tries to keep a consistent dictionary, if you run a second time for the same char set
     char_idx = {c: i for i, c in enumerate(sorted(chars))}
     return char_idx
+
 
 def random_sequence_from_string(string, seq_maxlen):
     rand_index = random.randint(0, len(string) - seq_maxlen - 1)

@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 import os
+import pickle
 from six.moves import urllib
 
 import tflearn
@@ -20,7 +21,8 @@ if os.path.isfile(char_idx_file):
   char_idx = pickle.load(open(char_idx_file, 'rb'))
 
 X, Y, char_idx = \
-    textfile_to_semi_redundant_sequences(path, seq_maxlen=maxlen, redun_step=3, char_idx)
+    textfile_to_semi_redundant_sequences(path, seq_maxlen=maxlen, redun_step=3,
+                                         pre_defined_char_idx=char_idx)
 
 pickle.dump(char_idx, open(char_idx_file,'wb'))
 
