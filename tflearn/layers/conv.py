@@ -214,14 +214,14 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
         if len(output_shape) == 2:
             output_shape = output_shape + [nb_filter]
         elif len(output_shape) != 3:
-            raise Exception("output_shape length error: " 
+            raise Exception("output_shape length error: "
                             + str(len(output_shape))
                             + ", only a length of 2 or 3 is supported.")
         complete_out_shape = tf.concat(0, [batch_size, tf.constant(output_shape)])
- 
+
         inference = tf.nn.conv2d_transpose(incoming, W, complete_out_shape,
                                            strides, padding)
-        
+
         # Reshape tensor so its shape is correct.
         inference.set_shape([None] + output_shape)
 
@@ -425,7 +425,7 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
                                                  num_classes,
                                                  input_shape[-1])
 
-    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+    with tf.variable_scope(scope, name, values=[incoming], reuse=reuse) as scope:
         name = scope.name
 
         if shape is None:
@@ -536,7 +536,7 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     #strides[1] = 1
     padding = utils.autoformat_padding(padding)
 
-    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+    with tf.variable_scope(scope, name, values=[incoming], reuse=reuse) as scope:
         name = scope.name
 
         W_init = weights_init
@@ -740,7 +740,7 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
     strides = utils.autoformat_stride_3d(strides)
     padding = utils.autoformat_padding(padding)
 
-    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+    with tf.variable_scope(scope, name, values=[incoming], reuse=reuse) as scope:
         name = scope.name
 
         W_init = weights_init
@@ -993,7 +993,7 @@ def residual_block(incoming, nb_blocks, out_channels, downsample=False,
     resnet = incoming
     in_channels = incoming.get_shape().as_list()[-1]
 
-    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+    with tf.variable_scope(scope, name, values=[incoming], reuse=reuse) as scope:
         name = scope.name #TODO
 
         for i in range(nb_blocks):
@@ -1105,7 +1105,7 @@ def residual_bottleneck(incoming, nb_blocks, bottleneck_size, out_channels,
     resnet = incoming
     in_channels = incoming.get_shape().as_list()[-1]
 
-    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+    with tf.variable_scope(scope, name, values=[incoming], reuse=reuse) as scope:
         name = scope.name #TODO
 
         for i in range(nb_blocks):
@@ -1214,7 +1214,7 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     strides = utils.autoformat_kernel_2d(strides)
     padding = utils.autoformat_padding(padding)
 
-    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+    with tf.variable_scope(scope, name, values=[incoming], reuse=reuse) as scope:
         name = scope.name
 
         W_init = weights_init
@@ -1339,7 +1339,7 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     strides[1] = 1
     padding = utils.autoformat_padding(padding)
 
-    with tf.variable_op_scope([incoming], scope, name, reuse=reuse) as scope:
+    with tf.variable_scope(scope, name, values=[incoming], reuse=reuse) as scope:
         name = scope.name
 
         W_init = weights_init

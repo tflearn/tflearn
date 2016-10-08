@@ -48,7 +48,7 @@ def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
 
     gamma_init = tf.random_normal_initializer(mean=gamma, stddev=stddev)
 
-    with tf.variable_scope(scope, name, [incoming], reuse=reuse) as scope:
+    with tf.variable_scope(scope, name, values=[incoming], reuse=reuse) as scope:
         name = scope.name
         beta = vs.variable('beta', shape=[input_shape[-1]],
                            initializer=tf.constant_initializer(beta),

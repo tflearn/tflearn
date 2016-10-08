@@ -143,7 +143,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
     n_inputs = int(np.prod(input_shape[1:]))
 
     # Build variables and inference.
-    with tf.variable_scope(scope, name, [incoming], reuse=reuse) as scope:
+    with tf.variable_scope(scope, name, values=[incoming], reuse=reuse) as scope:
         name = scope.name
 
         W_init = weights_init
@@ -376,7 +376,7 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
     n_inputs = int(np.prod(input_shape[1:]))
 
     # Build variables and inference.
-    with tf.variable_scope(scope, name, [incoming], reuse=reuse) as scope:
+    with tf.variable_scope(scope, name, values=[incoming], reuse=reuse) as scope:
         name = scope.name
 
         W = va.variable('W', shape=[n_inputs],
@@ -476,7 +476,7 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
     n_inputs = int(np.prod(input_shape[1:]))
 
     # Build variables and inference.
-    with tf.variable_scope(scope, name, [incoming], reuse=reuse) as scope:
+    with tf.variable_scope(scope, name, values=[incoming], reuse=reuse) as scope:
         name = scope.name
 
         W_init = weights_init

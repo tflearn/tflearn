@@ -49,7 +49,7 @@ def embedding(incoming, input_dim, output_dim, validate_indices=False,
     if isinstance(weights_init, str):
         W_init = initializations.get(weights_init)()
 
-    with tf.variable_scope(scope, name, [incoming], reuse=reuse) as scope:
+    with tf.variable_scope(scope, name, values=[incoming], reuse=reuse) as scope:
         name = scope.name
         with tf.device('/cpu:0'):
             W = vs.variable("W", shape=[input_dim, output_dim],
