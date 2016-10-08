@@ -40,7 +40,7 @@ def _rnn_template(incoming, cell, dropout=None, return_seq=False,
 
     input_shape = utils.get_incoming_shape(incoming)
 
-    with tf.variable_op_scope([incoming], scope, name) as scope:
+    with tf.variable_scope(scope, name, [incoming]) as scope:
         name = scope.name
 
         _cell = cell
@@ -353,7 +353,7 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
 
     input_shape = utils.get_incoming_shape(incoming)
 
-    with tf.variable_op_scope([incoming], scope, name) as scope:
+    with tf.variable_scope(scope, name, [incoming]) as scope:
         name = scope.name
 
         # TODO: DropoutWrapper
