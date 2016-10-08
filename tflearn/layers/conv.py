@@ -69,7 +69,7 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     strides = utils.autoformat_kernel_2d(strides)
     padding = utils.autoformat_padding(padding)
 
-    with tf.variable_scope(scope, name, [incoming], reuse=reuse) as scope:
+    with tf.variable_scope(scope, name, values=[incoming], reuse=reuse) as scope:
         name = scope.name
 
         W_init = weights_init
@@ -185,7 +185,7 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
     strides = utils.autoformat_kernel_2d(strides)
     padding = utils.autoformat_padding(padding)
 
-    with tf.variable_scope(scope, name, [incoming], reuse=reuse) as scope:
+    with tf.variable_scope(scope, name, values=[incoming], reuse=reuse) as scope:
         name = scope.name
 
         W_init = weights_init
