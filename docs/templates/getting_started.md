@@ -245,12 +245,12 @@ def my_model(x):
 # 2 different computation graphs but sharing the same weights
 with tf.device('/gpu:0'):
     # Force all Variables to reside on the CPU.
-    with tf.arg_ops([tflearn.variables.variable], device='/cpu:0'):
+    with tf.arg_scope([tflearn.variables.variable], device='/cpu:0'):
         model1 = my_model(placeholder_X)
 # Reuse Variables for the next model
 tf.get_variable_scope().reuse_variables()
 with tf.device('/gpu:1'):
-    with tf.arg_ops([tflearn.variables.variable], device='/cpu:0'):
+    with tf.arg_scope([tflearn.variables.variable], device='/cpu:0'):
         model2 = my_model(placeholder_X)
 
 # Model can now be trained by multiple GPUs (see gradient averaging)
