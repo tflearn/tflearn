@@ -623,10 +623,11 @@ def time_distributed(incoming, fn, args=None, scope=None):
 
     input_shape = utils.get_incoming_shape(incoming)
     timestep = input_shape[1]
-    x = tf.split(1, timestep, incoming)
+    x = tf.unpack(incoming, axis=1)
     if scope:
         x = [fn(x[i], scope=scope+'-'+str(i), *args)
              for i in range(timestep)]
     else:
         x = [fn(x[i], *args) for i in range(timestep)]
+    x = map(lambda t: tf.reshape(t, [-1, 1]+utils.get_incoming_shape(t)[1:]), x)
     return tf.concat(1, x)
