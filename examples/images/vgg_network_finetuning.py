@@ -54,7 +54,7 @@ files_list = "/path/to/your/file/with/images"
 from tflearn.data_utils import image_preloader
 
 X, Y = image_preloader(files_list, image_shape=(224, 224), mode='file',
-                       categorical_labels=True, normalize=True,
+                       categorical_labels=True, normalize=False,
                        files_extension=['.jpg', '.png'], filter_channel=True)
 # or use the mode 'floder'
 # X, Y = image_preloader(data_dir, image_shape=(224, 224), mode='folder',
