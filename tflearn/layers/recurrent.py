@@ -40,7 +40,13 @@ def _rnn_template(incoming, cell, dropout=None, return_seq=False,
 
     input_shape = utils.get_incoming_shape(incoming)
 
-    with tf.variable_scope(scope, name, values=[incoming]) as scope:
+    # Variable Scope fix for older TF
+    try:
+        vscope = tf.variable_scope(scope, default_name=name, values=[incoming])
+    except Exception:
+        vscope = tf.variable_op_scope([incoming], scope, name)
+
+    with vscope as scope:
         name = scope.name
 
         _cell = cell
