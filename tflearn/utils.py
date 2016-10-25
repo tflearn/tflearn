@@ -451,12 +451,12 @@ def autoformat_stride_3d(strides):
 # Auto format kernel for 3d convolution
 def autoformat_kernel_3d(kernel):
     if isinstance(kernel, int):
-        return [1, 1, kernel, kernel, kernel]
+        return [1, kernel, kernel, kernel, 1]
     elif isinstance(kernel, (tuple, list)):
         if len(kernel) == 3:
-            return [1, 1, kernel[0], kernel[1], kernel[2]]
+            return [1, kernel[0], kernel[1], kernel[2], 1]
         elif len(kernel) == 5:
-            assert kernel[0] == kernel[1] == 1, "Must have kernel_size[0] = kernel_size[1] = 1"
+            assert kernel[0] == kernel[4] == 1, "Must have kernel_size[0] = kernel_size[4] = 1"
             return [kernel[0], kernel[1], kernel[2], kernel[3], kernel[4]]
         else:
             raise Exception("kernel length error: " + str(len(kernel))
