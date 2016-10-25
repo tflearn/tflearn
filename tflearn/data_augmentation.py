@@ -119,6 +119,21 @@ class ImageAugmentation(DataAugmentation):
         self.methods.append(self._random_flip_updown)
         self.args.append(None)
 
+    def add_random_90degrees_rotation(self, rotations=[0, 1, 2, 3]):
+        """ add_random_90degrees_rotation
+
+        Randomly perform 90 degrees rotations.
+
+        Arguments:
+            rotations: `list`. Allowed 90 degrees rotations.
+
+        Return:
+             Nothing.
+
+        """
+        self.methods.append(self._random_90degrees_rotation)
+        self.args.append([rotations])
+
     def add_random_rotation(self, max_angle=20.):
         """ add_random_rotation.
 
@@ -184,6 +199,13 @@ class ImageAugmentation(DataAugmentation):
         for i in range(len(batch)):
             if bool(random.getrandbits(1)):
                 batch[i] = np.flipud(batch[i])
+        return batch
+
+    def _random_90degrees_rotation(self, batch, rotations=[0, 1, 2, 3]):
+        for i in range(len(batch)):
+            num_rotations = random.choice(rotations)
+            batch[i] = np.rot90(batch[i], num_rotations)
+
         return batch
 
     def _random_rotation(self, batch, max_angle):
