@@ -223,12 +223,8 @@ class Trainer(object):
 
         with self.graph.as_default():
 
-            try:
-                self.summ_writer = tf.train.SummaryWriter(
-                    self.tensorboard_dir + run_id, self.session.graph)
-            except Exception: # TF 0.7
-                self.summ_writer = tf.train.SummaryWriter(
-                    self.tensorboard_dir + run_id, self.session.graph_def)
+            self.summ_writer = tf.train.SummaryWriter(
+                self.tensorboard_dir + run_id, self.session.graph)
 
             feed_dicts = to_list(feed_dicts)
             for d in feed_dicts: standarize_dict(d)
@@ -334,51 +330,8 @@ class Trainer(object):
                 model file name (optional).
 
         """
-        # Temp workaround for tensorflow 0.7.0 dict proto serialization issue
-        try:
-            # Try latest api
-            l = tf.get_collection_ref("summary_tags")
-            l4 = tf.get_collection_ref(tf.GraphKeys.GRAPH_CONFIG)
-        except Exception:
-            l = tf.get_collection("summary_tags")
-            l4 = tf.get_collection(tf.GraphKeys.GRAPH_CONFIG)
-        l_stags = list(l)
-        l4_stags = list(l4)
-        del l[:]
-        del l4[:]
-
-        try:
-            # Try latest api
-            l1 = tf.get_collection_ref(tf.GraphKeys.DATA_PREP)
-            l2 = tf.get_collection_ref(tf.GraphKeys.DATA_AUG)
-        except Exception:
-            l1 = tf.get_collection(tf.GraphKeys.DATA_PREP)
-            l2 = tf.get_collection(tf.GraphKeys.DATA_AUG)
-        l1_dtags = list(l1)
-        l2_dtags = list(l2)
-        del l1[:]
-        del l2[:]
-
-        try: # Do not save exclude variables
-            l3 = tf.get_collection_ref(tf.GraphKeys.EXCL_RESTORE_VARS)
-        except Exception:
-            l3 = tf.get_collection(tf.GraphKeys.EXCL_RESTORE_VARS)
-        l3_tags = list(l3)
-        del l3[:]
-
         self.saver.save(self.session, model_file, global_step=global_step)
 
-        # 0.7 workaround, restore values
-        for t in l_stags:
-            tf.add_to_collection("summary_tags", t)
-        for t in l4_stags:
-            tf.add_to_collection(tf.GraphKeys.GRAPH_CONFIG, t)
-        for t in l1_dtags:
-            tf.add_to_collection(tf.GraphKeys.DATA_PREP, t)
-        for t in l2_dtags:
-            tf.add_to_collection(tf.GraphKeys.DATA_AUG, t)
-        for t in l3_tags:
-            tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, t)
 
     def restore(self, model_file, trainable_variable_only=False, variable_name_map=None, scope_for_restore=None,
                 create_new_session=True, verbose=False):
