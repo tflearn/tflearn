@@ -68,6 +68,7 @@ class Trainer(object):
                  session=None, best_val_accuracy=0.0):
 
         self.graph = tf.get_default_graph()
+        self.summ_writer = None
         if graph:
             self.graph = graph
 
@@ -223,12 +224,19 @@ class Trainer(object):
 
         with self.graph.as_default():
 
-            try:
-                self.summ_writer = tf.train.SummaryWriter(
-                    self.tensorboard_dir + run_id, self.session.graph)
-            except Exception: # TF 0.7
-                self.summ_writer = tf.train.SummaryWriter(
-                    self.tensorboard_dir + run_id, self.session.graph_def)
+            if self.summ_writer:
+                try:
+                    self.summ_writer.reopen()
+                except:
+                    self.summ_writer = tf.train.SummaryWriter(
+                        self.tensorboard_dir + run_id, self.session.graph)
+            else:
+                try:
+                    self.summ_writer = tf.train.SummaryWriter(
+                        self.tensorboard_dir + run_id, self.session.graph)
+                except Exception: # TF 0.7
+                    self.summ_writer = tf.train.SummaryWriter(
+                        self.tensorboard_dir + run_id, self.session.graph_def)
 
             feed_dicts = to_list(feed_dicts)
             for d in feed_dicts: standarize_dict(d)
@@ -322,6 +330,8 @@ class Trainer(object):
                     t.train_dflow.interrupt()
                 # Set back train_ops
                 self.train_ops = original_train_ops
+
+        self.summ_writer.close()
 
     def save(self, model_file, global_step=None):
         """ save.
