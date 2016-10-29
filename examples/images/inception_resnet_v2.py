@@ -18,7 +18,7 @@ from __future__ import division, print_function, absolute_import
 import tflearn
 from tflearn.layers.core import input_data, dropout, flatten, fully_connected
 from tflearn.layers.conv import conv_2d, max_pool_2d, avg_pool_2d
-from tflearn.utils import repeate
+from tflearn.utils import repeat
 from tflearn.layers.merge_ops import merge
 from tflearn.data_utils import shuffle, to_categorical
 import tflearn.activations as activations
@@ -115,7 +115,7 @@ tower_conv3_1 = conv_2d(tower_pool3_0, 64, 1, activation='relu',name='Conv2d_5b_
 
 tower_5b_out = merge([tower_conv, tower_conv1_1, tower_conv2_2, tower_conv3_1], mode='concat', axis=3)
 
-net = repeate(tower_5b_out, 10, block35, scale=0.17)
+net = repeat(tower_5b_out, 10, block35, scale=0.17)
 
 tower_conv = conv_2d(net, 384, 3, strides=2,activation='relu', padding='VALID', name='Conv2d_6a_b0_0a_3x3')
 tower_conv1_0 = conv_2d(net, 256, 1, activation='relu', name='Conv2d_6a_b1_0a_1x1')
@@ -123,7 +123,7 @@ tower_conv1_1 = conv_2d(tower_conv1_0, 256, 3, activation='relu', name='Conv2d_6
 tower_conv1_2 = conv_2d(tower_conv1_1, 384, 3, strides=2, padding='VALID', activation='relu',name='Conv2d_6a_b1_0c_3x3')
 tower_pool = max_pool_2d(net, 3, strides=2, padding='VALID',name='MaxPool_1a_3x3')
 net = merge([tower_conv, tower_conv1_2, tower_pool], mode='concat', axis=3)
-net = repeate(net, 20, block17, scale=0.1)
+net = repeat(net, 20, block17, scale=0.1)
 
 # aux = avg_pool_2d(net, 5, strides=3, padding='VALID', name="AvgPool2D")
 # aux = conv_2d(aux, 128,1, activation='relu', name='Conv2d_1b_1x1')
@@ -144,7 +144,7 @@ tower_conv2_2 = conv_2d(tower_conv2_1, 320, 3, strides=2, padding='VALID',activa
 tower_pool = max_pool_2d(net, 3, strides=2, padding='VALID', name='MaxPool_1a_3x3')
 net = merge([tower_conv0_1, tower_conv1_1,tower_conv2_2, tower_pool], mode='concat', axis=3)
 
-net = repeate(net, 9, block8, scale=0.2)
+net = repeat(net, 9, block8, scale=0.2)
 net = block8(net, activation=None)
 
 net = conv_2d(net, 1536, 1,activation='relu', name='Conv2d_7b_1x1')
