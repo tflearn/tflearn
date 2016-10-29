@@ -179,7 +179,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
 
         inference = tf.matmul(inference, W)
         if b: inference = tf.nn.bias_add(inference, b)
-        if not activation:
+        if activation:
             if isinstance(activation, str):
                 inference = activations.get(activation)(inference)
             elif hasattr(activation, '__call__'):
