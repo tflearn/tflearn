@@ -463,3 +463,10 @@ def autoformat_kernel_3d(kernel):
                             + ", only a length of 3 or 5 is supported.")
     else:
         raise Exception("kernel format error: " + str(type(kernel)))
+
+
+def repeat(inputs, repetitions, layer, *args, **kwargs):
+    outputs = inputs
+    for i in range(repetitions):
+        outputs = layer(outputs, *args, **kwargs)
+    return outputs

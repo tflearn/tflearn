@@ -34,7 +34,7 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
-        activation: `str` (name) or `function` (returning a `Tensor`).
+        activation: `str` (name) or `function` (returning a `Tensor`) or None.
             Activation applied to this layer (see tflearn.activations).
             Default: 'linear'.
         bias: `bool`. If True, a bias is used.
@@ -104,12 +104,13 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         inference = tf.nn.conv2d(incoming, W, strides, padding)
         if b: inference = tf.nn.bias_add(inference, b)
 
-        if isinstance(activation, str):
-            inference = activations.get(activation)(inference)
-        elif hasattr(activation, '__call__'):
-            inference = activation(inference)
-        else:
-            raise ValueError("Invalid Activation.")
+        if activation:
+            if isinstance(activation, str):
+                inference = activations.get(activation)(inference)
+            elif hasattr(activation, '__call__'):
+                inference = activation(inference)
+            else:
+                raise ValueError("Invalid Activation.")
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
