@@ -49,7 +49,9 @@ class DNN(object):
     def __init__(self, network, clip_gradients=5.0, tensorboard_verbose=0,
                  tensorboard_dir="/tmp/tflearn_logs/", checkpoint_path=None, best_checkpoint_path=None,
                  max_checkpoints=None, session=None, best_val_accuracy=0.0):
-        assert isinstance(network, tf.Tensor), "'network' arg is not a Tensor!"
+        network = list(network)
+        for v in network:
+            assert isinstance(v, tf.Tensor), "'network' must be a Tensor or list of Tensors!"
         self.net = network
         self.train_ops = tf.get_collection(tf.GraphKeys.TRAIN_OPS)
         self.trainer = Trainer(self.train_ops,
@@ -83,7 +85,7 @@ class DNN(object):
         #     raise Exception("No target data! Please add a 'regression' layer "
         #                     "to your model (or add your target data "
         #                     "placeholder to tf.GraphKeys.TARGETS collection).")
-        self.predictor = Evaluator([self.net],
+        self.predictor = Evaluator(self.net,
                                    session=self.session)
 
     def fit(self, X_inputs, Y_targets, n_epoch=10, validation_set=None,
@@ -259,7 +261,7 @@ class DNN(object):
         """
         self.trainer.restore(model_file, weights_only, **optargs)
         self.session = self.trainer.session
-        self.predictor = Evaluator([self.net],
+        self.predictor = Evaluator(self.net,
                                    session=self.session,
                                    model=None)
         for d in tf.get_collection(tf.GraphKeys.DATA_PREP):
