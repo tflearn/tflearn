@@ -14,7 +14,7 @@ from tflearn import initializations
 from tflearn import losses
 
 
-def input_data(shape=None, placeholder=None, dtype=tf.float32,
+def input_data(shape=None, placeholder=None, reshape=None, dtype=tf.float32,
                data_preprocessing=None, data_augmentation=None,
                name="InputData"):
     """ Input Data.
@@ -43,7 +43,7 @@ def input_data(shape=None, placeholder=None, dtype=tf.float32,
         Placeholder Tensor with given shape.
 
     Arguments:
-        shape: list of `int`. An array or tuple representing input data shape.
+        shape: list of `int`. An array or tuple representing image data shape.
             It is required if no placeholder is provided. First element should
             be 'None' (representing batch size), if not provided, it will be
             added automatically.
@@ -51,6 +51,7 @@ def input_data(shape=None, placeholder=None, dtype=tf.float32,
             If not specified, a placeholder will be automatically created.
             You can retrieve that placeholder through graph key: 'INPUTS',
             or the 'placeholder' attribute of this function's returned tensor.
+        reshape: list of `int`. An array or tuple representing input data shape.
         dtype: `tf.type`, Placeholder data type (optional). Default: float32.
         data_preprocessing: A `DataPreprocessing` subclass object to manage
             real-time data pre-processing when training and predicting (such
@@ -80,6 +81,7 @@ def input_data(shape=None, placeholder=None, dtype=tf.float32,
         with tf.name_scope(name):
             placeholder = tf.placeholder(shape=shape, dtype=dtype, name="X")
 
+
     # Store the placeholder object in TensorFlow collections so it can be
     # retrieved and used elsewhere.
     tf.add_to_collection(tf.GraphKeys.INPUTS, placeholder)
@@ -90,6 +92,9 @@ def input_data(shape=None, placeholder=None, dtype=tf.float32,
     tf.add_to_collection(tf.GraphKeys.DATA_PREP, data_preprocessing)
     tf.add_to_collection(tf.GraphKeys.DATA_AUG, data_augmentation)
 
+    # Reshape the placeholder for fit Tensor 4-D format or any shape else you want.
+    if reshape is not None:
+        placeholder = tf.reshape(placeholder, reshape)
     return placeholder
 
 
