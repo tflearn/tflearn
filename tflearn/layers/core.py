@@ -81,7 +81,6 @@ def input_data(shape=None, placeholder=None, reshape=None, dtype=tf.float32,
         with tf.name_scope(name):
             placeholder = tf.placeholder(shape=shape, dtype=dtype, name="X")
 
-
     # Store the placeholder object in TensorFlow collections so it can be
     # retrieved and used elsewhere.
     tf.add_to_collection(tf.GraphKeys.INPUTS, placeholder)
