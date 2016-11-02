@@ -49,7 +49,10 @@ class DNN(object):
     def __init__(self, network, clip_gradients=5.0, tensorboard_verbose=0,
                  tensorboard_dir="/tmp/tflearn_logs/", checkpoint_path=None, best_checkpoint_path=None,
                  max_checkpoints=None, session=None, best_val_accuracy=0.0):
-        network = list(network)
+        try:
+            network = list(network)
+        except:
+            network = [network]
         for v in network:
             assert isinstance(v, tf.Tensor), "'network' must be a Tensor or list of Tensors!"
         self.net = network
