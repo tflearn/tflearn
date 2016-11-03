@@ -390,9 +390,9 @@ def upsample_2d(incoming, kernel_size, name="UpSample2D"):
     return inference
 
 
-def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
+def upscore_layer(incoming, num_classes, initializer=None, shape=None, kernel_size=4,
                   strides=2, trainable=True, restore=True,
-                  reuse=False, scope=None, name='Upscore'):
+                  reuse=False, scope=None, name='Upscore', regularizer='L2', weight_decay=0.001):
     """ Upscore.
 
     This implements the upscore layer as used in
@@ -461,32 +461,40 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
             new_shape = [shape[0], shape[1], shape[2], num_classes]
         output_shape = tf.pack(new_shape)
 
-        def get_deconv_filter(f_shape):
+        def get_deconv_filter(f_shape, initializer=None):
             """
             Create filter weights initialized as bilinear upsampling.
             """
-            width = f_shape[0]
-            heigh = f_shape[0]
-            f = ceil(width/2.0)
-            c = (2 * f - 1 - f % 2) / (2.0 * f)
-            bilinear = np.zeros([f_shape[0], f_shape[1]])
-            for x in range(width):
-                for y in range(heigh):
-                    value = (1 - abs(x / f - c)) * (1 - abs(y / f - c))
-                    bilinear[x, y] = value
-            weights = np.zeros(f_shape)
-            for i in range(f_shape[2]):
-                weights[:, :, i, i] = bilinear
+            if not initializer:
+                width = f_shape[0]
+                heigh = f_shape[0]
+                f = ceil(width/2.0)
+                c = (2 * f - 1 - f % 2) / (2.0 * f)
+                bilinear = np.zeros([f_shape[0], f_shape[1]])
+                for x in range(width):
+                    for y in range(heigh):
+                        value = (1 - abs(x / f - c)) * (1 - abs(y / f - c))
+                        bilinear[x, y] = value
+                weights = np.zeros(f_shape)
+                for i in range(f_shape[2]):
+                    weights[:, :, i, i] = bilinear
 
-            init = tf.constant_initializer(value=weights,
-                                           dtype=tf.float32)
-            W = vs.variable(name="up_filter", initializer=init,
-                            shape=weights.shape, trainable=trainable,
+                initializer = tf.constant_initializer(value=weights,
+                                               dtype=tf.float32)
+
+            W_regul = None
+            if regularizer:
+                W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+
+            W = vs.variable(name="up_filter", initializer=initializer,
+                            shape=f_shape, trainable=trainable,
+                            regularizer=W_regul,
                             restore=restore)
+
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
             return W
 
-        weights = get_deconv_filter(filter_size)
+        weights = get_deconv_filter(filter_size, initializer=initializer)
         deconv = tf.nn.conv2d_transpose(incoming, weights, output_shape,
                                         strides=strides, padding='SAME')
 
