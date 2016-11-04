@@ -510,7 +510,7 @@ def image_preloader(target_path, image_shape, mode='file', normalize=True,
             images, labels = [], []
             for l in f.readlines():
                 l = l.strip('\n').split()
-                if not files_extension or any(flag in l(0) for flag in files_extension):
+                if not files_extension or any(flag in l[0] for flag in files_extension):
                     if filter_channel:
                         if get_img_channel(l[0]) != 3:
                             continue
