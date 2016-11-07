@@ -16,7 +16,7 @@ import pickle
 from ..data_utils import to_categorical
 
 
-def load_data(dirname="./cifar-10-batches-py", one_hot=False):
+def load_data(dirname="cifar-10-batches-py", one_hot=False):
     tarpath = maybe_download("cifar-10-python.tar.gz",
                              "http://www.cs.toronto.edu/~kriz/",
                              dirname)
