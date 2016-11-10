@@ -11,10 +11,11 @@ from .. import activations
 from .. import initializations
 from .. import losses
 from .. import utils
+from . import normalization
 
 
 def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
-            activation='linear', bias=True, weights_init='uniform_scaling',
+            activation='linear', bias=True, normalizer_fn=None, normalizer_params=None, weights_init='uniform_scaling',
             bias_init='zeros', regularizer=None, weight_decay=0.001,
             trainable=True, restore=True, reuse=False, scope=None,
             name="Conv2D"):
@@ -38,6 +39,10 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
             Activation applied to this layer (see tflearn.activations).
             Default: 'linear'.
         bias: `bool`. If True, a bias is used.
+        normlize_fn: `str` or None. normalization function to use instead of `biases`. 
+        If`normalizer_fn` is provided then `bias_init` is ignored and `biases` are not
+        created nor added.default set to None for no normalizer function
+        normalizer_params: normalization function parameters.
         weights_init: `str` (name) or `Tensor`. Weights initialization.
             (see tflearn.initializations) Default: 'truncated_normal'.
         bias_init: `str` (name) or `Tensor`. Bias initialization.
@@ -91,18 +96,25 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
         # Track per layer variables
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
-
-        b = None
-        if bias:
-            if isinstance(bias_init, str):
-                bias_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
-                            trainable=trainable, restore=restore)
-            # Track per layer variables
-            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
-
         inference = tf.nn.conv2d(incoming, W, strides, padding)
-        if b: inference = tf.nn.bias_add(inference, b)
+        b = None
+        if normalizer_fn is not None:
+            normalizer_params = normalizer_params or {}
+            if isinstance(normalizer_fn, str):
+                inference = normalization.get(normalizer_fn)(inference, **normalizer_params)
+            elif hasattr(normalizer_fn, '__call__'):
+                inference = normalizer(inference, **normalizer_params)
+            else:
+                raise ValueError("Invalida Activation.")
+        else:
+            if bias:
+                if isinstance(bias_init, str):
+                    bias_init = initializations.get(bias_init)()
+                b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+                                trainable=trainable, restore=restore)
+                # Track per layer variables
+                tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
+            if b: inference = tf.nn.bias_add(inference, b)
 
         if activation:
             if isinstance(activation, str):

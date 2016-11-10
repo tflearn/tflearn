@@ -7,6 +7,14 @@ from tensorflow.python.training import moving_averages
 import tflearn
 from .. import utils
 from .. import variables as vs
+from ..utils import get_from_module
+
+
+def get(identifier):
+    if hasattr(identifier, '__call__'):
+        return identifier
+    else:
+        return get_from_module(identifier, globals(), 'normalization')
 
 
 def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
