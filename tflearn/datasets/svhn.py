@@ -37,12 +37,12 @@ def read_data_from_file(filepath,instances):
 	mat = scipy.io.loadmat(filepath)
 	Y = mat['y'] ##Y.shape = (instances,1) 
 	X = mat['X'] #X.shape = (32, 32, 3, instances) -> 32x32 RGB 
-	nX = np.zeros(instances*3*32*32).reshape(instances,3,32,32)
+	nX = np.zeros(instances*3*32*32).reshape(instances,32,32,3)
 	for n in range (instances):
 		for rgb in range(3):
 			for i in range(32):
 				for j in range(32):
-					nX[n,rgb,i,j]=X[i,j,rgb,n]
+					nX[n,i,j,rgb]=X[i,j,rgb,n] #output shape: (Nx32x32x3)
 	nY = np.zeros(instances*10).reshape(instances,10)
 	for n in range(instances):
 		nY[n] = label_to_one_hot_y(Y[n,0],10)

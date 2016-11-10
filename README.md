@@ -55,7 +55,6 @@ There are many more examples available *[here](http://tflearn.org/examples)*.
 **TensorFlow Installation**
 
 TFLearn requires Tensorflow (version >= 0.9) to be installed: *[Tensorflow installation instructions](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md)*.
-Note: Currently latest v0.11 has an issue with loading/saving a model, please use [TensorFlow v0.10](http://tflearn.org/installation).
 
 **TFLearn Installation**
 
