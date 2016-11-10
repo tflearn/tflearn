@@ -153,10 +153,5 @@ model = tflearn.DNN(network, checkpoint_path='inception_resnet_v2',
                     max_checkpoints=1, tensorboard_verbose=2, tensorboard_dir="./tflearn_logs/")
 model.fit(X, Y, n_epoch=1000, validation_set=0.1, shuffle=True,
           show_metric=True, batch_size=32, snapshot_step=2000,
-          snapshot_epoch=False, run_id='inception_resnet_v2_cifar10')
-
-
-
-
-
+          snapshot_epoch=False, run_id='inception_resnet_v2_17flowers')
 
