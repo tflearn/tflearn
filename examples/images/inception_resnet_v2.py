@@ -37,7 +37,7 @@ def block35(net, scale=1.0, activation='relu'):
     tower_mixed = merge([tower_conv, tower_conv1_1, tower_conv2_2], mode='concat', axis=3)
     tower_out = conv_2d(tower_mixed, net.get_shape()[3], 1, normalizer_fn='batch_normalization', activation=None, name='Conv2d_1x1')
     net += scale * tower_out
-    if not activation:
+    if activation:
         if isinstance(activation, str):
             net = activations.get(activation)(net)
         elif hasattr(activation, '__call__'):
@@ -54,7 +54,7 @@ def block17(net, scale=1.0, activation='relu'):
     tower_mixed = merge([tower_conv,tower_conv_1_2], mode='concat', axis=3)
     tower_out = conv_2d(tower_mixed, net.get_shape()[3], 1, normalizer_fn='batch_normalization', activation=None, name='Conv2d_1x1')
     net += scale * tower_out
-    if not activation:
+    if activation:
         if isinstance(activation, str):
             net = activations.get(activation)(net)
         elif hasattr(activation, '__call__'):
