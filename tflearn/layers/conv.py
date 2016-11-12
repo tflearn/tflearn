@@ -11,6 +11,7 @@ from .. import activations
 from .. import initializations
 from .. import losses
 from .. import utils
+from . import normalization
 
 
 def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
