@@ -160,13 +160,13 @@ To get or set the value of these variables, TFLearn models class implement `get_
 ```python
 input_data = tflearn.input_data(shape=[None, 784])
 fc1 = tflearn.fully_connected(input_data, 64)
-fc2 = tflearn.fully_connected(input_data, 10, activation='softmax')
-net = tflearn.regression(fc1)
+fc2 = tflearn.fully_connected(fc1, 10, activation='softmax')
+net = tflearn.regression(fc2)
 model = DNN(net)
-# Get weights values of fc1
-model.get_weights(fc1.W)
-# Assign new random weights to fc1
-model.set_weights(fc1.W, numpy.random.rand(64, 10))
+# Get weights values of fc2
+model.get_weights(fc2.W)
+# Assign new random weights to fc2
+model.set_weights(fc2.W, numpy.random.rand(64, 10))
 ```
 
 Note that you can also directly use TensorFlow `eval` or `assign` ops to get or set the value of these variables.
