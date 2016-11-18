@@ -410,7 +410,7 @@ Then you just need to add it on the `model.fit` call
 ```python
 
 
-monitorCallback = new MonitorCallback(api)
+monitorCallback = MonitorCallback(api) # "api" is your API class
 model = ...
 
 model.fit(..., callbacks=monitorCallback)
