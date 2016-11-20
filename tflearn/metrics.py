@@ -180,8 +180,8 @@ class WeightedR2(Metric):
     Examples:
         ```python
         # To be used with TFLearn estimators
-        r2 = R2()
-        regression = regression(net, metric=r2)
+        weighted_r2 = WeightedR2()
+        regression = regression(net, metric=weighted_r2)
         ```
 
     Arguments:
@@ -368,7 +368,7 @@ def r2_op(predictions, targets):
 
 
 def weighted_r2_op(predictions, targets, inputs):
-    """ r2_op.
+    """ weighted_r2_op.
 
     An op that calculates the standard error.
 
@@ -377,7 +377,7 @@ def weighted_r2_op(predictions, targets, inputs):
         input_data = placeholder(shape=[None, 784])
         y_pred = my_network(input_data) # Apply some ops
         y_true = placeholder(shape=[None, 10]) # Labels
-        stderr_op = r2_op(y_pred, y_true, input_data)
+        stderr_op = weighted_r2_op(y_pred, y_true, input_data)
 
         # Calculate standard error by feeding data X and labels Y
         std_error = sess.run(stderr_op, feed_dict={input_data: X, y_true: Y})
