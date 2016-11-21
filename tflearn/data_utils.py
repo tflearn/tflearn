@@ -329,7 +329,7 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
 
         # Load HDF5 dataset
         import h5py
-        h5f = h5py.File('dataset.h5', 'w')
+        h5f = h5py.File('dataset.h5', 'r')
         X = h5f['X']
         Y = h5f['Y']
 
