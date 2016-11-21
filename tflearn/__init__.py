@@ -18,6 +18,7 @@ from .helpers.summarizer import summarize, summarize_activations, \
     summarize_gradients, summarize_variables, summarize_all
 
 # Predefined ops
+from .layers import normalization
 from . import metrics
 from . import activations
 from . import losses
