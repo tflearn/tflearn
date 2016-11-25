@@ -58,7 +58,7 @@ def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
 
     # Variable Scope fix for older TF
     try:
-        vscope = tf.variable_scope(scope, name=name, values=[incoming],
+        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
                                    reuse=reuse)
     except Exception:
         vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
