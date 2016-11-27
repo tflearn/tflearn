@@ -52,7 +52,7 @@ def summarize_activations(activations, summary_collection="tflearn_summ"):
 
 
 def summarize_gradients(grads, summary_collection="tflearn_summ"):
-    """ summarize_activations.
+    """ summarize_gradients.
 
     Arguemnts:
         grads: list of `Tensor`. The gradients to monitor.
