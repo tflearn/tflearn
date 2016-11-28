@@ -2,6 +2,7 @@
 from __future__ import division, print_function, absolute_import
 
 import re
+import time
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.training import optimizer as tf_optimizer
@@ -296,7 +297,8 @@ class Trainer(object):
                     # which data input), so one epoch loop in a multi-inputs
                     # model is equal to max(data_input) size.
                     for batch_step in range(max_batches_len):
-
+                        # start the timer for current batch_step
+                        batch_start = time.time()
                         self.training_state.increaseStep()
                         self.training_state.resetGlobal()
 
@@ -316,6 +318,9 @@ class Trainer(object):
 
                             # Optimizer batch end
                             caller.on_sub_batch_end(self.training_state, i)
+
+                        # Update training state step_time
+                        self.training_state.step_time = time.time() - batch_start
 
                         # All optimizers batch end
                         self.session.run(self.incr_global_step)
@@ -974,6 +979,7 @@ class TrainingState(object):
         self.epoch = 0
         self.step = 0
         self.current_iter = 0
+        self.step_time = 0.0
 
         self.acc_value = None
         self.loss_value = None
