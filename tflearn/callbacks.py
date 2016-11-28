@@ -127,6 +127,8 @@ class TermLogger(Callback):
 
         if snapshot:
             self.snapshot_termlogs(training_state)
+        else:
+            self.print_termlogs(training_state)
 
     def on_sub_batch_start(self, training_state):
         pass
