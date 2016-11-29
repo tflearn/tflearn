@@ -125,10 +125,10 @@ class TermLogger(Callback):
 
     def on_batch_end(self, training_state, snapshot=False):
 
-        self.print_termlogs(training_state)
-
         if snapshot:
             self.snapshot_termlogs(training_state)
+        else:
+            self.print_termlogs(training_state)
 
     def on_sub_batch_start(self, training_state):
         pass
@@ -165,7 +165,7 @@ class TermLogger(Callback):
         if self.has_curses:
             sys.stdout.write(curses.tigetstr('cvvis').decode())
 
-    def termlogs(self, step=0, global_loss=None, global_acc=None):
+    def termlogs(self, step=0, global_loss=None, global_acc=None, step_time=None):
 
         termlogs = "Training Step: " + str(step) + " "
         if global_loss:
@@ -173,6 +173,8 @@ class TermLogger(Callback):
                         "%.5f" % global_loss + "\033[0m\033[0m"
         if global_acc and not self.display_type == "single":
             termlogs += " - avg acc: %.4f" % float(global_acc)
+        if step_time:
+            termlogs += " | time: %.3fs" % step_time
         termlogs += "\n"
         for i, data in enumerate(self.data):
             print_loss = ""
@@ -211,7 +213,8 @@ class TermLogger(Callback):
         termlogs = self.termlogs(
             step=training_state.step,
             global_loss=training_state.global_loss,
-            global_acc=training_state.global_acc)
+            global_acc=training_state.global_acc,
+            step_time=training_state.step_time)
 
         if self.has_ipython and not self.has_curses:
             clear_output(wait=True)
@@ -227,7 +230,8 @@ class TermLogger(Callback):
         termlogs = self.termlogs(
             step=training_state.step,
             global_loss=training_state.global_loss,
-            global_acc=training_state.global_acc)
+            global_acc=training_state.global_acc,
+            step_time=training_state.step_time)
 
         termlogs += "--\n"
 
