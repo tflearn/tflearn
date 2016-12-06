@@ -226,10 +226,10 @@ def prelu(x, channel_shared=False, weights_init='zeros', restore=True, name="PRe
     i_scope = ""
     if hasattr(x, 'scope'):
         if x.scope: i_scope = x.scope
-    with tf.name_scope(i_scope + name) as scope:
+    with tf.variable_scope(i_scope + name) as scope:
         W_init = initializations.get(weights_init)()
         alphas = va.variable(shape=w_shape, initializer=W_init,
-                             restore=restore, name=scope + "alphas")
+                             restore=restore, name="alphas")
 
         x = tf.nn.relu(x) + tf.mul(alphas, (x - tf.abs(x))) * 0.5
 
