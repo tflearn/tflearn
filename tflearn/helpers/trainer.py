@@ -229,14 +229,14 @@ class Trainer(object):
                 try:
                     self.summ_writer.reopen()
                 except:
-                    self.summ_writer = tf.train.SummaryWriter(
+                    self.summ_writer = tf.train.summary.FileWriter(
                         self.tensorboard_dir + run_id, self.session.graph)
             else:
                 try:
-                    self.summ_writer = tf.train.SummaryWriter(
+                    self.summ_writer = tf.train.summary.FileWriter(
                         self.tensorboard_dir + run_id, self.session.graph)
                 except Exception: # TF 0.7
-                    self.summ_writer = tf.train.SummaryWriter(
+                    self.summ_writer = tf.train.summary.FileWriter(
                         self.tensorboard_dir + run_id, self.session.graph_def)
 
             feed_dicts = to_list(feed_dicts)
@@ -696,7 +696,7 @@ class TrainOp(object):
             daug_dict: `dict`. Data Augmentation dict (with placeholder as
                 key and corresponding `DataAugmentation` object as value).
             show_metric: `bool`. If True, display accuracy at every step.
-            summ_writer: `SummaryWriter`. The summary writer to use for
+            summ_writer: `summary.FileWriter`. The summary writer to use for
                 Tensorboard logging.
 
         """
@@ -855,7 +855,7 @@ class TrainOp(object):
             # Summarize gradients
             summarize_gradients(self.grad, summ_collection)
 
-        self.summ_op = tf.merge_summary(tf.get_collection(summ_collection))
+        self.summ_op = tf.summary.merge(tf.get_collection(summ_collection))
 
     def create_testing_summaries(self, show_metric=False,
                                  metric_name="Accuracy", validation_set=None):

@@ -41,9 +41,9 @@ def get_summary(stype, tag, value=None, collection_key=None,
             raise Exception("Summary doesn't exist, a value must be "
                             "specified to initialize it.")
         if stype == "histogram":
-            summ = tf.histogram_summary(tag, value)
+            summ = tf.summary.histogram(tag, value)
         elif stype == "scalar":
-            summ = tf.scalar_summary(tag, value)
+            summ = tf.summary.scalar(tag, value)
         elif stype == "image":
             pass  # TODO: create summary
         else:

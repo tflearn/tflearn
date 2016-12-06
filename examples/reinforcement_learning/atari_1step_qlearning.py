@@ -336,11 +336,11 @@ def build_graph(num_actions):
 # Set up some episode summary ops to visualize on tensorboard.
 def build_summaries():
     episode_reward = tf.Variable(0.)
-    tf.scalar_summary("Reward", episode_reward)
+    tf.summary.scalar("Reward", episode_reward)
     episode_ave_max_q = tf.Variable(0.)
-    tf.scalar_summary("Qmax Value", episode_ave_max_q)
+    tf.summary.scalar("Qmax Value", episode_ave_max_q)
     logged_epsilon = tf.Variable(0.)
-    tf.scalar_summary("Epsilon", logged_epsilon)
+    tf.summary.scalar("Epsilon", logged_epsilon)
     # Threads shouldn't modify the main graph, so we use placeholders
     # to assign the value of every summary (instead of using assign method
     # in every thread, that would keep creating new ops in the graph)
@@ -349,7 +349,7 @@ def build_summaries():
                             for i in range(len(summary_vars))]
     assign_ops = [summary_vars[i].assign(summary_placeholders[i])
                   for i in range(len(summary_vars))]
-    summary_op = tf.merge_all_summaries()
+    summary_op = tf.summary.merge_all()
     return summary_placeholders, assign_ops, summary_op
 
 
@@ -376,7 +376,7 @@ def train(session, graph_ops, num_actions, saver):
 
     # Initialize variables
     session.run(tf.initialize_all_variables())
-    writer = tf.train.SummaryWriter(summary_dir + "/qlearning", session.graph)
+    writer = tf.train.summary.FileWriter(summary_dir + "/qlearning", session.graph)
 
     # Initialize target network weights
     session.run(graph_ops["reset_target_network_params"])
