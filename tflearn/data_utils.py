@@ -360,7 +360,7 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
             extension, for example ['.jpg', '.jpeg', '.png']. If None,
             all files are allowed.
         chunks: `bool` Whether to chunks the dataset or not. You should use
-            chunking when you really need it. See HDF5 documentation.
+            chunking only when you really need it. See HDF5 documentation.
             If chunks is 'True' a sensitive default will be computed.
 
     """
