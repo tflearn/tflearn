@@ -1,5 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
+import time
 import sys, curses
 try:
     from IPython.core.display import clear_output
@@ -115,16 +116,18 @@ class TermLogger(Callback):
         self.global_val_data_size += val_size
 
     def on_epoch_begin(self, training_state):
-        pass
+        training_state.step_time = time.time()
+        training_state.step_time_total = 0.
 
     def on_epoch_end(self, training_state):
         pass
 
     def on_batch_begin(self, training_state):
-        pass
+        training_state.step_time = time.time()
 
     def on_batch_end(self, training_state, snapshot=False):
 
+        training_state.step_time_total += time.time() - training_state.step_time
         if snapshot:
             self.snapshot_termlogs(training_state)
         else:
@@ -214,7 +217,7 @@ class TermLogger(Callback):
             step=training_state.step,
             global_loss=training_state.global_loss,
             global_acc=training_state.global_acc,
-            step_time=training_state.step_time)
+            step_time=training_state.step_time_total)
 
         if self.has_ipython and not self.has_curses:
             clear_output(wait=True)
@@ -231,7 +234,7 @@ class TermLogger(Callback):
             step=training_state.step,
             global_loss=training_state.global_loss,
             global_acc=training_state.global_acc,
-            step_time=training_state.step_time)
+            step_time=training_state.step_time_total)
 
         termlogs += "--\n"
 
