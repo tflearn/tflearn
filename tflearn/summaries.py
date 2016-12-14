@@ -8,9 +8,11 @@ from .utils import format_scope_name
 
 # Fix for TF 0.12
 try:
+    tf012 = True
     histogram_summary = tf.summary.histogram
     scalar_summary = tf.summary.scalar
 except Exception:
+    tf012 = False
     histogram_summary = tf.histogram_summary
     scalar_summary = tf.scalar_summary
 
@@ -188,7 +190,8 @@ def get_value_from_summary_string(tag, summary_str):
         `Exception` if tag not found.
 
     """
-    if tag[-1] == '/':
+    # Fix for TF 0.12
+    if tag[-1] == '/' and tf012:
         tag = tag[:-1]
     summ = summary_pb2.Summary()
     summ.ParseFromString(summary_str)
