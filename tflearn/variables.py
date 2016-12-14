@@ -74,7 +74,10 @@ def get_all_variables():
         A list of Variables.
 
     """
-    return tf.get_collection(tf.GraphKeys.VARIABLES)
+    try:
+        return tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
+    except Exception:
+        return tf.get_collection(tf.GraphKeys.VARIABLES)
 
 
 def get_all_trainable_variable():

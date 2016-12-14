@@ -6,6 +6,15 @@ from tensorflow.core.framework import summary_pb2
 from .utils import format_scope_name
 
 
+# Fix for TF 0.12
+try:
+    histogram_summary = tf.summary.histogram
+    scalar_summary = tf.summary.scalar
+except Exception:
+    histogram_summary = tf.histogram_summary
+    scalar_summary = tf.scalar_summary
+
+
 def monitor_activation(tensor):
     tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, tensor)
 
@@ -41,9 +50,9 @@ def get_summary(stype, tag, value=None, collection_key=None,
             raise Exception("Summary doesn't exist, a value must be "
                             "specified to initialize it.")
         if stype == "histogram":
-            summ = tf.histogram_summary(tag, value)
+            summ = histogram_summary(tag, value)
         elif stype == "scalar":
-            summ = tf.scalar_summary(tag, value)
+            summ = scalar_summary(tag, value)
         elif stype == "image":
             pass  # TODO: create summary
         else:
@@ -179,6 +188,8 @@ def get_value_from_summary_string(tag, summary_str):
         `Exception` if tag not found.
 
     """
+    if tag[-1] == '/':
+        tag = tag[:-1]
     summ = summary_pb2.Summary()
     summ.ParseFromString(summary_str)
 
@@ -227,7 +238,7 @@ def add_loss_summaries(total_loss, loss, regul_losses_collection_key,
     if len(other_losses) > 0 and total_loss is not None:
         loss_averages_op = loss_averages.apply(
             [total_loss] + [loss] + other_losses)
-        summ_name = "- Loss & var loss/" + name_prefix
+        summ_name = "Loss & var loss/" + name_prefix
         get_summary("scalar", summ_name, loss_averages.average(total_loss),
                     summaries_collection_key)
         get_summary("scalar", summ_name + ' (raw)', total_loss,
@@ -238,7 +249,7 @@ def add_loss_summaries(total_loss, loss, regul_losses_collection_key,
         loss_averages_op = loss_averages.apply([loss])
 
     # For tflearn wrapper visibility
-    summ_name = "- Loss/" + name_prefix
+    summ_name = "Loss/" + name_prefix
     get_summary("scalar", summ_name, loss_averages.average(loss),
                 summaries_collection_key)
     get_summary("scalar", summ_name + ' (raw)', loss, summaries_collection_key)
