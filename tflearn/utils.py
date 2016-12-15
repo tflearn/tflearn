@@ -229,13 +229,10 @@ def feed_dict_builder(X, Y, net_inputs, net_targets):
         # Building feed dictionary
         >> feed_dict = feed_dict_builder(X, Y, input1, output1)
         >> {input1: X, output1: Y}
-
         >> feed_dict = feed_dict_builder({input1: X}, Y, input1, output1)
         >> {input1: X, output1: Y}
-
         >> feed_dict = feed_dict_builder([X1, X2], Y, [in1, in2], out1)
         >> {in1: X1, in2: X2, output1: Y}
-
         # For validation split:
         >> val_feed_dict = feed_dict_builder(0.1, 0.1, input1, output1)
         >> {input1: 0.1, output1: 0.1}
@@ -253,7 +250,6 @@ def feed_dict_builder(X, Y, net_inputs, net_targets):
     Raises:
         Exception if X and net_inputs or Y and net_targets list length doesn't
         match.
-
     """
 
     feed_dict = {}
@@ -265,24 +261,22 @@ def feed_dict_builder(X, Y, net_inputs, net_targets):
             if isinstance(X, float):
                 X = [X for _i in net_inputs]
             elif len(net_inputs) > 1:
-                try: #TODO: Fix brodcast issue if different
+                try:  # TODO: Fix brodcast issue if different
                     if np.ndim(X) < 2:
                         raise ValueError("Multiple inputs but only one data "
                                          "feeded. Please verify number of "
                                          "inputs and data provided match.")
                     elif len(X) != len(net_inputs):
-                        raise Exception(str(len(X)) + " inputs feeded, "
-                                    "but expected: " + str(len(net_inputs)) +
-                                    ". If you are using notebooks, please "
-                                    "make sure that you didn't run graph "
-                                    "construction cell multiple time, "
-                                    "or try to enclose your graph within "
-                                    "`with tf.Graph().as_default():` or "
-                                    "use `tf.reset_default_graph()`")
+                        raise Exception(str(len(X)) + " inputs feeded, " +
+                                        "but expected: " + str(len(net_inputs)) +
+                                        ". If you are using notebooks, please "
+                                        "make sure that you didn't run graph "
+                                        "construction cell multiple time, "
+                                        "or try to enclose your graph within "
+                                        "`with tf.Graph().as_default():` or "
+                                        "use `tf.reset_default_graph()`")
                 except Exception:
-                    # Skip verif
                     pass
-
             else:
                 X = [X]
             for i, x in enumerate(X):
@@ -290,10 +284,10 @@ def feed_dict_builder(X, Y, net_inputs, net_targets):
         else:
             # If a dict is provided
             for key, val in X.items():
-                # Do nothing if dict already fits {placeholder: data} template
+                # Copy to feed_dict if dict already fits {placeholder: data} template
                 if isinstance(key, tf.Tensor):
-                    continue
-                else: # Else retrieve placeholder with its name
+                    feed_dict[key] = val
+                else:  # Else retrieve placeholder with its name
                     var = vs.get_inputs_placeholder_by_name(key)
                     if var is None:
                         raise Exception("Feed dict asks for variable named '%s' but no "
@@ -309,14 +303,14 @@ def feed_dict_builder(X, Y, net_inputs, net_targets):
             if isinstance(Y, float):
                 Y = [Y for _t in net_targets]
             elif len(net_targets) > 1:
-                try: #TODO: Fix brodcast issue if different
+                try:  # TODO: Fix brodcast issue if different
                     if np.ndim(Y) < 2:
                         raise ValueError("Multiple outputs but only one data "
                                          "feeded. Please verify number of outputs "
                                          "and data provided match.")
                     elif len(Y) != len(net_targets):
                         raise Exception(str(len(Y)) + " outputs feeded, "
-                                        "but expected: " + str(len(net_targets)))
+                                                      "but expected: " + str(len(net_targets)))
                 except Exception:
                     # skip verif
                     pass
@@ -327,10 +321,10 @@ def feed_dict_builder(X, Y, net_inputs, net_targets):
         else:
             # If a dict is provided
             for key, val in Y.items():
-                # Do nothing if dict already fits {placeholder: data} template
+                # Copy to feed_dict if dict already fits {placeholder: data} template
                 if isinstance(key, tf.Tensor):
-                    continue
-                else: # Else retrieve placeholder with its name
+                    feed_dict[key] = val
+                else:  # Else retrieve placeholder with its name
                     var = vs.get_targets_placeholder_by_name(key)
                     if var is None:
                         raise Exception("Feed dict asks for variable named '%s' but no "
