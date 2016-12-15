@@ -400,7 +400,7 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
         o = outputs if return_seq else outputs[-1]
 
     sfw = states_fw
-    sbw = states_fw
+    sbw = states_bw
 
     # Track output tensor.
     tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, o)
