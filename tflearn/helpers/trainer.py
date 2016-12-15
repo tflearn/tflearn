@@ -158,8 +158,11 @@ class Trainer(object):
             if not self.restored:
                 # TF 0.12 fix
                 try:
-                    init = tf.global_variables_initializer()
-                except Exception:
+                    init = tf.group(tf.global_variables_initializer(),
+                                    tf.local_variables_initializer())
+                    self.session.run(tf.variables_initializer(
+                        tf.get_collection_ref('is_training')))
+                except Exception as e:
                     init = tf.initialize_all_variables()
                 self.session.run(init)
 
