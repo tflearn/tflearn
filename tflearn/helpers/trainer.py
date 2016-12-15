@@ -815,9 +815,11 @@ class TrainOp(object):
                 eval_ops.append(self.metric)
             e = evaluate_flow(self.session, eval_ops, self.test_dflow)
             self.val_loss = e[0]
-            self.validation_monitor_values = e[1:-1]
             if show_metric and self.metric is not None:
+                self.validation_monitor_values = e[1:-1]
                 self.val_acc = e[-1]
+            else:
+                self.validation_monitor_values = e[1:]
 
             # Set evaluation results to variables, to be summarized.
             update_val_op = [self.val_loss_assign]
