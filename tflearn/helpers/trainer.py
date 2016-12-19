@@ -242,6 +242,7 @@ class Trainer(object):
 
         with self.graph.as_default():
 
+            obj_lists = utils.fix_saver()
             if self.summ_writer:
                 try:
                     self.summ_writer.reopen()
@@ -255,6 +256,7 @@ class Trainer(object):
                 except Exception: # TF 0.7
                     self.summ_writer = writer_summary(
                         self.tensorboard_dir + run_id, self.session.graph_def)
+            utils.fix_saver(obj_lists)
 
             feed_dicts = to_list(feed_dicts)
             for d in feed_dicts: standarize_dict(d)
