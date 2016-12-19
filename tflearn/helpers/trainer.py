@@ -364,6 +364,9 @@ class Trainer(object):
         """
         # Temp workaround for tensorflow 0.7+ dict proto serialization issue
         obj_lists = utils.fix_saver()
+        # TF 0.12 Fix
+        if not model_file[0] in ['/', '~']:
+            model_file = './' + model_file
         self.saver.save(self.session, model_file, global_step=global_step)
         utils.fix_saver(obj_lists)
 
@@ -391,6 +394,10 @@ class Trainer(object):
                                 when using scope_for_restore or variable_name_map
         
         """
+        # TF 0.12 Fix
+        if not model_file[0] in ['/', '~']:
+            model_file = './' + model_file
+
         if create_new_session:
             self.close_session()
             config = None
@@ -398,7 +405,12 @@ class Trainer(object):
             if tflearn_conf:
                 config = tflearn_conf[0]
             self.session = tf.Session(config=config)
-            self.session.run(tf.initialize_all_variables())
+            # TF 0.12 Fix
+            try:
+                self.session.run([tf.global_variables_initializer(),
+                                  tf.local_variables_initializer()])
+            except Exception:
+                self.session.run(tf.initialize_all_variables())
 
         if scope_for_restore is not None:	# allow variables to be restored into a different scope
             sname = scope_for_restore
