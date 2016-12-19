@@ -242,6 +242,7 @@ class Trainer(object):
 
         with self.graph.as_default():
 
+            # TF 0.12 Fix
             obj_lists = utils.fix_saver()
             if self.summ_writer:
                 try:
