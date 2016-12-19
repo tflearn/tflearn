@@ -2,7 +2,7 @@
 from __future__ import division, print_function, absolute_import
 
 import re
-import time
+import os
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.training import optimizer as tf_optimizer
@@ -368,8 +368,8 @@ class Trainer(object):
         # Temp workaround for tensorflow 0.7+ dict proto serialization issue
         obj_lists = utils.fix_saver()
         # TF 0.12 Fix
-        if not model_file[0] in ['/', '~']:
-            model_file = './' + model_file
+        if not os.path.isabs(model_file):
+            model_file = os.path.abspath(os.path.join(os.getcwd(), model_file))
         self.saver.save(self.session, model_file, global_step=global_step)
         utils.fix_saver(obj_lists)
 
@@ -398,8 +398,8 @@ class Trainer(object):
         
         """
         # TF 0.12 Fix
-        if not model_file[0] in ['/', '~']:
-            model_file = './' + model_file
+        if not os.path.isabs(model_file):
+            model_file = os.path.abspath(os.path.join(os.getcwd(), model_file))
 
         if create_new_session:
             self.close_session()
