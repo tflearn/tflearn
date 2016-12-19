@@ -592,11 +592,24 @@ class TrainOp(object):
         """
         self.session = session
 
-        # Variables holding mean validation loss and accuracy, assigned after
-        # each model evaluation (by batch). For visualization in Tensorboard.
+        # Variables holding mean validation loss, accuracy, and validation
+        # monitors, assigned after each model evaluation (by batch).
+        # For visualization in Tensorboard.
+        # Define variables, placeholders and assign ops.
         self.val_loss_T = tf.Variable(0., name='val_loss', trainable=False)
         self.val_acc_T = tf.Variable(0., name='val_acc', trainable=False)
         self.validation_monitors_T = [tf.Variable(0., name='%s_T' % v.name.rsplit(':', 1)[0], trainable=False) for v in self.validation_monitors]
+
+        self.val_loss_P = tf.placeholder(dtype=tf.float32, name='placeholder/%s' % self.val_loss_T.name.rsplit(':')[0])
+        self.val_acc_P = tf.placeholder(dtype=tf.float32, name='placeholder/%s' % self.val_acc_T.name.rsplit(':')[0])
+        self.val_monitors_P = [tf.placeholder(dtype=tf.float32, name='placeholder/%s' % v.name.rsplit(':')[0]) for v in self.validation_monitors_T]
+
+        self.val_loss_assign = tf.assign(self.val_loss_T, self.val_loss_P,
+                                         name='assign/%s' % self.val_loss_T.name.rsplit(':')[0])
+        self.val_acc_assign = tf.assign(self.val_acc_T, self.val_acc_P,
+                                        name='assign/%s' % self.val_acc_T.name.rsplit(':')[0])
+        self.val_monitors_assign = [tf.assign(vmt, vmp, name='assign/%s' % vmt.name.rsplit(':')[0]) for vmt, vmp in
+                                    zip(self.validation_monitors_T, self.val_monitors_P)]
 
         # Creating the accuracy moving average, for better visualization.
         if self.metric is not None:
@@ -774,18 +787,24 @@ class TrainOp(object):
                 eval_ops.append(self.metric)
             e = evaluate_flow(self.session, eval_ops, self.test_dflow)
             self.val_loss = e[0]
-            self.validation_monitor_values = e[1:-1]
             if show_metric and self.metric is not None:
+                self.validation_monitor_values = e[1:-1]
                 self.val_acc = e[-1]
+            else:
+                self.validation_monitor_values = e[1:]
 
             # Set evaluation results to variables, to be summarized.
-            update_val_op = [tf.assign(self.val_loss_T, self.val_loss)]
+            update_val_op = [self.val_loss_assign]
+            update_val_feed = {self.val_loss_P: self.val_loss}
             if show_metric:
-                update_val_op.append(tf.assign(self.val_acc_T, self.val_acc))
+                update_val_op.append(self.val_acc_assign)
+                update_val_feed[self.val_acc_P] = self.val_acc
             if self.validation_monitors:
-                for vmt, vm in zip(self.validation_monitors_T, self.validation_monitor_values):
-                    update_val_op.append(tf.assign(vmt, vm))
-            self.session.run(update_val_op)
+                update_val_op.append(self.val_monitors_assign)
+                for vmp, vmv in zip(self.val_monitors_P, self.validation_monitor_values):
+                    update_val_feed[vmp] = vmv
+
+            self.session.run(update_val_op, feed_dict=update_val_feed)
 
             # Run summary operation.
             test_summ_str = self.session.run(self.val_summary_op)
