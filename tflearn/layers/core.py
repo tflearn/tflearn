@@ -201,16 +201,25 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
     return inference
 
 
-def dropout(incoming, keep_prob, name="Dropout"):
+def dropout(incoming, keep_prob, noise_shape=None, name="Dropout"):
     """ Dropout.
 
     Outputs the input element scaled up by `1 / keep_prob`. The scaling is so
     that the expected sum is unchanged.
 
+    By default, each element is kept or dropped independently. If noise_shape
+    is specified, it must be broadcastable to the shape of x, and only dimensions
+    with noise_shape[i] == shape(x)[i] will make independent decisions. For
+    example, if shape(x) = [k, l, m, n] and noise_shape = [k, 1, 1, n], each
+    batch and channel component will be kept independently and each row and column
+    will be kept or not kept together.
+
     Arguments:
         incoming : A `Tensor`. The incoming tensor.
         keep_prob : A float representing the probability that each element
             is kept.
+        noise_shape : A 1-D Tensor of type int32, representing the shape for
+            randomly generated keep/drop flags.
         name : A name for this layer (optional).
 
     References:
@@ -231,10 +240,10 @@ def dropout(incoming, keep_prob, name="Dropout"):
         def apply_dropout():
             if type(inference) in [list, np.array]:
                 for x in inference:
-                    x = tf.nn.dropout(x, keep_prob)
+                    x = tf.nn.dropout(x, keep_prob, noise_shape)
                 return inference
             else:
-                return tf.nn.dropout(inference, keep_prob)
+                return tf.nn.dropout(inference, keep_prob, noise_shape)
 
         is_training = tflearn.get_training_mode()
         inference = tf.cond(is_training, apply_dropout, lambda: inference)
