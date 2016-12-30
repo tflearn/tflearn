@@ -65,7 +65,7 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = vs.variable(scope + 'W', shape=filter_size,
                         regularizer=W_regul, initializer=W_init,
@@ -74,7 +74,7 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
 
         b = None
-        if bias:
+        if bias is not None:
             b_init = initializations.get(bias_init)()
             b = vs.variable(scope + 'b', shape=nb_filter,
                             initializer=b_init, trainable=trainable,
@@ -83,7 +83,7 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
 
         inference = tf.nn.conv2d(incoming, W, strides, padding)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
         inference = activations.get(activation)(inference)
 
         # Track activations.
@@ -155,7 +155,7 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, strides=1,
 
         W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = vs.variable(scope + 'W', shape=filter_size,
                         regularizer=W_regul, initializer=W_init,
@@ -164,7 +164,7 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, strides=1,
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
 
         b = None
-        if bias:
+        if bias is not None:
             b_init = initializations.get(bias_init)()
             b = vs.variable(scope + 'b', shape=nb_filter,
                             initializer=b_init, trainable=trainable,
@@ -173,7 +173,7 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, strides=1,
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, b)
 
         inference = tf.nn.conv2d_transpose(incoming, W, strides, padding)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
         inference = activations.get(activation)(inference)
 
         # Track activations.
@@ -323,7 +323,7 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
         W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = vs.variable(scope + 'W', shape=filter_size,
                         regularizer=W_regul, initializer=W_init,
@@ -332,7 +332,7 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
 
         b = None
-        if bias:
+        if bias is not None:
             b_init = initializations.get(bias_init)()
             b = vs.variable(scope + 'b', shape=nb_filter,
                             initializer=b_init, trainable=trainable,
@@ -343,7 +343,7 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         # Adding dummy dimension to fit with Tensorflow conv2d
         inference = tf.expand_dims(incoming, 2)
         inference = tf.nn.conv2d(inference, W, strides, padding)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
         inference = tf.squeeze(inference, [2])
         inference = activations.get(activation)(inference)
 

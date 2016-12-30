@@ -47,7 +47,7 @@ def input_data(shape=None, placeholder=None, dtype=tf.float32,
     if not shape and not placeholder:
         raise Exception("`shape` or `placeholder` argument is required.")
 
-    if not placeholder:
+    if placeholder is None:
         # Add 'None' if missing
         assert shape is not None, "A shape or a placeholder must be provided."
         if len(shape) > 1:
@@ -111,7 +111,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = va.variable(scope + 'W', shape=[n_inputs, n_units],
                         regularizer=W_regul, initializer=W_init,
@@ -119,7 +119,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
 
         b = None
-        if bias:
+        if bias is not None:
             b_init = initializations.get(bias_init)()
             b = va.variable(scope + 'b', shape=[n_units],
                             initializer=b_init, trainable=trainable,
@@ -132,7 +132,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
             inference = tf.reshape(inference, [-1, n_inputs])
 
         inference = tf.matmul(inference, W)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
         inference = activations.get(activation)(inference)
 
         # Track activations.
@@ -313,7 +313,7 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + scope, W)
 
         b = None
-        if bias:
+        if bias is not None:
             b = va.variable(scope + 'b', shape=[n_inputs],
                             initializer=tf.constant_initializer(np.random.randn()),
                             trainable=trainable, restore=restore)
@@ -325,7 +325,7 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
             inference = tf.reshape(inference, [-1])
 
         inference = tf.mul(inference, W)
-        if b: inference = tf.add(inference, b)
+        if b is not None: inference = tf.add(inference, b)
         inference = activations.get(activation)(inference)
 
         # Track activations.

@@ -53,7 +53,7 @@ def regression(incoming, placeholder=None, optimizer='adam',
 
     input_shape = utils.get_incoming_shape(incoming)
 
-    if not placeholder:
+    if placeholder is None:
         pscope = "TargetsData" if not name else name
         with tf.name_scope(pscope):
             pshape = [None, input_shape[-1]]
