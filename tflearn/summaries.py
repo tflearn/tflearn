@@ -241,10 +241,10 @@ def add_loss_summaries(total_loss, loss, regul_losses_collection_key,
     if len(other_losses) > 0 and total_loss is not None:
         loss_averages_op = loss_averages.apply(
             [total_loss] + [loss] + other_losses)
-        summ_name = "Loss & var loss/" + name_prefix
+        summ_name = "Loss_var_loss/" + name_prefix
         get_summary("scalar", summ_name, loss_averages.average(total_loss),
                     summaries_collection_key)
-        get_summary("scalar", summ_name + ' (raw)', total_loss,
+        get_summary("scalar", summ_name + 'raw', total_loss,
                     summaries_collection_key)
     elif total_loss is not None:
         loss_averages_op = loss_averages.apply([loss] + other_losses)
@@ -255,14 +255,14 @@ def add_loss_summaries(total_loss, loss, regul_losses_collection_key,
     summ_name = "Loss/" + name_prefix
     get_summary("scalar", summ_name, loss_averages.average(loss),
                 summaries_collection_key)
-    get_summary("scalar", summ_name + ' (raw)', loss, summaries_collection_key)
+    get_summary("scalar", summ_name + 'raw', loss, summaries_collection_key)
 
     for wdl in other_losses:
         # No prefix, we store every variable into their own scope
         summ_name = wdl.op.name
         get_summary("scalar", summ_name, loss_averages.average(wdl),
                     summaries_collection_key)
-        get_summary("scalar", summ_name + ' (raw)', wdl,
+        get_summary("scalar", summ_name + 'raw', wdl,
                     summaries_collection_key)
 
     return loss_averages_op
