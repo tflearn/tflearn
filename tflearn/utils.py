@@ -8,7 +8,7 @@ try:
     import h5py
     H5PY_SUPPORTED = True
 except Exception as e:
-    print("hdf5 not supported (please install/reinstall h5py)")
+    print("hdf5 is not supported on this machine (please install/reinstall h5py for optimal experience)")
     H5PY_SUPPORTED = False
 import numpy as np
 import tensorflow as tf

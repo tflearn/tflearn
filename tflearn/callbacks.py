@@ -1,12 +1,18 @@
 from __future__ import division, print_function, absolute_import
 
 import time
-import sys, curses
+import sys
 try:
     from IPython.core.display import clear_output
 except:
     pass
 
+try:
+    import curses
+    CURSES_SUPPORTED = True
+except:
+    print("curses is not supported on this machine (please install/reinstall curses for an optimal experience)")
+    CURSES_SUPPORTED = False
 
 class Callback(object):
     """ Callback base class. """
@@ -82,17 +88,16 @@ class ChainCallback(Callback):
 class TermLogger(Callback):
     def __init__(self):
         self.data = []
-        self.has_curses = True
         self.has_ipython = True
         self.display_type = "multi"
         self.global_data_size = 0
         self.global_val_data_size = 0
         self.snapped = False
-        try:
+        
+        if CURSES_SUPPORTED:
             curses.setupterm()
             sys.stdout.write(curses.tigetstr('civis').decode())
-        except Exception:
-            self.has_curses = False
+        
         try:
             clear_output
         except NameError:
@@ -156,7 +161,7 @@ class TermLogger(Callback):
     def on_train_end(self, training_state):
         # Reset caret to last position
         to_be_printed = ""
-        if self.has_curses: #if not self.has_ipython #TODO:check bug here
+        if CURSES_SUPPORTED: #if not self.has_ipython #TODO:check bug here
             for i in range(len(self.data) + 2):
                 to_be_printed += "\033[B"
             if not self.snapped:
@@ -164,8 +169,8 @@ class TermLogger(Callback):
         sys.stdout.write(to_be_printed)
         sys.stdout.flush()
 
-        # Set caret visible
-        if self.has_curses:
+        # Set caret visible if possible
+        if CURSES_SUPPORTED:
             sys.stdout.write(curses.tigetstr('cvvis').decode())
 
     def termlogs(self, step=0, global_loss=None, global_acc=None, step_time=None):
@@ -219,7 +224,7 @@ class TermLogger(Callback):
             global_acc=training_state.global_acc,
             step_time=training_state.step_time_total)
 
-        if self.has_ipython and not self.has_curses:
+        if self.has_ipython and not CURSES_SUPPORTED:
             clear_output(wait=True)
         else:
             for i in range(len(self.data) + 1):
@@ -252,6 +257,7 @@ class ModelSaver(Callback):
         self.best_snapshot_path = best_snapshot_path
         self.best_val_accuracy = best_val_accuracy
         self.snapshot_step = snapshot_step
+        
 
     def on_epoch_begin(self, training_state):
         pass
