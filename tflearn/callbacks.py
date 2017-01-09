@@ -2,17 +2,20 @@ from __future__ import division, print_function, absolute_import
 
 import time
 import sys
+
+# Verify curses module for Windows and Notebooks Support
 try:
     from IPython.core.display import clear_output
 except:
     pass
 
+CURSES_SUPPORTED = True
 try:
     import curses
-    CURSES_SUPPORTED = True
-except:
+except Exception:
     print("curses is not supported on this machine (please install/reinstall curses for an optimal experience)")
     CURSES_SUPPORTED = False
+
 
 class Callback(object):
     """ Callback base class. """
@@ -42,6 +45,7 @@ class Callback(object):
 
     def on_train_end(self, training_state):
         pass
+
 
 class ChainCallback(Callback):
     def __init__(self, callbacks=[]):
@@ -85,6 +89,7 @@ class ChainCallback(Callback):
 
         self.callbacks.append(callback)
 
+
 class TermLogger(Callback):
     def __init__(self):
         self.data = []
@@ -93,10 +98,14 @@ class TermLogger(Callback):
         self.global_data_size = 0
         self.global_val_data_size = 0
         self.snapped = False
-        
+
+        global CURSES_SUPPORTED
         if CURSES_SUPPORTED:
-            curses.setupterm()
-            sys.stdout.write(curses.tigetstr('civis').decode())
+            try:
+                curses.setupterm()
+                sys.stdout.write(curses.tigetstr('civis').decode())
+            except Exception:
+                CURSES_SUPPORTED = False
         
         try:
             clear_output
@@ -257,7 +266,6 @@ class ModelSaver(Callback):
         self.best_snapshot_path = best_snapshot_path
         self.best_val_accuracy = best_val_accuracy
         self.snapshot_step = snapshot_step
-        
 
     def on_epoch_begin(self, training_state):
         pass
