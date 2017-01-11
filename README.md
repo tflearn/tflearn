@@ -54,9 +54,7 @@ There are many more examples available *[here](http://tflearn.org/examples)*.
 
 **TensorFlow Installation**
 
-Note: TensorFlow 0.12.0 may display some warnings, you can ignore them. If you find any bug, please report it.
-
-TFLearn requires Tensorflow (version >= 0.9) to be installed: *[Tensorflow installation instructions](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md)*.
+TFLearn requires Tensorflow (version >= 0.11) to be installed: *[Tensorflow installation instructions](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md)*.
 
 **TFLearn Installation**
 
