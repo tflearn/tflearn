@@ -5,8 +5,10 @@ from .. import summaries
 
 # Fix for TF 0.12
 try:
+    tf012 = True
     merge_summary = tf.summary.merge
 except Exception:
+    tf012 = False
     merge_summary = tf.merge_summary
 
 """
@@ -91,5 +93,7 @@ def summarize(value, type, name, summary_collection="tflearn_summ"):
         `Tensor`. Merge of all summary in 'summary_collection'.
 
     """
+    if tf012:
+        name = name.replace(':', '_')
     summaries.get_summary(type, name, value, summary_collection)
     return merge_summary(tf.get_collection(summary_collection))
