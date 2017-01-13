@@ -85,14 +85,14 @@ def _rnn_template(incoming, cell, dropout=None, return_seq=False,
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, outputs[-1])
 
-    if dynamic:
-        if return_seq:
-            o = outputs
-        else:
+    if not return_seq:
+        if dynamic:
             outputs = tf.transpose(tf.pack(outputs), [1, 0, 2])
             o = advanced_indexing_op(outputs, sequence_length)
+        else:
+            o = outputs[-1]
     else:
-        o = outputs if return_seq else outputs[-1]
+        o = tf.transpose(tf.pack(outputs), [1, 0, 2])
 
     # Track output tensor.
     tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, o)
@@ -390,14 +390,14 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, outputs[-1])
 
-    if dynamic:
-        if return_seq:
-            o = outputs
-        else:
+    if not return_seq:
+        if dynamic:
             outputs = tf.transpose(tf.pack(outputs), [1, 0, 2])
             o = advanced_indexing_op(outputs, sequence_length)
+        else:
+            o = outputs[-1]
     else:
-        o = outputs if return_seq else outputs[-1]
+        o = tf.transpose(tf.pack(outputs), [1, 0, 2])
 
     sfw = states_fw
     sbw = states_fw
