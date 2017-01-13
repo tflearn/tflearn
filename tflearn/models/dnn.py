@@ -83,7 +83,7 @@ class DNN(object):
         #     raise Exception("No target data! Please add a 'regression' layer "
         #                     "to your model (or add your target data "
         #                     "placeholder to tf.GraphKeys.TARGETS collection).")
-        self.predictor = Evaluator([self.net],
+        self.predictor = Evaluator(self.net,
                                    session=self.session)
 
     def fit(self, X_inputs, Y_targets, n_epoch=10, validation_set=None,
