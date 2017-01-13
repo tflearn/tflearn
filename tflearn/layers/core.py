@@ -659,5 +659,8 @@ def time_distributed(incoming, fn, args=None, scope=None):
              for i in range(timestep)]
     else:
         x = [fn(x[i], *args) for i in range(timestep)]
-    x = map(lambda t: tf.reshape(t, [-1, 1]+utils.get_incoming_shape(t)[1:]), x)
+    try:
+      x = map(lambda t: tf.reshape(t, [-1, 1]+utils.get_incoming_shape(t)[1:]), x)
+    except:
+      x = list(map(lambda t: tf.reshape(t, [-1, 1]+utils.get_incoming_shape(t)[1:]), x))
     return tf.concat(1, x)
