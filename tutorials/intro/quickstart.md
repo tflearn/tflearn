@@ -1,6 +1,6 @@
 # TFLearn - Quick Start
 
-In this tutorial, you will learn to use TFLearn and TensorFlow to estimate Titanic passengers chance of surviving the sinking, using their personal information (such as gender, age, etc...). To tackle this classic machine learning task, we are going to build a deep neural network classifier.
+In this tutorial, you will learn to use TFLearn and TensorFlow to estimate Titanic passengers chance of surviving the sinking, using their personal information (such as gender, age, etc.). To tackle this classic machine learning task, we are going to build a deep neural network classifier.
 
 ## Prerequisite
 Make sure that you have tensorflow and tflearn (bleeding edge version) installed. If you don't, please follow these [instructions](http://tflearn.org/installation).
@@ -8,10 +8,10 @@ Make sure that you have tensorflow and tflearn (bleeding edge version) installed
 # Overview
 ![Titanic](http://www.maritime-reproductions.com/images/1000_titanic_sinking_12x8.jpg)
 ## Introduction
-On April 15, 1912, the Titanic sank after colliding with an iceberg, killing 1502 out of 2224 passengers and crew. Although there was some element of luck involved in surviving the sinking, some groups of people were more likely to survive than others, such as women, children, and the upper-class. In this tutorial, we carry an analysis to find out who these people are.
+On April 15, 1912, the Titanic sank after colliding with an iceberg, killing 1502 out of 2224 passengers and crew. Although there was some element of luck involved in surviving the sinking, some groups of people were more likely to survive than others, such as women, children, and the upper-class. In this tutorial, we carry out an analysis to discover who these people are.
 
 ## Dataset
-Let's take a look at the dataset (TFLearn will automatically download it for you). For each passenger, the following information are provided:
+Let's take a look at the dataset (TFLearn will automatically download it for you). For each passenger, the following information is provided:
 ```
 VARIABLE DESCRIPTIONS:
 survived        Survived
@@ -40,7 +40,7 @@ There are 2 classes in our task 'not survived' (class 0) and 'survived' (class 1
 
 # Build the Classifier
 ## Loading Data
-The Dataset is stored in a csv file, so we can use TFLearn `load_csv()` function to load the data from file into a python `list`. We specify 'target_column' argument to indicate that our labels (survived or not) are located in the first column (id: 0). The function will return a tuple: (data, labels).
+The dataset is stored in a csv file, so we can use the TFLearn `load_csv()` function to load the data from the csv file into a python `list`. We specify the 'target_column' argument to indicate that our labels (survived or not) are located in the first column (id: 0). The function will return a tuple: (data, labels).
 ```python
 import numpy as np
 import tflearn
@@ -56,11 +56,11 @@ data, labels = load_csv('titanic_dataset.csv', target_column=0,
 ```
 
 ## Preprocessing Data
-Data are given 'as it' and need some preprocessing to be ready to be used in our deep neural network classifier.
+Data are given 'as is' and need some preprocessing to be ready for use in our deep neural network classifier.
 
-First, we will discard the fields that are not likely to help in our analysis. For example, we make the assumption that 'name' field will not be very useful in our task, because we estimate that a passenger name and his chance of surviving are not correlated. With such thinking, we discard 'name' and 'ticket' fields.
+First, we will discard the fields that are not likely to help in our analysis. For example, we make the assumption that 'name' field will not be very useful in our task, because we estimate that a passenger name and his chance of surviving are not correlated. With such thinking, we discard the 'name' and 'ticket' fields.
 
-Then, we need to convert all our data to numerical values, because a neural network model can only perform operations over numbers. However, our dataset contains some non numerical values, such as 'name' or 'sex'. Because 'name' is discarded, we just need to handle 'sex' field. In this simple case, we will just assign '0' to males and '1' to females.
+Then, we need to convert all our data to numerical values, because a neural network model can only perform operations over numbers. However, our dataset contains some non-numerical values, such as 'name' and 'sex'. Because 'name' is discarded, we just need to handle 'sex' field. In this simple case, we will just assign '0' to males and '1' to females.
 
 Here is the preprocessing function:
 ```python
@@ -82,7 +82,7 @@ data = preprocess(data, to_ignore)
 ```
 
 ## Build a Deep Neural Network
-We are building a 3-layers neural network using TFLearn. We need to specify the shape of our input data. In our case, each sample has a total of 6 features and we will process samples per batch to save memory, so our data input shape is \[None, 6\] ('None' stands for an unknown dimension, so we can change the total number of samples that are processed in a batch).
+We are building a 3-layer neural network using TFLearn. We need to specify the shape of our input data. In our case, each sample has a total of 6 features and we will process samples per batch to save memory, so our data input shape is \[None, 6\] ('None' stands for an unknown dimension, so we can change the total number of samples that are processed in a batch).
 ```python
 # Build neural network
 net = tflearn.input_data(shape=[None, 6])
@@ -93,7 +93,7 @@ net = tflearn.regression(net)
 ```
 
 ## Training
-TFLearn provides a model wrapper 'DNN' that can automatically performs a neural network classifier tasks, such as training, prediction, save/restore, etc...
+TFLearn provides a model wrapper 'DNN' that automatically performs neural network classifier tasks, such as training, prediction, save/restore, etc...
 We will run it for 10 epochs (the network will see all data 10 times) with a batch size of 16.
 ```python
 # Define model
@@ -143,7 +143,7 @@ Training Step: 820  | total loss: 0.41557
 --
 ```
 
-Our model finish to train with an overall accuracy around 81%, which means that it can predict the correct outcome (survived or not) for 81% of the total passengers.
+Our model finished training with an overall accuracy around 81%, which means that it can predict the correct outcome (survived or not) for 81% of the total passengers.
 
 ## Try the Model
 It is time to try out our model. For fun, let's take Titanic movie protagonists (DiCaprio and Winslet) and calculate their chance of surviving (class 1).

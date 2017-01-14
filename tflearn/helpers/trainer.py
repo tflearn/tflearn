@@ -2,7 +2,7 @@
 from __future__ import division, print_function, absolute_import
 
 import re
-import time
+import os
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.training import optimizer as tf_optimizer
@@ -23,9 +23,19 @@ from ..utils import to_list, id_generator, check_dir_name, standarize_dict, \
     get_dict_first_element, make_batches, slice_array, check_scope_path, \
     check_restore_tensor
 from .. import data_flow
+from .. import variables
+from .. import utils
 
 from .summarizer import summaries, summarize, summarize_gradients, \
     summarize_variables, summarize_activations
+
+# Fix for TF 0.12
+try:
+    writer_summary = tf.summary.FileWriter
+    merge_summary = tf.summary.merge
+except Exception:
+    writer_summary = tf.train.SummaryWriter
+    merge_summary = tf.merge_summary
 
 
 class Trainer(object):
@@ -134,7 +144,7 @@ class Trainer(object):
                 max_to_keep=max_checkpoints,
                 keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours)
             # Saver for restoring a model (With exclude variable list)
-            all_vars = tf.get_collection(tf.GraphKeys.VARIABLES)
+            all_vars = variables.get_all_variables()
             excl_vars = tf.get_collection(tf.GraphKeys.EXCL_RESTORE_VARS)
             to_restore = [item for item in all_vars
                           if check_restore_tensor(item, excl_vars)]
@@ -155,7 +165,14 @@ class Trainer(object):
             self.checkpoint_path = checkpoint_path
 
             if not self.restored:
-                init = tf.initialize_all_variables()
+                # TF 0.12 fix
+                try:
+                    init = tf.group(tf.global_variables_initializer(),
+                                    tf.local_variables_initializer())
+                    self.session.run(tf.variables_initializer(
+                        tf.get_collection_ref('is_training')))
+                except Exception as e:
+                    init = tf.initialize_all_variables()
                 self.session.run(init)
 
     def fit(self, feed_dicts, n_epoch=10, val_feed_dicts=None, show_metric=False,
@@ -234,19 +251,22 @@ class Trainer(object):
 
         with self.graph.as_default():
 
+            # TF 0.12 Fix
+            obj_lists = utils.fix_saver()
             if self.summ_writer:
                 try:
                     self.summ_writer.reopen()
                 except:
-                    self.summ_writer = SummaryWriter(
+                    self.summ_writer = writer_summary(
                         self.tensorboard_dir + run_id, self.session.graph)
             else:
                 try:
-                    self.summ_writer = SummaryWriter(
+                    self.summ_writer = writer_summary(
                         self.tensorboard_dir + run_id, self.session.graph)
                 except Exception: # TF 0.7
-                    self.summ_writer = SummaryWriter(
+                    self.summ_writer = writer_summary(
                         self.tensorboard_dir + run_id, self.session.graph_def)
+            utils.fix_saver(obj_lists)
 
             feed_dicts = to_list(feed_dicts)
             for d in feed_dicts: standarize_dict(d)
@@ -306,8 +326,7 @@ class Trainer(object):
                     # which data input), so one epoch loop in a multi-inputs
                     # model is equal to max(data_input) size.
                     for batch_step in range(max_batches_len):
-                        # start the timer for current batch_step
-                        batch_start = time.time()
+
                         self.training_state.increaseStep()
                         self.training_state.resetGlobal()
 
@@ -327,9 +346,6 @@ class Trainer(object):
 
                             # Optimizer batch end
                             caller.on_sub_batch_end(self.training_state, i)
-
-                        # Update training state step_time
-                        self.training_state.step_time = time.time() - batch_start
 
                         # All optimizers batch end
                         self.session.run(self.incr_global_step)
@@ -358,51 +374,13 @@ class Trainer(object):
                 model file name (optional).
 
         """
-        # Temp workaround for tensorflow 0.7.0 dict proto serialization issue
-        try:
-            # Try latest api
-            l = tf.get_collection_ref("summary_tags")
-            l4 = tf.get_collection_ref(tf.GraphKeys.GRAPH_CONFIG)
-        except Exception:
-            l = tf.get_collection("summary_tags")
-            l4 = tf.get_collection(tf.GraphKeys.GRAPH_CONFIG)
-        l_stags = list(l)
-        l4_stags = list(l4)
-        del l[:]
-        del l4[:]
-
-        try:
-            # Try latest api
-            l1 = tf.get_collection_ref(tf.GraphKeys.DATA_PREP)
-            l2 = tf.get_collection_ref(tf.GraphKeys.DATA_AUG)
-        except Exception:
-            l1 = tf.get_collection(tf.GraphKeys.DATA_PREP)
-            l2 = tf.get_collection(tf.GraphKeys.DATA_AUG)
-        l1_dtags = list(l1)
-        l2_dtags = list(l2)
-        del l1[:]
-        del l2[:]
-
-        try: # Do not save exclude variables
-            l3 = tf.get_collection_ref(tf.GraphKeys.EXCL_RESTORE_VARS)
-        except Exception:
-            l3 = tf.get_collection(tf.GraphKeys.EXCL_RESTORE_VARS)
-        l3_tags = list(l3)
-        del l3[:]
-
+        # Temp workaround for tensorflow 0.7+ dict proto serialization issue
+        obj_lists = utils.fix_saver()
+        # TF 0.12 Fix
+        if not os.path.isabs(model_file):
+            model_file = os.path.abspath(os.path.join(os.getcwd(), model_file))
         self.saver.save(self.session, model_file, global_step=global_step)
-
-        # 0.7 workaround, restore values
-        for t in l_stags:
-            tf.add_to_collection("summary_tags", t)
-        for t in l4_stags:
-            tf.add_to_collection(tf.GraphKeys.GRAPH_CONFIG, t)
-        for t in l1_dtags:
-            tf.add_to_collection(tf.GraphKeys.DATA_PREP, t)
-        for t in l2_dtags:
-            tf.add_to_collection(tf.GraphKeys.DATA_AUG, t)
-        for t in l3_tags:
-            tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, t)
+        utils.fix_saver(obj_lists)
 
     def restore(self, model_file, trainable_variable_only=False, variable_name_map=None, scope_for_restore=None,
                 create_new_session=True, verbose=False):
@@ -428,6 +406,10 @@ class Trainer(object):
                                 when using scope_for_restore or variable_name_map
         
         """
+        # TF 0.12 Fix
+        if not os.path.isabs(model_file):
+            model_file = os.path.abspath(os.path.join(os.getcwd(), model_file))
+
         if create_new_session:
             self.close_session()
             config = None
@@ -435,7 +417,12 @@ class Trainer(object):
             if tflearn_conf:
                 config = tflearn_conf[0]
             self.session = tf.Session(config=config)
-            self.session.run(tf.initialize_all_variables())
+            # TF 0.12 Fix
+            try:
+                self.session.run([tf.global_variables_initializer(),
+                                  tf.local_variables_initializer()])
+            except Exception:
+                self.session.run(tf.initialize_all_variables())
 
         if scope_for_restore is not None:	# allow variables to be restored into a different scope
             sname = scope_for_restore
@@ -629,11 +616,24 @@ class TrainOp(object):
         """
         self.session = session
 
-        # Variables holding mean validation loss and accuracy, assigned after
-        # each model evaluation (by batch). For visualization in Tensorboard.
+        # Variables holding mean validation loss, accuracy, and validation
+        # monitors, assigned after each model evaluation (by batch).
+        # For visualization in Tensorboard.
+        # Define variables, placeholders and assign ops.
         self.val_loss_T = tf.Variable(0., name='val_loss', trainable=False)
         self.val_acc_T = tf.Variable(0., name='val_acc', trainable=False)
         self.validation_monitors_T = [tf.Variable(0., name='%s_T' % v.name.rsplit(':', 1)[0], trainable=False) for v in self.validation_monitors]
+
+        self.val_loss_P = tf.placeholder(dtype=tf.float32, name='placeholder/%s' % self.val_loss_T.name.rsplit(':')[0])
+        self.val_acc_P = tf.placeholder(dtype=tf.float32, name='placeholder/%s' % self.val_acc_T.name.rsplit(':')[0])
+        self.val_monitors_P = [tf.placeholder(dtype=tf.float32, name='placeholder/%s' % v.name.rsplit(':')[0]) for v in self.validation_monitors_T]
+
+        self.val_loss_assign = tf.assign(self.val_loss_T, self.val_loss_P,
+                                         name='assign/%s' % self.val_loss_T.name.rsplit(':')[0])
+        self.val_acc_assign = tf.assign(self.val_acc_T, self.val_acc_P,
+                                        name='assign/%s' % self.val_acc_T.name.rsplit(':')[0])
+        self.val_monitors_assign = [tf.assign(vmt, vmp, name='assign/%s' % vmt.name.rsplit(':')[0]) for vmt, vmp in
+                                    zip(self.validation_monitors_T, self.val_monitors_P)]
 
         # Creating the accuracy moving average, for better visualization.
         if self.metric is not None:
@@ -783,13 +783,13 @@ class TrainOp(object):
                                              feed_batch)
 
         # Retrieve loss value from summary string
-        sname = "- Loss/" + self.scope_name
+        sname = "Loss/" + self.scope_name
         self.loss_value = summaries.get_value_from_summary_string(
             sname, train_summ_str)
 
         if show_metric and self.metric is not None:
             # Retrieve accuracy value from summary string
-            sname = "- " + self.metric_summ_name + "/" + self.scope_name
+            sname = self.metric_summ_name + "/" + self.scope_name
             self.acc_value = summaries.get_value_from_summary_string(
                 sname, train_summ_str)
 
@@ -811,18 +811,24 @@ class TrainOp(object):
                 eval_ops.append(self.metric)
             e = evaluate_flow(self.session, eval_ops, self.test_dflow)
             self.val_loss = e[0]
-            self.validation_monitor_values = e[1:-1]
             if show_metric and self.metric is not None:
+                self.validation_monitor_values = e[1:-1]
                 self.val_acc = e[-1]
+            else:
+                self.validation_monitor_values = e[1:]
 
             # Set evaluation results to variables, to be summarized.
-            update_val_op = [tf.assign(self.val_loss_T, self.val_loss)]
+            update_val_op = [self.val_loss_assign]
+            update_val_feed = {self.val_loss_P: self.val_loss}
             if show_metric:
-                update_val_op.append(tf.assign(self.val_acc_T, self.val_acc))
+                update_val_op.append(self.val_acc_assign)
+                update_val_feed[self.val_acc_P] = self.val_acc
             if self.validation_monitors:
-                for vmt, vm in zip(self.validation_monitors_T, self.validation_monitor_values):
-                    update_val_op.append(tf.assign(vmt, vm))
-            self.session.run(update_val_op)
+                update_val_op.append(self.val_monitors_assign)
+                for vmp, vmv in zip(self.val_monitors_P, self.validation_monitor_values):
+                    update_val_feed[vmp] = vmv
+
+            self.session.run(update_val_op, feed_dict=update_val_feed)
 
             # Run summary operation.
             test_summ_str = self.session.run(self.val_summary_op)
@@ -877,22 +883,22 @@ class TrainOp(object):
 
         if show_metric and self.metric is not None:
             # Summarize Raw Accuracy
-            sname = "- " + mn + "/" + self.scope_name + " (raw)"
+            sname = mn + "/" + self.scope_name + " (raw)"
             summarize(self.metric, "scalar", sname, tr_summ_collection)
             # Summarize Accuracy's moving averages
-            sname = "- " + mn + "/" + self.scope_name
+            sname = mn + "/" + self.scope_name
             self.summ_op = summarize(self.acc_averages.average(self.metric),
                                      "scalar", sname, tr_summ_collection)
 
         if validation_set is not None:
             # Summarive Validation Loss
-            loss_val_name = "- Loss/" + self.scope_name + "/Validation"
+            loss_val_name = "Loss/" + self.scope_name + "/Validation"
             loss_val_name = check_scope_path(loss_val_name)
             self.val_summary_op = summarize(self.val_loss_T, "scalar",
                                             loss_val_name, te_summ_collection)
             if show_metric and self.metric is not None:
                 # Summarize Validation Accuracy
-                acc_val_name = "- " + mn + "/" + self.scope_name + "/Validation"
+                acc_val_name = mn + "/" + self.scope_name + "/Validation"
                 acc_val_name = check_scope_path(acc_val_name)
                 self.val_summary_op = summarize(self.val_acc_T, "scalar",
                                                 acc_val_name,
@@ -900,7 +906,7 @@ class TrainOp(object):
             if self.validation_monitors:
                 # add summaries of additional validation monitor variables
                 for vm_op in self.validation_monitors_T:
-                    vm_name = "- " + vm_op.name + "/" + self.scope_name + "/Validation"
+                    vm_name = vm_op.name + "/" + self.scope_name + "/Validation"
                     vm_name = check_scope_path(vm_name)
                     self.val_summary_op = summarize(vm_op, "scalar",
                                                     vm_name,

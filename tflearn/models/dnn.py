@@ -1,6 +1,7 @@
 from __future__ import division, print_function, absolute_import
 
 import tensorflow as tf
+import numpy as np
 
 from ..helpers.trainer import Trainer
 from ..helpers.evaluator import Evaluator
@@ -223,11 +224,28 @@ class DNN(object):
                 (with inputs layer name as keys). Data to feed for prediction.
 
         Returns:
-            array or `list` of array. The predicted value.
+            array or `list` of array. The predicted probabilities.
 
         """
         feed_dict = feed_dict_builder(X, None, self.inputs, None)
         return self.predictor.predict(feed_dict)
+
+    def predict_label(self, X):
+        """ Predict Label.
+
+        Predict class labels for input X.
+
+        Arguments:
+            X: array, `list` of array (if multiple inputs) or `dict`
+                (with inputs layer name as keys). Data to feed for prediction.
+
+        Returns:
+            array or `list` of array. The predicted classes index array, sorted
+            by descendant probability value.
+
+        """
+        feed_dict = feed_dict_builder(X, None, self.inputs, None)
+        return np.argsort(self.predictor.predict(feed_dict))[::-1]
 
     def save(self, model_file):
         """ Save.

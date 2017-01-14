@@ -34,6 +34,18 @@ import gym
 import tensorflow as tf
 import tflearn
 
+# Fix for TF 0.12
+try:
+    writer_summary = tf.summary.FileWriter
+    merge_all_summaries = tf.summary.merge_all
+    histogram_summary = tf.summary.histogram
+    scalar_summary = tf.summary.scalar
+except Exception:
+    writer_summary = tf.train.SummaryWriter
+    merge_all_summaries = tf.merge_all_summaries
+    histogram_summary = tf.histogram_summary
+    scalar_summary = tf.scalar_summary
+
 # Change that value to test instead of train
 testing = False
 # Model path (to load when testing)
@@ -336,11 +348,11 @@ def build_graph(num_actions):
 # Set up some episode summary ops to visualize on tensorboard.
 def build_summaries():
     episode_reward = tf.Variable(0.)
-    tf.scalar_summary("Reward", episode_reward)
+    scalar_summary("Reward", episode_reward)
     episode_ave_max_q = tf.Variable(0.)
-    tf.scalar_summary("Qmax Value", episode_ave_max_q)
+    scalar_summary("Qmax Value", episode_ave_max_q)
     logged_epsilon = tf.Variable(0.)
-    tf.scalar_summary("Epsilon", logged_epsilon)
+    scalar_summary("Epsilon", logged_epsilon)
     # Threads shouldn't modify the main graph, so we use placeholders
     # to assign the value of every summary (instead of using assign method
     # in every thread, that would keep creating new ops in the graph)
@@ -349,7 +361,7 @@ def build_summaries():
                             for i in range(len(summary_vars))]
     assign_ops = [summary_vars[i].assign(summary_placeholders[i])
                   for i in range(len(summary_vars))]
-    summary_op = tf.merge_all_summaries()
+    summary_op = merge_all_summaries()
     return summary_placeholders, assign_ops, summary_op
 
 
@@ -376,7 +388,7 @@ def train(session, graph_ops, num_actions, saver):
 
     # Initialize variables
     session.run(tf.initialize_all_variables())
-    writer = tf.train.SummaryWriter(summary_dir + "/qlearning", session.graph)
+    writer = writer_summary(summary_dir + "/qlearning", session.graph)
 
     # Initialize target network weights
     session.run(graph_ops["reset_target_network_params"])
