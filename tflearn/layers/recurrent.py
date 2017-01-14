@@ -530,7 +530,7 @@ class BasicLSTMCell(_rnn_cell.RNNCell):
                              self.reuse)
 
             # i = input_gate, j = new_input, f = forget_gate, o = output_gate
-            i, j, f, o = array_ops.split(concat, 4, 1)
+            i, j, f, o = array_ops.split(1, 4, concat)
 
             # apply batch normalization to inner state and gates
             if self.batch_norm == True:
