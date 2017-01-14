@@ -26,7 +26,7 @@ class TestModelsLoadingScope(unittest.TestCase):
 
             # Testing save method
             m.save("test_dnn.tflearn")
-            self.assertTrue(os.path.exists("test_dnn.tflearn"))
+            self.assertTrue(os.path.exists("test_dnn.tflearn.meta"))
 
         # Testing loading, with change of variable scope (saved with no scope, now loading into scopeA)
         with tf.Graph().as_default():	# start with clear graph
@@ -37,10 +37,10 @@ class TestModelsLoadingScope(unittest.TestCase):
                                                 metric='R2', learning_rate=0.01)
                 m = tflearn.DNN(regression)
                 def try_load():
-                    m.load("test_dnn.tflearn")
+                    m.load("./test_dnn.tflearn")
                 self.assertRaises(tf.errors.NotFoundError, try_load)	# fails, since names in file don't have "scopeA"
 
-                m.load("test_dnn.tflearn", variable_name_map=("scopeA/", ""))	# succeeds, because variable names are rewritten
+                m.load("./test_dnn.tflearn", variable_name_map=("scopeA/", ""))	# succeeds, because variable names are rewritten
                 res = m.predict([3.2])[0]
                 self.assertGreater(res, 1.3, "DNN test (linear regression) failed after loading model! score: " + str(res) + " expected > 1.3")
                 self.assertLess(res, 1.8, "DNN test (linear regression) failed after loading model! score: " + str(res) + " expected < 1.8")

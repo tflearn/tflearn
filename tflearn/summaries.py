@@ -3,6 +3,11 @@ from __future__ import division, print_function, absolute_import
 import tensorflow as tf
 from tensorflow.core.framework import summary_pb2
 
+try:
+    from tensorflow import scalar_summary, histogram_summary
+except:
+    from tensorflow.python.ops.logging_ops import scalar_summary, histogram_summary
+
 from .utils import format_scope_name
 
 
@@ -195,7 +200,6 @@ def get_value_from_summary_string(tag, summary_str):
         tag = tag[:-1]
     summ = summary_pb2.Summary()
     summ.ParseFromString(summary_str)
-
     for row in summ.value:
         if row.tag == tag:
             return float(row.simple_value)

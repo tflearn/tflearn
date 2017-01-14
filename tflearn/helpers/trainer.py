@@ -6,6 +6,15 @@ import os
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.training import optimizer as tf_optimizer
+try:
+    from tensorflow import merge_summary
+except:
+    from tensorflow.python.ops.logging_ops import merge_summary
+
+try: 
+    from tensorflow.train import SummaryWriter
+except:
+    from tensorflow.python.summary.writer.writer import FileWriter as SummaryWriter
 
 import tflearn
 from .. import callbacks as tf_callbacks
@@ -772,7 +781,6 @@ class TrainOp(object):
         tflearn.is_training(True, session=self.session)
         _, train_summ_str = self.session.run([self.train, self.summ_op],
                                              feed_batch)
-
         # Retrieve loss value from summary string
         sname = "Loss/" + self.scope_name
         self.loss_value = summaries.get_value_from_summary_string(

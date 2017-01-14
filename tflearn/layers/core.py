@@ -291,7 +291,7 @@ def reshape(incoming, new_shape, name="Reshape"):
     with tf.name_scope(name) as scope:
         inference = incoming
         if isinstance(inference, list):
-            inference = tf.concat(inference, 0)
+            inference = tf.concat_v2(inference, 0)
             inference = tf.cast(inference, tf.float32)
         inference = tf.reshape(inference, shape=new_shape)
 
@@ -663,4 +663,4 @@ def time_distributed(incoming, fn, args=None, scope=None):
       x = map(lambda t: tf.reshape(t, [-1, 1]+utils.get_incoming_shape(t)[1:]), x)
     except:
       x = list(map(lambda t: tf.reshape(t, [-1, 1]+utils.get_incoming_shape(t)[1:]), x))
-    return tf.concat(1, x)
+    return tf.concat_v2(x, 1)

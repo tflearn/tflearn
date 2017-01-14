@@ -10,20 +10,21 @@ try:
     from tensorflow.python.ops.nn import rnn as _rnn, bidirectional_rnn as \
         _brnn, dynamic_rnn as _drnn
 except Exception:
-    from tensorflow.models.rnn import rnn_cell as _rnn_cell
-    from tensorflow.models.rnn import rnn as _rnn, bidirectional_rnn as _brnn, \
-        dynamic_rnn as _drnn
+    from tensorflow.contrib import rnn as _rnn_cell
+    from tensorflow.contrib.rnn import static_rnn as _rnn, \
+        static_bidirectional_rnn as _brnn
+    from tensorflow.python.ops.rnn import dynamic_rnn as _drnn
 try:
     from tensorflow.python.util.nest import is_sequence
 except Exception:
-    is_sequence = _rnn_cell._is_sequence
+    from tensorflow.contrib.rnn.nest import is_sequence
+
 from .. import config
 from .. import utils
 from .. import activations
 from .. import initializations
 from .. import variables as va
 from .normalization import batch_normalization
-
 
 # --------------------------
 #  RNN Layers
@@ -85,14 +86,14 @@ def _rnn_template(incoming, cell, dropout=None, return_seq=False,
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, outputs[-1])
 
-    if dynamic:
-        if return_seq:
-            o = outputs
-        else:
+    if not return_seq:
+        if dynamic:
             outputs = tf.transpose(tf.pack(outputs), [1, 0, 2])
             o = advanced_indexing_op(outputs, sequence_length)
+        else:
+            o = outputs[-1]
     else:
-        o = outputs if return_seq else outputs[-1]
+        o = tf.transpose(tf.pack(outputs), [1, 0, 2])
 
     # Track output tensor.
     tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, o)
@@ -390,14 +391,14 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, outputs[-1])
 
-    if dynamic:
-        if return_seq:
-            o = outputs
-        else:
+    if not return_seq:
+        if dynamic:
             outputs = tf.transpose(tf.pack(outputs), [1, 0, 2])
             o = advanced_indexing_op(outputs, sequence_length)
+        else:
+            o = outputs[-1]
     else:
-        o = outputs if return_seq else outputs[-1]
+        o = tf.transpose(tf.pack(outputs), [1, 0, 2])
 
     sfw = states_fw
     sbw = states_bw
@@ -552,7 +553,7 @@ class BasicLSTMCell(_rnn_cell.RNNCell):
             if self._state_is_tuple:
                 new_state = _rnn_cell.LSTMStateTuple(new_c, new_h)
             else:
-                new_state = array_ops.concat(1, [new_c, new_h])
+                new_state = array_ops.concat_v2([new_c, new_h], 1)
 
             # Retrieve RNN Variables
             with tf.variable_scope('Linear', reuse=True):
@@ -744,7 +745,7 @@ def _linear(args, output_size, bias, bias_start=0.0, weights_init=None,
         if len(args) == 1:
             res = tf.matmul(args[0], matrix)
         else:
-            res = tf.matmul(array_ops.concat(1, args), matrix)
+            res = tf.matmul(array_ops.concat_v2(args, 1), matrix)
         if not bias:
             return res
         bias_term = va.variable(
@@ -772,3 +773,4 @@ def advanced_indexing_op(input, index):
     flat = tf.reshape(input, [-1, dim_size])
     relevant = tf.gather(flat, index)
     return relevant
+

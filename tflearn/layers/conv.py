@@ -232,7 +232,7 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
             raise Exception("output_shape length error: "
                             + str(len(output_shape))
                             + ", only a length of 2 or 3 is supported.")
-        complete_out_shape = tf.concat(0, [batch_size, tf.constant(output_shape)])
+        complete_out_shape = tf.concat_v2([batch_size, tf.constant(output_shape)], 0)
 
         inference = tf.nn.conv2d_transpose(incoming, W, complete_out_shape,
                                            strides, padding)
@@ -929,7 +929,7 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
             raise Exception("output_shape length error: "
                             + str(len(output_shape))
                             + ", only a length of 3 or 4 is supported.")
-        complete_out_shape = tf.concat(0, [batch_size, tf.constant(output_shape)])
+        complete_out_shape = tf.concat_v2([batch_size, tf.constant(output_shape)], 0)
 
         inference = tf.nn.conv3d_transpose(incoming, W, complete_out_shape,
                                            strides, padding)
