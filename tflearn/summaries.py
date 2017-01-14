@@ -200,7 +200,6 @@ def get_value_from_summary_string(tag, summary_str):
         tag = tag[:-1]
     summ = summary_pb2.Summary()
     summ.ParseFromString(summary_str)
-
     for row in summ.value:
         if row.tag == tag:
             return float(row.simple_value)

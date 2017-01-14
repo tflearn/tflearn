@@ -781,7 +781,6 @@ class TrainOp(object):
         tflearn.is_training(True, session=self.session)
         _, train_summ_str = self.session.run([self.train, self.summ_op],
                                              feed_batch)
-
         # Retrieve loss value from summary string
         sname = "Loss/" + self.scope_name
         self.loss_value = summaries.get_value_from_summary_string(
