@@ -6,6 +6,15 @@ import time
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.training import optimizer as tf_optimizer
+try:
+    from tensorflow import merge_summary
+except:
+    from tensorflow.python.ops.logging_ops import merge_summary
+
+try: 
+    from tensorflow.train import SummaryWriter
+except:
+    from tensorflow.python.summary.writer.writer import FileWriter as SummaryWriter
 
 import tflearn
 from .. import callbacks as tf_callbacks
@@ -229,14 +238,14 @@ class Trainer(object):
                 try:
                     self.summ_writer.reopen()
                 except:
-                    self.summ_writer = tf.train.SummaryWriter(
+                    self.summ_writer = SummaryWriter(
                         self.tensorboard_dir + run_id, self.session.graph)
             else:
                 try:
-                    self.summ_writer = tf.train.SummaryWriter(
+                    self.summ_writer = SummaryWriter(
                         self.tensorboard_dir + run_id, self.session.graph)
                 except Exception: # TF 0.7
-                    self.summ_writer = tf.train.SummaryWriter(
+                    self.summ_writer = SummaryWriter(
                         self.tensorboard_dir + run_id, self.session.graph_def)
 
             feed_dicts = to_list(feed_dicts)
@@ -855,7 +864,7 @@ class TrainOp(object):
             # Summarize gradients
             summarize_gradients(self.grad, summ_collection)
 
-        self.summ_op = tf.merge_summary(tf.get_collection(summ_collection))
+        self.summ_op = merge_summary(tf.get_collection(summ_collection))
 
     def create_testing_summaries(self, show_metric=False,
                                  metric_name="Accuracy", validation_set=None):

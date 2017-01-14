@@ -26,7 +26,7 @@ class TestModels(unittest.TestCase):
 
             # Testing save method
             m.save("test_dnn.tflearn")
-            self.assertTrue(os.path.exists("test_dnn.tflearn"))
+            self.assertTrue(os.path.exists("test_dnn.tflearn.meta"))
 
         with tf.Graph().as_default():
             input = tflearn.input_data(shape=[None])
@@ -36,7 +36,7 @@ class TestModels(unittest.TestCase):
             m = tflearn.DNN(regression)
 
             # Testing load method
-            m.load("test_dnn.tflearn")
+            m.load("./test_dnn.tflearn")
             res = m.predict([3.2])[0]
             self.assertGreater(res, 1.3, "DNN test (linear regression) failed after loading model! score: " + str(res) + " expected > 1.3")
             self.assertLess(res, 1.8, "DNN test (linear regression) failed after loading model! score: " + str(res) + " expected < 1.8")
@@ -66,10 +66,10 @@ class TestModels(unittest.TestCase):
 
             # Testing save method
             m.save("test_seqgen.tflearn")
-            self.assertTrue(os.path.exists("test_seqgen.tflearn"))
+            self.assertTrue(os.path.exists("test_seqgen.tflearn.meta"))
 
             # Testing load method
-            m.load("test_seqgen.tflearn")
+            m.load("./test_seqgen.tflearn")
             res = m.generate(10, temperature=.5, seq_seed="12345")
             # TODO: Fix test
             #self.assertEqual(res, "123456789101234", "SequenceGenerator test failed after loading model! Generated sequence: " + res + " expected '123456789101234'")

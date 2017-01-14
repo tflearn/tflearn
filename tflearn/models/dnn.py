@@ -259,7 +259,7 @@ class DNN(object):
         """
         self.trainer.restore(model_file, weights_only, **optargs)
         self.session = self.trainer.session
-        self.predictor = Evaluator([self.net],
+        self.predictor = Evaluator(self.net,
                                    session=self.session,
                                    model=None)
         for d in tf.get_collection(tf.GraphKeys.DATA_PREP):

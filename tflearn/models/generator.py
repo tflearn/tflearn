@@ -324,6 +324,6 @@ def reverse_dictionary(dic):
 
 def _sample(a, temperature=1.0):
     # helper function to sample an index from a probability array
-    a = np.log(a) / temperature
-    a = np.exp(a) / np.sum(np.exp(a))
+    a = np.exp(np.log(a.astype('double')) / temperature)
+    a = a / np.sum(a)
     return np.argmax(np.random.multinomial(1, a, 1))

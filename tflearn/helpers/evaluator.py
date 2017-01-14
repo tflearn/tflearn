@@ -68,7 +68,10 @@ class Evaluator(object):
             for output in self.tensors:
                 o_pred = self.session.run(output, feed_dict=feed_dict)
                 predictions.append(o_pred)
-            return predictions
+            if len(predictions) > 1:
+                return predictions
+            else:
+                return predictions[0]
 
     def evaluate(self, feed_dict, ops, batch_size=128):
         """ Evaluate.

@@ -96,7 +96,7 @@ class TestLayers(unittest.TestCase):
 
             m = tflearn.DNN(g)
             m.fit(X, Y, n_epoch=300, snapshot_epoch=False)
-            self.assertGreater(m.predict([[5, 9, 11, 1]])[0][1], 0.9)
+            self.assertGreater(m.predict([[5, 9, 11, 1]])[0, 1], 0.9)
 
     def test_regression_placeholder(self):
         '''

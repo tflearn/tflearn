@@ -42,7 +42,7 @@ def merge(tensors_list, mode, axis=1, name="Merge"):
     with tf.name_scope(name) as scope:
         tensors = [l for l in tensors_list]
         if mode == 'concat':
-            inference = tf.concat(axis, tensors)
+            inference = tf.concat_v2(tensors, axis)
         elif mode == 'elemwise_sum':
             inference = tensors[0]
             for i in range(1, len(tensors)):
@@ -52,25 +52,25 @@ def merge(tensors_list, mode, axis=1, name="Merge"):
             for i in range(1, len(tensors)):
                 inference = tf.mul(inference, tensors[i])
         elif mode == 'sum':
-            inference = tf.reduce_sum(tf.concat(axis, tensors),
+            inference = tf.reduce_sum(tf.concat_v2(tensors, axis),
                                       reduction_indices=axis)
         elif mode == 'mean':
-            inference = tf.reduce_mean(tf.concat(axis, tensors),
+            inference = tf.reduce_mean(tf.concat_v2(tensors, axis),
                                        reduction_indices=axis)
         elif mode == 'prod':
-            inference = tf.reduce_prod(tf.concat(axis, tensors),
+            inference = tf.reduce_prod(tf.concat_v2(tensors, axis),
                                        reduction_indices=axis)
         elif mode == 'max':
-            inference = tf.reduce_max(tf.concat(axis, tensors),
+            inference = tf.reduce_max(tf.concat_v2(tensors, axis),
                                       reduction_indices=axis)
         elif mode == 'min':
-            inference = tf.reduce_min(tf.concat(axis, tensors),
+            inference = tf.reduce_min(tf.concat_v2(tensors, axis),
                                       reduction_indices=axis)
         elif mode == 'and':
-            inference = tf.reduce_all(tf.concat(axis, tensors),
+            inference = tf.reduce_all(tf.concat_v2(tensors, axis),
                                       reduction_indices=axis)
         elif mode == 'or':
-            inference = tf.reduce_any(tf.concat(axis, tensors),
+            inference = tf.reduce_any(tf.concat_v2(tensors, axis),
                                       reduction_indices=axis)
         else:
             raise Exception("Unknown merge mode", str(mode))
@@ -101,7 +101,7 @@ def merge_outputs(tensor_list, name="MergeOutputs"):
 
     """
     with tf.name_scope(name) as scope:
-        x = tf.concat(1, tensor_list)
+        x = tf.concat_v2(tensor_list, 1)
 
     # Track output tensor.
     tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, x)

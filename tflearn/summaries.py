@@ -3,6 +3,11 @@ from __future__ import division, print_function, absolute_import
 import tensorflow as tf
 from tensorflow.core.framework import summary_pb2
 
+try:
+    from tensorflow import scalar_summary, histogram_summary
+except:
+    from tensorflow.python.ops.logging_ops import scalar_summary, histogram_summary
+
 from .utils import format_scope_name
 
 
@@ -41,9 +46,9 @@ def get_summary(stype, tag, value=None, collection_key=None,
             raise Exception("Summary doesn't exist, a value must be "
                             "specified to initialize it.")
         if stype == "histogram":
-            summ = tf.histogram_summary(tag, value)
+            summ = histogram_summary(tag, value)
         elif stype == "scalar":
-            summ = tf.scalar_summary(tag, value)
+            summ = scalar_summary(tag, value)
         elif stype == "image":
             pass  # TODO: create summary
         else:
