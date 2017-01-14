@@ -86,17 +86,26 @@ def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
                                   restore=restore)
         moving_variance = vs.variable('moving_variance',
                                       input_shape[-1:],
-                                      initializer=tf.ones_initializer,
+                                      initializer=tf.constant_initializer(1.),
                                       trainable=False,
                                       restore=restore)
 
         # Define a function to update mean and variance
         def update_mean_var():
             mean, variance = tf.nn.moments(incoming, axis)
-            update_moving_mean = moving_averages.assign_moving_average(
-                moving_mean, mean, decay)
-            update_moving_variance = moving_averages.assign_moving_average(
-                moving_variance, variance, decay)
+
+            # Fix TF 0.12
+            try:
+                update_moving_mean = moving_averages.assign_moving_average(
+                    moving_mean, mean, decay, zero_debias=False)
+                update_moving_variance = moving_averages.assign_moving_average(
+                    moving_variance, variance, decay, zero_debias=False)
+            except Exception as e:
+                update_moving_mean = moving_averages.assign_moving_average(
+                    moving_mean, mean, decay)
+                update_moving_variance = moving_averages.assign_moving_average(
+                    moving_variance, variance, decay)
+
             with tf.control_dependencies(
                     [update_moving_mean, update_moving_variance]):
                 return tf.identity(mean), tf.identity(variance)

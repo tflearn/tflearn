@@ -2,6 +2,7 @@ from __future__ import division, print_function, absolute_import
 
 import tensorflow as tf
 
+from .variables import variable
 
 # -------------------
 # Basic Configuration
@@ -121,7 +122,7 @@ def init_training_mode():
     # 'is_training' collection stores the training mode variable
     coll = tf.get_collection('is_training')
     if len(coll) == 0:
-        tr_var = tf.get_variable(
+        tr_var = variable(
             "is_training", dtype=tf.bool, shape=[],
             initializer=tf.constant_initializer(False),
             trainable=False)

@@ -1,10 +1,20 @@
 from __future__ import division, print_function, absolute_import
 
-import sys, curses
+import time
+import sys
+
+# Verify curses module for Windows and Notebooks Support
 try:
     from IPython.core.display import clear_output
 except:
     pass
+
+CURSES_SUPPORTED = True
+try:
+    import curses
+except Exception:
+    print("curses is not supported on this machine (please install/reinstall curses for an optimal experience)")
+    CURSES_SUPPORTED = False
 
 
 class Callback(object):
@@ -35,6 +45,7 @@ class Callback(object):
 
     def on_train_end(self, training_state):
         pass
+
 
 class ChainCallback(Callback):
     def __init__(self, callbacks=[]):
@@ -78,20 +89,24 @@ class ChainCallback(Callback):
 
         self.callbacks.append(callback)
 
+
 class TermLogger(Callback):
     def __init__(self):
         self.data = []
-        self.has_curses = True
         self.has_ipython = True
         self.display_type = "multi"
         self.global_data_size = 0
         self.global_val_data_size = 0
         self.snapped = False
-        try:
-            curses.setupterm()
-            sys.stdout.write(curses.tigetstr('civis').decode())
-        except Exception:
-            self.has_curses = False
+
+        global CURSES_SUPPORTED
+        if CURSES_SUPPORTED:
+            try:
+                curses.setupterm()
+                sys.stdout.write(curses.tigetstr('civis').decode())
+            except Exception:
+                CURSES_SUPPORTED = False
+        
         try:
             clear_output
         except NameError:
@@ -115,16 +130,18 @@ class TermLogger(Callback):
         self.global_val_data_size += val_size
 
     def on_epoch_begin(self, training_state):
-        pass
+        training_state.step_time = time.time()
+        training_state.step_time_total = 0.
 
     def on_epoch_end(self, training_state):
         pass
 
     def on_batch_begin(self, training_state):
-        pass
+        training_state.step_time = time.time()
 
     def on_batch_end(self, training_state, snapshot=False):
 
+        training_state.step_time_total += time.time() - training_state.step_time
         if snapshot:
             self.snapshot_termlogs(training_state)
         else:
@@ -153,7 +170,7 @@ class TermLogger(Callback):
     def on_train_end(self, training_state):
         # Reset caret to last position
         to_be_printed = ""
-        if self.has_curses: #if not self.has_ipython #TODO:check bug here
+        if CURSES_SUPPORTED: #if not self.has_ipython #TODO:check bug here
             for i in range(len(self.data) + 2):
                 to_be_printed += "\033[B"
             if not self.snapped:
@@ -161,8 +178,8 @@ class TermLogger(Callback):
         sys.stdout.write(to_be_printed)
         sys.stdout.flush()
 
-        # Set caret visible
-        if self.has_curses:
+        # Set caret visible if possible
+        if CURSES_SUPPORTED:
             sys.stdout.write(curses.tigetstr('cvvis').decode())
 
     def termlogs(self, step=0, global_loss=None, global_acc=None, step_time=None):
@@ -214,9 +231,9 @@ class TermLogger(Callback):
             step=training_state.step,
             global_loss=training_state.global_loss,
             global_acc=training_state.global_acc,
-            step_time=training_state.step_time)
+            step_time=training_state.step_time_total)
 
-        if self.has_ipython and not self.has_curses:
+        if self.has_ipython and not CURSES_SUPPORTED:
             clear_output(wait=True)
         else:
             for i in range(len(self.data) + 1):
@@ -231,7 +248,7 @@ class TermLogger(Callback):
             step=training_state.step,
             global_loss=training_state.global_loss,
             global_acc=training_state.global_acc,
-            step_time=training_state.step_time)
+            step_time=training_state.step_time_total)
 
         termlogs += "--\n"
 
