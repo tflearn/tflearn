@@ -6,24 +6,32 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.ops import array_ops
 try:
-    # TF <0.9
-    from tensorflow.python.ops.nn import rnn_cell as _rnn_cell
-    from tensorflow.python.ops.nn import rnn as _rnn, bidirectional_rnn as \
-        _brnn, dynamic_rnn as _drnn
+    # Latest TF
+    from tensorflow.contrib import rnn as _rnn_cell
+    from tensorflow.contrib.rnn import static_rnn as _rnn, \
+      static_bidirectional_rnn as _brnn
 except Exception:
+    # TF > 0.10
     try:
-        # TF < 1.0
+        from tensorflow.python.ops.rnn import dynamic_rnn as _drnn
+        from tensorflow.python.ops.nn import rnn_cell as _rnn_cell
+        from tensorflow.python.ops.nn import rnn as _rnn, bidirectional_rnn as \
+            _brnn, dynamic_rnn as _drnn
+    # Old TF
+    except Exception:
         from tensorflow.models.rnn import rnn_cell as _rnn_cell
         from tensorflow.models.rnn import rnn as _rnn, bidirectional_rnn as _brnn, \
             dynamic_rnn as _drnn
-    except Exception:
-        from tensorflow.contrib.rnn.python.ops import rnn_cell as _rnn_cell
-        from tensorflow.contrib.rnn.python.ops import rnn as _rnn, \
-            bidirectional_rnn as _brnn, dynamic_rnn as _drnn
 try:
-    from tensorflow.python.util.nest import is_sequence
+    # Latest TF
+    from tensorflow.contrib.rnn.nest import is_sequence
 except Exception:
-    is_sequence = _rnn_cell._is_sequence
+    # TF > 0.10
+    try:
+        from tensorflow.python.util.nest import is_sequence
+    # Old TF
+    except Exception:
+        is_sequence = _rnn_cell._is_sequence
 from .. import config
 from .. import utils
 from .. import activations
