@@ -6,13 +6,20 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.python.ops import array_ops
 try:
+    # TF <0.9
     from tensorflow.python.ops.nn import rnn_cell as _rnn_cell
     from tensorflow.python.ops.nn import rnn as _rnn, bidirectional_rnn as \
         _brnn, dynamic_rnn as _drnn
 except Exception:
-    from tensorflow.models.rnn import rnn_cell as _rnn_cell
-    from tensorflow.models.rnn import rnn as _rnn, bidirectional_rnn as _brnn, \
-        dynamic_rnn as _drnn
+    try:
+        # TF < 1.0
+        from tensorflow.models.rnn import rnn_cell as _rnn_cell
+        from tensorflow.models.rnn import rnn as _rnn, bidirectional_rnn as _brnn, \
+            dynamic_rnn as _drnn
+    except Exception:
+        from tensorflow.contrib.rnn.python.ops import rnn_cell as _rnn_cell
+        from tensorflow.contrib.rnn.python.ops import rnn as _rnn, \
+            bidirectional_rnn as _brnn, dynamic_rnn as _drnn
 try:
     from tensorflow.python.util.nest import is_sequence
 except Exception:
