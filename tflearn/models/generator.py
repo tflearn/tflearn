@@ -255,7 +255,7 @@ class SequenceGenerator(object):
             model_file: `str`. Model path.
             optargs: optional extra arguments for trainer.restore (see helpers/trainer.py)
                      These optional arguments may be used to limit the scope of
-                     variables restored, and to control whether a new session is 
+                     variables restored, and to control whether a new session is
                      created for the restored variables.
 
         """
