@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 import tflearn
 import unittest
 import os
@@ -73,6 +74,53 @@ class TestModels(unittest.TestCase):
             res = m.generate(10, temperature=.5, seq_seed="12345")
             # TODO: Fix test
             #self.assertEqual(res, "123456789101234", "SequenceGenerator test failed after loading model! Generated sequence: " + res + " expected '123456789101234'")
+
+    def test_sequencegenerator_words(self):
+
+        with tf.Graph().as_default():
+            text = ["hello","world"]*100
+            word_idx = {"hello": 0, "world": 1}
+            maxlen = 2
+
+            vec = [x for x in map(word_idx.get, text) if x is not None]
+
+            sequences = []
+            next_words = []
+            for i in range(0, len(vec) - maxlen, 3):
+                sequences.append(vec[i: i + maxlen])
+                next_words.append(vec[i + maxlen])
+
+            X = np.zeros((len(sequences), maxlen, len(word_idx)), dtype=np.bool)
+            Y = np.zeros((len(sequences), len(word_idx)), dtype=np.bool)
+            for i, seq in enumerate(sequences):
+                for t, idx in enumerate(seq):
+                    X[i, t, idx] = True
+                    Y[i, next_words[i]] = True
+
+            g = tflearn.input_data(shape=[None, maxlen, len(word_idx)])
+            g = tflearn.lstm(g, 32)
+            g = tflearn.dropout(g, 0.5)
+            g = tflearn.fully_connected(g, len(word_idx), activation='softmax')
+            g = tflearn.regression(g, optimizer='adam', loss='categorical_crossentropy',
+                                   learning_rate=0.1)
+
+            m = tflearn.SequenceGenerator(g, dictionary=word_idx,
+                                          seq_maxlen=maxlen,
+                                          clip_gradients=5.0)
+            m.fit(X, Y, validation_set=0.1, n_epoch=100, snapshot_epoch=False)
+            res = m.generate(4, temperature=.5, seq_seed=["hello","world"])
+            res_str = " ".join(res[-2:])
+            self.assertEqual(res_str, "hello world", "SequenceGenerator (word level) test failed! Generated sequence: " + res_str + " expected 'hello world'")
+
+            # Testing save method
+            m.save("test_seqgen_word.tflearn")
+            self.assertTrue(os.path.exists("test_seqgen_word.tflearn"))
+
+            # Testing load method
+            m.load("test_seqgen_word.tflearn")
+            res = m.generate(4, temperature=.5, seq_seed=["hello","world"])
+            res_str = " ".join(res[-2:])
+            self.assertEqual(res_str, "hello world", "Reloaded SequenceGenerator (word level) test failed! Generated sequence: " + res_str + " expected 'hello world'")
 
 if __name__ == "__main__":
     unittest.main()
