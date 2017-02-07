@@ -1203,7 +1203,7 @@ def residual_block(incoming, nb_blocks, out_channels, downsample=False,
 
             # Downsampling
             if downsample_strides > 1:
-                identity = tflearn.avg_pool_2d(identity, 1,
+                identity = tflearn.avg_pool_2d(identity, downsample_strides,
                                                downsample_strides)
 
             # Projection to new dimension
@@ -1327,7 +1327,7 @@ def residual_bottleneck(incoming, nb_blocks, bottleneck_size, out_channels,
 
             # Downsampling
             if downsample_strides > 1:
-                identity = tflearn.avg_pool_2d(identity, 1,
+                identity = tflearn.avg_pool_2d(identity, downsample_strides,
                                                downsample_strides)
 
             # Projection to new dimension
