@@ -79,11 +79,13 @@ def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
             tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, gamma)
 
         axis = list(range(input_ndim - 1))
-        moving_mean = vs.variable('moving_mean',
-                                  input_shape[-1:],
-                                  initializer=tf.zeros_initializer,
-                                  trainable=False,
-                                  restore=restore)
+        # Fix TF 1.0
+        try:
+            moving_mean = vs.variable('moving_mean', input_shape[-1:], initializer=tf.zeros_initializer,
+                                      trainable=False, restore=restore)
+        except:
+            moving_mean = vs.variable('moving_mean', input_shape[-1:], initializer=tf.zeros_initializer(),
+                                      trainable=False, restore=restore)
         moving_variance = vs.variable('moving_variance',
                                       input_shape[-1:],
                                       initializer=tf.constant_initializer(1.),
