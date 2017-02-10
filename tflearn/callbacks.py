@@ -147,7 +147,7 @@ class TermLogger(Callback):
         else:
             self.print_termlogs(training_state)
 
-    def on_sub_batch_start(self, training_state):
+    def on_sub_batch_begin(self, training_state):
         pass
 
     def on_sub_batch_end(self, training_state, train_index=0):
