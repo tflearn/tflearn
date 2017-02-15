@@ -179,7 +179,7 @@ def get_targets_placeholder_by_name(name):
             return e
     # Search again, in case defined outside TFLearn wrappers.
     for e in vars:
-        if e.name == name:
+        if e.name == name+':0':
             return e
 
     return None
