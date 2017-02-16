@@ -56,14 +56,8 @@ def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
 
     gamma_init = tf.random_normal_initializer(mean=gamma, stddev=stddev)
 
-    # Variable Scope fix for older TF
-    try:
-        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
-                                   reuse=reuse)
-    except Exception:
-        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
-
-    with vscope as scope:
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
         name = scope.name
         beta = vs.variable('beta', shape=[input_shape[-1]],
                            initializer=tf.constant_initializer(beta),
@@ -199,7 +193,7 @@ def l2_normalize(incoming, dim, epsilon=1e-12, name="l2_normalize"):
     Returns:
       A `Tensor` with the same shape as `x`.
     """
-    with tf.variable_op_scope([incoming], name) as name:
+    with tf.name_scope(name) as name:
         x = tf.ops.convert_to_tensor(incoming, name="x")
         square_sum = tf.reduce_sum(tf.square(x), [dim], keep_dims=True)
         x_inv_norm = tf.rsqrt(tf.maximum(square_sum, epsilon))
