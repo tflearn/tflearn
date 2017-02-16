@@ -51,7 +51,7 @@ def _rnn_template(incoming, cell, dropout=None, return_seq=False,
     sequence_length = None
     if dynamic:
         sequence_length = retrieve_seq_length_op(
-            incoming if isinstance(incoming, tf.Tensor) else tf.pack(incoming))
+            incoming if isinstance(incoming, tf.Tensor) else tf.stack(incoming))
 
     input_shape = utils.get_incoming_shape(incoming)
 
@@ -84,7 +84,7 @@ def _rnn_template(incoming, cell, dropout=None, return_seq=False,
             assert ndim >= 3, "Input dim should be at least 3."
             axes = [1, 0] + list(range(2, ndim))
             inference = tf.transpose(inference, (axes))
-            inference = tf.unpack(inference)
+            inference = tf.unstack(inference)
 
         outputs, state = _rnn(cell, inference, dtype=tf.float32,
                               initial_state=initial_state, scope=name,
@@ -104,7 +104,7 @@ def _rnn_template(incoming, cell, dropout=None, return_seq=False,
         if return_seq:
             o = outputs
         else:
-            outputs = tf.transpose(tf.pack(outputs), [1, 0, 2])
+            outputs = tf.transpose(tf.stack(outputs), [1, 0, 2])
             o = advanced_indexing_op(outputs, sequence_length)
     else:
         o = outputs if return_seq else outputs[-1]
@@ -370,7 +370,7 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
     sequence_length = None
     if dynamic:
         sequence_length = retrieve_seq_length_op(
-            incoming if isinstance(incoming, tf.Tensor) else tf.pack(incoming))
+            incoming if isinstance(incoming, tf.Tensor) else tf.stack(incoming))
 
     input_shape = utils.get_incoming_shape(incoming)
 
@@ -386,7 +386,7 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
             assert ndim >= 3, "Input dim should be at least 3."
             axes = [1, 0] + list(range(2, ndim))
             inference = tf.transpose(inference, (axes))
-            inference = tf.unpack(inference)
+            inference = tf.unstack(inference)
 
         outputs, states_fw, states_bw = _brnn(
             rnncell_fw, rnncell_bw, inference,
@@ -409,7 +409,7 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
         if return_seq:
             o = outputs
         else:
-            outputs = tf.transpose(tf.pack(outputs), [1, 0, 2])
+            outputs = tf.transpose(tf.stack(outputs), [1, 0, 2])
             o = advanced_indexing_op(outputs, sequence_length)
     else:
         o = outputs if return_seq else outputs[-1]
