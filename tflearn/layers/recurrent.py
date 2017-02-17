@@ -5,33 +5,14 @@ import logging
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.ops import array_ops
-try:
-    # Latest TF
-    from tensorflow.contrib import rnn as _rnn_cell
-    from tensorflow.contrib.rnn import static_rnn as _rnn, \
-      static_bidirectional_rnn as _brnn
-except Exception:
-    # TF > 0.10
-    try:
-        from tensorflow.python.ops.rnn import dynamic_rnn as _drnn
-        from tensorflow.python.ops.nn import rnn_cell as _rnn_cell
-        from tensorflow.python.ops.nn import rnn as _rnn, bidirectional_rnn as \
-            _brnn, dynamic_rnn as _drnn
-    # Old TF
-    except Exception:
-        from tensorflow.models.rnn import rnn_cell as _rnn_cell
-        from tensorflow.models.rnn import rnn as _rnn, bidirectional_rnn as _brnn, \
-            dynamic_rnn as _drnn
-try:
-    # Latest TF
-    from tensorflow.contrib.rnn.nest import is_sequence
-except Exception:
-    # TF > 0.10
-    try:
-        from tensorflow.python.util.nest import is_sequence
-    # Old TF
-    except Exception:
-        is_sequence = _rnn_cell._is_sequence
+from tensorflow.contrib.rnn.python.ops.core_rnn import static_rnn as _rnn, \
+    static_bidirectional_rnn as _brnn
+from tensorflow.python.ops.rnn import rnn_cell_impl as _rnn_cell, \
+    dynamic_rnn as _drnn
+from tensorflow.python.util.nest import is_sequence
+from tensorflow.contrib.framework.python.ops.variables import model_variable
+from tensorflow.contrib.rnn.python.ops import core_rnn_cell
+
 from .. import config
 from .. import utils
 from .. import activations
@@ -46,7 +27,7 @@ from .normalization import batch_normalization
 
 def _rnn_template(incoming, cell, dropout=None, return_seq=False,
                   return_state=False, initial_state=None, dynamic=False,
-                  scope=None, name="LSTM"):
+                  scope=None, reuse=False, name="LSTM"):
     """ RNN Layer Template. """
     sequence_length = None
     if dynamic:
@@ -422,7 +403,7 @@ def bidirectional_rnn(incoming, rnncell_fw, rnncell_bw, return_seq=False,
 #  RNN Cells
 # --------------------------
 
-class BasicRNNCell(_rnn_cell.RNNCell):
+class BasicRNNCell(core_rnn_cell.RNNCell):
     """ TF basic RNN cell with extra customization params. """
 
     def __init__(self, num_units, input_size=None, activation=tf.nn.tanh,
@@ -469,7 +450,7 @@ class BasicRNNCell(_rnn_cell.RNNCell):
         return output, output
 
 
-class BasicLSTMCell(_rnn_cell.RNNCell):
+class BasicLSTMCell(core_rnn_cell.RNNCell):
     """ TF Basic LSTM recurrent network cell with extra customization params.
 
     The implementation is based on: http://arxiv.org/abs/1409.2329.
@@ -519,7 +500,7 @@ class BasicLSTMCell(_rnn_cell.RNNCell):
 
     @property
     def state_size(self):
-        return (_rnn_cell.LSTMStateTuple(self._num_units, self._num_units)
+        return (core_rnn_cell.LSTMStateTuple(self._num_units, self._num_units)
                 if self._state_is_tuple else 2 * self._num_units)
 
     @property
@@ -539,7 +520,8 @@ class BasicLSTMCell(_rnn_cell.RNNCell):
                              self.reuse)
 
             # i = input_gate, j = new_input, f = forget_gate, o = output_gate
-            i, j, f, o = array_ops.split(1, 4, concat)
+            i, j, f, o = array_ops.split(value=concat, num_or_size_splits=4,
+                                         axis=1)
 
             # apply batch normalization to inner state and gates
             if self.batch_norm == True:
@@ -560,9 +542,9 @@ class BasicLSTMCell(_rnn_cell.RNNCell):
                 new_h = self._activation(new_c) * self._inner_activation(o)
 
             if self._state_is_tuple:
-                new_state = _rnn_cell.LSTMStateTuple(new_c, new_h)
+                new_state = core_rnn_cell.LSTMStateTuple(new_c, new_h)
             else:
-                new_state = array_ops.concat(1, [new_c, new_h])
+                new_state = array_ops.concat([new_c, new_h], 1)
 
             # Retrieve RNN Variables
             with tf.variable_scope('Linear', reuse=True):
@@ -572,7 +554,7 @@ class BasicLSTMCell(_rnn_cell.RNNCell):
             return new_h, new_state
 
 
-class GRUCell(_rnn_cell.RNNCell):
+class GRUCell(core_rnn_cell.RNNCell):
     """ TF GRU Cell with extra customization params. """
 
     def __init__(self, num_units, input_size=None, activation=tf.tanh,
@@ -637,7 +619,7 @@ class GRUCell(_rnn_cell.RNNCell):
         return new_h, new_h
 
 
-class DropoutWrapper(_rnn_cell.RNNCell):
+class DropoutWrapper(core_rnn_cell.RNNCell):
     """Operator adding dropout to inputs and outputs of the given cell."""
 
     def __init__(self, cell, input_keep_prob=1.0, output_keep_prob=1.0,
@@ -658,7 +640,7 @@ class DropoutWrapper(_rnn_cell.RNNCell):
           TypeError: if cell is not an RNNCell.
           ValueError: if keep_prob is not between 0 and 1.
         """
-        if not isinstance(cell, _rnn_cell.RNNCell):
+        if not isinstance(cell, core_rnn_cell.RNNCell):
             raise TypeError("The parameter cell is not a RNNCell.")
         if (isinstance(input_keep_prob, float) and
                 not (input_keep_prob >= 0.0 and input_keep_prob <= 1.0)):
@@ -754,7 +736,7 @@ def _linear(args, output_size, bias, bias_start=0.0, weights_init=None,
         if len(args) == 1:
             res = tf.matmul(args[0], matrix)
         else:
-            res = tf.matmul(array_ops.concat(1, args), matrix)
+            res = tf.matmul(array_ops.concat(args, 1), matrix)
         if not bias:
             return res
         bias_term = va.variable(
