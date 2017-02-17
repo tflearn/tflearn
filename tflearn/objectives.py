@@ -36,8 +36,8 @@ def softmax_categorical_crossentropy(y_pred, y_true):
 
     """
     with tf.name_scope("SoftmaxCrossentropy"):
-        return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(y_pred,
-                                                                      y_true))
+        return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
+            logits=y_pred, labels=y_true))
 
 
 def categorical_crossentropy(y_pred, y_true):
@@ -99,8 +99,8 @@ def binary_crossentropy(y_pred, y_true):
 
     """
     with tf.name_scope("BinaryCrossentropy"):
-        return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(y_pred,
-                                                                      y_true))
+        return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(
+            logits=y_pred, labels=y_true))
 
 
 def mean_square(y_pred, y_true):
