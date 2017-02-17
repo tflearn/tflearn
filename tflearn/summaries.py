@@ -6,17 +6,6 @@ from tensorflow.core.framework import summary_pb2
 from .utils import format_scope_name
 
 
-# Fix for TF 0.12
-try:
-    tf012 = True
-    histogram_summary = tf.summary.histogram
-    scalar_summary = tf.summary.scalar
-except Exception:
-    tf012 = False
-    histogram_summary = tf.histogram_summary
-    scalar_summary = tf.scalar_summary
-
-
 def monitor_activation(tensor):
     tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, tensor)
 
@@ -52,9 +41,9 @@ def get_summary(stype, tag, value=None, collection_key=None,
             raise Exception("Summary doesn't exist, a value must be "
                             "specified to initialize it.")
         if stype == "histogram":
-            summ = histogram_summary(tag, value)
+            summ = tf.summary.histogram(tag, value)
         elif stype == "scalar":
-            summ = scalar_summary(tag, value)
+            summ = tf.summary.scalar(tag, value)
         elif stype == "image":
             pass  # TODO: create summary
         else:
@@ -191,7 +180,7 @@ def get_value_from_summary_string(tag, summary_str):
 
     """
     # Fix for TF 0.12
-    if tag[-1] == '/' and tf012:
+    if tag[-1] == '/':
         tag = tag[:-1]
     summ = summary_pb2.Summary()
     summ.ParseFromString(summary_str)

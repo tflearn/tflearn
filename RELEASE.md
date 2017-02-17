@@ -1,3 +1,8 @@
+# Release 0.3.0
+
+Major changes:
+- TensorFlow 1.0 compatibility
+
 # Release 0.2.0
 
 Major changes:
