@@ -292,7 +292,7 @@ def feed_dict_builder(X, Y, net_inputs, net_targets):
             for key, val in X.items():
                 # Do nothing if dict already fits {placeholder: data} template
                 if isinstance(key, tf.Tensor):
-                    continue
+                    feed_dict[key] = val
                 else: # Else retrieve placeholder with its name
                     var = vs.get_inputs_placeholder_by_name(key)
                     if var is None:
@@ -329,7 +329,7 @@ def feed_dict_builder(X, Y, net_inputs, net_targets):
             for key, val in Y.items():
                 # Do nothing if dict already fits {placeholder: data} template
                 if isinstance(key, tf.Tensor):
-                    continue
+                    feed_dict[key] = val
                 else: # Else retrieve placeholder with its name
                     var = vs.get_targets_placeholder_by_name(key)
                     if var is None:
