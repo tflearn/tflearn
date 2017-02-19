@@ -384,7 +384,7 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
 
     n_classes = np.max(labels) + 1
 
-    d_imgshape = (len(images), image_shape[0], image_shape[1], 3) \
+    d_imgshape = (len(images), image_shape[1], image_shape[0], 3) \
         if not grayscale else (len(images), image_shape[0], image_shape[1])
     d_labelshape = (len(images), n_classes) \
         if categorical_labels else (len(images), )
