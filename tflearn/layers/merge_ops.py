@@ -50,7 +50,7 @@ def merge(tensors_list, mode, axis=1, name="Merge"):
         elif mode == 'elemwise_mul':
             inference = tensors[0]
             for i in range(1, len(tensors)):
-                inference = tf.mul(inference, tensors[i])
+                inference = tf.multiply(inference, tensors[i])
         elif mode == 'sum':
             inference = tf.reduce_sum(tf.concat(axis, tensors),
                                       reduction_indices=axis)

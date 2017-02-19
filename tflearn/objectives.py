@@ -197,8 +197,8 @@ def weak_cross_entropy_2d(y_pred, y_true, num_classes=None, epsilon=0.0001,
         softmax = tf.nn.softmax(y_pred)
 
         if head is not None:
-            cross_entropy = -tf.reduce_sum(tf.mul(y_true * tf.log(softmax),
-                                                  head), reduction_indices=[1])
+            temp = tf.multiply(y_true * tf.log(softmax), head)
+            cross_entropy = -tf.reduce_sum(temp, reduction_indices=[1])
         else:
             cross_entropy = -tf.reduce_sum(y_true * tf.log(softmax),
                                            reduction_indices=[1])
