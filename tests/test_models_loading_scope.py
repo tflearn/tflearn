@@ -26,7 +26,7 @@ class TestModelsLoadingScope(unittest.TestCase):
 
             # Testing save method
             m.save("test_dnn.tflearn")
-            self.assertTrue(os.path.exists("test_dnn.tflearn"))
+            self.assertTrue(os.path.exists("test_dnn.tflearn.index"))
 
         # Testing loading, with change of variable scope (saved with no scope, now loading into scopeA)
         with tf.Graph().as_default():	# start with clear graph
