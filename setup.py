@@ -46,7 +46,7 @@ setup(name='tflearn',
       classifiers=[
           'Programming Language :: Python',
           'Operating System :: OS Independent',
-          'Intended Audience :: Developers'
+          'Intended Audience :: Developers',
           'Intended Audience :: Science/Research',
           'Topic :: Scientific/Engineering :: Artificial Intelligence'
       ],
