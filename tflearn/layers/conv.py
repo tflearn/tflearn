@@ -69,14 +69,8 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     strides = utils.autoformat_kernel_2d(strides)
     padding = utils.autoformat_padding(padding)
 
-    # Variable Scope fix for older TF
-    try:
-        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
-                                   reuse=reuse)
-    except Exception:
-        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
-
-    with vscope as scope:
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
         name = scope.name
 
         W_init = weights_init
@@ -193,14 +187,8 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
     strides = utils.autoformat_kernel_2d(strides)
     padding = utils.autoformat_padding(padding)
 
-    # Variable Scope fix for older TF
-    try:
-        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
-                                   reuse=reuse)
-    except Exception:
-        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
-
-    with vscope as scope:
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
         name = scope.name
 
         W_init = weights_init
@@ -232,7 +220,7 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
             raise Exception("output_shape length error: "
                             + str(len(output_shape))
                             + ", only a length of 2 or 3 is supported.")
-        complete_out_shape = tf.concat(0, [batch_size, tf.constant(output_shape)])
+        complete_out_shape = tf.concat([batch_size, tf.constant(output_shape)], 0)
 
         inference = tf.nn.conv2d_transpose(incoming, W, complete_out_shape,
                                            strides, padding)
@@ -440,14 +428,8 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
                                                  num_classes,
                                                  input_shape[-1])
 
-    # Variable Scope fix for older TF
-    try:
-        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
-                                   reuse=reuse)
-    except Exception:
-        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
-
-    with vscope as scope:
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
         name = scope.name
 
         if shape is None:
@@ -459,7 +441,7 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
             new_shape = [in_shape[0], h, w, num_classes]
         else:
             new_shape = [shape[0], shape[1], shape[2], num_classes]
-        output_shape = tf.pack(new_shape)
+        output_shape = tf.stack(new_shape)
 
         def get_deconv_filter(f_shape):
             """
@@ -558,14 +540,8 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     #strides[1] = 1
     padding = utils.autoformat_padding(padding)
 
-    # Variable Scope fix for older TF
-    try:
-        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
-                                   reuse=reuse)
-    except Exception:
-        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
-
-    with vscope as scope:
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
         name = scope.name
 
         W_init = weights_init
@@ -769,14 +745,8 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
     strides = utils.autoformat_stride_3d(strides)
     padding = utils.autoformat_padding(padding)
 
-    # Variable Scope fix for older TF
-    try:
-        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
-                                   reuse=reuse)
-    except Exception:
-        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
-
-    with vscope as scope:
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
         name = scope.name
 
         W_init = weights_init
@@ -822,6 +792,7 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
     tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
 
     return inference
+
 
 def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
                       strides=1, padding='same', activation='linear',
@@ -890,14 +861,8 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
     strides = utils.autoformat_stride_3d(strides)
     padding = utils.autoformat_padding(padding)
 
-    # Variable Scope fix for older TF
-    try:
-        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
-                                   reuse=reuse)
-    except Exception:
-        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
-
-    with vscope as scope:
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
         name = scope.name
 
         W_init = weights_init
@@ -929,7 +894,7 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
             raise Exception("output_shape length error: "
                             + str(len(output_shape))
                             + ", only a length of 3 or 4 is supported.")
-        complete_out_shape = tf.concat(0, [batch_size, tf.constant(output_shape)])
+        complete_out_shape = tf.concat([batch_size, tf.constant(output_shape)], 0)
 
         inference = tf.nn.conv3d_transpose(incoming, W, complete_out_shape,
                                            strides, padding)
@@ -1166,13 +1131,9 @@ def residual_block(incoming, nb_blocks, out_channels, downsample=False,
     in_channels = incoming.get_shape().as_list()[-1]
 
     # Variable Scope fix for older TF
-    try:
-        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
-                                   reuse=reuse)
-    except Exception:
-        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
 
-    with vscope as scope:
         name = scope.name #TODO
 
         for i in range(nb_blocks):
@@ -1284,14 +1245,9 @@ def residual_bottleneck(incoming, nb_blocks, bottleneck_size, out_channels,
     resnet = incoming
     in_channels = incoming.get_shape().as_list()[-1]
 
-    # Variable Scope fix for older TF
-    try:
-        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
-                                   reuse=reuse)
-    except Exception:
-        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
 
-    with vscope as scope:
         name = scope.name #TODO
 
         for i in range(nb_blocks):
@@ -1400,14 +1356,9 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     strides = utils.autoformat_kernel_2d(strides)
     padding = utils.autoformat_padding(padding)
 
-    # Variable Scope fix for older TF
-    try:
-        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
-                                   reuse=reuse)
-    except Exception:
-        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
 
-    with vscope as scope:
         name = scope.name
 
         W_init = weights_init
@@ -1451,9 +1402,9 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         # Shared convolution for gating
         convolved = tf.nn.conv2d(incoming, W, strides, padding)
         H = activation(convolved + b)
-        T = tf.sigmoid(tf.mul(convolved, W_T) + b_T)
-        C = tf.sub(1.0, T)
-        inference = tf.add(tf.mul(H, T), tf.mul(convolved, C))
+        T = tf.sigmoid(tf.multiply(convolved, W_T) + b_T)
+        C = tf.subtract(1.0, T)
+        inference = tf.add(tf.multiply(H, T), tf.multiply(convolved, C))
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
@@ -1532,14 +1483,9 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     strides[1] = 1
     padding = utils.autoformat_padding(padding)
 
-    # Variable Scope fix for older TF
-    try:
-        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
-                                   reuse=reuse)
-    except Exception:
-        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
 
-    with vscope as scope:
         name = scope.name
 
         W_init = weights_init
@@ -1583,10 +1529,10 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         # Shared convolution for gating
         convolved = tf.nn.conv2d(inference, W, strides, padding)
         H = activation(tf.squeeze(convolved + b, [2]))
-        T = tf.sigmoid(tf.squeeze(tf.mul(convolved, W_T) + b_T, [2]))
-        C = tf.sub(1.0, T)
-        Q = tf.mul(H, T)
-        R = tf.mul(tf.squeeze(convolved, [2]), C)
+        T = tf.sigmoid(tf.squeeze(tf.multiply(convolved, W_T) + b_T, [2]))
+        C = tf.subtract(1.0, T)
+        Q = tf.multiply(H, T)
+        R = tf.multiply(tf.squeeze(convolved, [2]), C)
         inference = tf.add(Q, R)
 
         # Track activations.

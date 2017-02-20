@@ -328,7 +328,7 @@ def build_graph(num_actions):
     # Define cost and gradient update op
     a = tf.placeholder("float", [None, num_actions])
     y = tf.placeholder("float", [None])
-    action_q_values = tf.reduce_sum(tf.mul(q_values, a), reduction_indices=1)
+    action_q_values = tf.reduce_sum(tf.multiply(q_values, a), reduction_indices=1)
     cost = tflearn.mean_square(action_q_values, y)
     optimizer = tf.train.RMSPropOptimizer(learning_rate)
     grad_update = optimizer.minimize(cost, var_list=network_params)

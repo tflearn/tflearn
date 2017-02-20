@@ -26,7 +26,7 @@ def L2(tensor, wd=0.001):
         The regularization `Tensor`.
 
     """
-    return tf.mul(tf.nn.l2_loss(tensor), wd, name='L2-Loss')
+    return tf.multiply(tf.nn.l2_loss(tensor), wd, name='L2-Loss')
 
 
 def L1(tensor, wd=0.001):
@@ -44,4 +44,4 @@ def L1(tensor, wd=0.001):
         The regularization `Tensor`.
 
     """
-    return tf.mul(tf.reduce_sum(tf.abs(tensor)), wd, name='L1-Loss')
+    return tf.multiply(tf.reduce_sum(tf.abs(tensor)), wd, name='L1-Loss')

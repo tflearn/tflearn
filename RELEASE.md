@@ -1,3 +1,34 @@
+# Release 0.3.0
+
+Major changes:
+- TensorFlow 1.0 compatibility
+
+Minor changes:
+- Documents refactoring.
+- Inception-ResNet-v2 Example.
+- CIFAR-100 Dataset.
+- Added time monitoring.
+- Various bug fix.
+
+# Release 0.2.2
+
+Minor changes:
+- Support for 3D conv ops
+- New layers: time_distributed, l2_normalize
+- RNNs support for batch norm
+- Added an option to save the best model
+- Seq2seq and Reinforcement learning examples
+- Beginner tutorial
+- Others minor changes
+- Various bug fix
+
+# Release 0.2.1
+
+Minor changes:
+- Various bug fix
+- State of the art result for Residual Networks
+- FCN objective & Upscore layer
+
 # Release 0.2.0
 
 Major changes:

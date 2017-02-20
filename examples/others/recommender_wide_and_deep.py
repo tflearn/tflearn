@@ -149,9 +149,9 @@ class TFLearnWideAndDeep(object):
             psize = tf.cast(tf.shape(pos)[0], tf.int64)
             nsize = tf.cast(tf.shape(neg)[0], tf.int64)
             true_positive = tf.reduce_sum(pos, name="true_positive")
-            false_negative = tf.sub(psize, true_positive, name="false_negative")
+            false_negative = tf.subtract(psize, true_positive, name="false_negative")
             false_positive = tf.reduce_sum(neg, name="false_positive")
-            true_negative = tf.sub(nsize, false_positive, name="true_negative")
+            true_negative = tf.subtract(nsize, false_positive, name="true_negative")
             overall_accuracy = tf.truediv(tf.add(true_positive, true_negative), tf.add(nsize, psize), name="overall_accuracy")
         vmset = [true_positive, true_negative, false_positive, false_negative, overall_accuracy]
 

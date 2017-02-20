@@ -27,7 +27,7 @@ class TestModels(unittest.TestCase):
 
             # Testing save method
             m.save("test_dnn.tflearn")
-            self.assertTrue(os.path.exists("test_dnn.tflearn"))
+            self.assertTrue(os.path.exists("test_dnn.tflearn.index"))
 
         with tf.Graph().as_default():
             input = tflearn.input_data(shape=[None])
@@ -67,7 +67,7 @@ class TestModels(unittest.TestCase):
 
             # Testing save method
             m.save("test_seqgen.tflearn")
-            self.assertTrue(os.path.exists("test_seqgen.tflearn"))
+            self.assertTrue(os.path.exists("test_seqgen.tflearn.index"))
 
             # Testing load method
             m.load("test_seqgen.tflearn")
@@ -114,7 +114,7 @@ class TestModels(unittest.TestCase):
 
             # Testing save method
             m.save("test_seqgen_word.tflearn")
-            self.assertTrue(os.path.exists("test_seqgen_word.tflearn"))
+            self.assertTrue(os.path.exists("test_seqgen_word.tflearn.index"))
 
             # Testing load method
             m.load("test_seqgen_word.tflearn")
