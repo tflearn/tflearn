@@ -231,7 +231,7 @@ def prelu(x, channel_shared=False, weights_init='zeros', restore=True, name="PRe
         alphas = va.variable(shape=w_shape, initializer=W_init,
                              restore=restore, name="alphas")
 
-        x = tf.nn.relu(x) + tf.mul(alphas, (x - tf.abs(x))) * 0.5
+        x = tf.nn.relu(x) + tf.multiply(alphas, (x - tf.abs(x))) * 0.5
 
     x.scope = scope
     x.alphas = alphas

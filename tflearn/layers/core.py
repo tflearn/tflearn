@@ -419,7 +419,7 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
         if len(input_shape) > 1:
             inference = tf.reshape(inference, [-1])
 
-        inference = tf.mul(inference, W)
+        inference = tf.multiply(inference, W)
         if b: inference = tf.add(inference, b)
 
         if isinstance(activation, str):
@@ -554,7 +554,7 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
             T = dropout(T, transform_dropout)
         C = tf.sub(1.0, T)
 
-        inference = tf.add(tf.mul(H, T), tf.mul(incoming, C))
+        inference = tf.add(tf.multiply(H, T), tf.multiply(incoming, C))
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)

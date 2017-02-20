@@ -1451,9 +1451,9 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         # Shared convolution for gating
         convolved = tf.nn.conv2d(incoming, W, strides, padding)
         H = activation(convolved + b)
-        T = tf.sigmoid(tf.mul(convolved, W_T) + b_T)
-        C = tf.sub(1.0, T)
-        inference = tf.add(tf.mul(H, T), tf.mul(convolved, C))
+        T = tf.sigmoid(tf.multiply(convolved, W_T) + b_T)
+        C = tf.subtract(1.0, T)
+        inference = tf.add(tf.multiply(H, T), tf.multiply(convolved, C))
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
@@ -1583,10 +1583,10 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         # Shared convolution for gating
         convolved = tf.nn.conv2d(inference, W, strides, padding)
         H = activation(tf.squeeze(convolved + b, [2]))
-        T = tf.sigmoid(tf.squeeze(tf.mul(convolved, W_T) + b_T, [2]))
-        C = tf.sub(1.0, T)
-        Q = tf.mul(H, T)
-        R = tf.mul(tf.squeeze(convolved, [2]), C)
+        T = tf.sigmoid(tf.squeeze(tf.multiply(convolved, W_T) + b_T, [2]))
+        C = tf.subtract(1.0, T)
+        Q = tf.multiply(H, T)
+        R = tf.multiply(tf.squeeze(convolved, [2]), C)
         inference = tf.add(Q, R)
 
         # Track activations.

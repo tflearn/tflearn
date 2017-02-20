@@ -204,4 +204,4 @@ def l2_normalize(incoming, dim, epsilon=1e-12, name="l2_normalize"):
         square_sum = tf.reduce_sum(tf.square(x), [dim], keep_dims=True)
         x_inv_norm = tf.rsqrt(tf.maximum(square_sum, epsilon))
 
-    return tf.mul(x, x_inv_norm, name=name)
+    return tf.multiply(x, x_inv_norm, name=name)
