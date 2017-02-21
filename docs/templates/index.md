@@ -51,7 +51,7 @@ There are many more examples available [here](examples).
 
 To install TFLearn, see: [Installation Guide](installation).
 
-If your version of Tensorflow is under 0.9: [Upgrade Tensorflow](installation/#upgrade-tensorflow).
+If your version of Tensorflow is under 1.0: [Upgrade Tensorflow](installation/#upgrade-tensorflow).
 
 To get started: [Getting Started with TFLearn](getting_started) and [TFLearn Tutorials](tutorials).
 
