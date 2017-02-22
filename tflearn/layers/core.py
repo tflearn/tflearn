@@ -284,7 +284,7 @@ def reshape(incoming, new_shape, name="Reshape"):
     with tf.name_scope(name) as scope:
         inference = incoming
         if isinstance(inference, list):
-            inference = tf.concat(inference, 0)
+            inference = tf.concat(0, inference)
             inference = tf.cast(inference, tf.float32)
         inference = tf.reshape(inference, shape=new_shape)
 

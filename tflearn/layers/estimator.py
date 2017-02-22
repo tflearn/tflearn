@@ -158,7 +158,7 @@ def regression(incoming, placeholder=None, optimizer='adam',
                       'define as follow: custom_metric(y_pred, y_true, x).')
                 exit()
         elif not isinstance(metric, tf.Tensor):
-            ValueError("Invalid Metric type.")
+            raise ValueError("Invalid Metric type.")
 
     # Building other ops (loss, training ops...)
     if isinstance(loss, str):
