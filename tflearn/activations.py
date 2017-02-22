@@ -184,8 +184,8 @@ def leaky_relu(x, alpha=0.1, name="LeakyReLU"):
 leakyrelu = leaky_relu
 
 
-def prelu(x, channel_shared=False, weights_init='zeros', restore=True,
-          trainable=True, reuse=False, scope=None, name="PReLU"):
+def prelu(x, channel_shared=False, weights_init='zeros', trainable=True,
+          restore=True, reuse=False, scope=None, name="PReLU"):
     """ PReLU.
 
     Parametric Rectified Linear Unit.
@@ -195,8 +195,10 @@ def prelu(x, channel_shared=False, weights_init='zeros', restore=True,
             `int16`, or `int8`.
         channel_shared: `bool`. Single weight is shared by all channels
         weights_init: `str`. Weights initialization. Default: zeros.
+        trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. Restore or not alphas.
-        reuse:
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
         name: A name for this activation op (optional).
 
     Attributes:
