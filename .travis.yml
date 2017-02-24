@@ -3,7 +3,7 @@ dist: trusty
 language: python
 python:
   - 2.7
-  - 3.5
+  - 3.6
 virtualenv:
   system_site_package: true
 addons:
