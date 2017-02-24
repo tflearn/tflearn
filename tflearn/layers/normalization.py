@@ -73,13 +73,10 @@ def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
             tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, gamma)
 
         axis = list(range(input_ndim - 1))
-        # Fix TF 1.0
-        try:
-            moving_mean = vs.variable('moving_mean', input_shape[-1:], initializer=tf.zeros_initializer,
-                                      trainable=False, restore=restore)
-        except:
-            moving_mean = vs.variable('moving_mean', input_shape[-1:], initializer=tf.zeros_initializer(),
-                                      trainable=False, restore=restore)
+
+        moving_mean = vs.variable('moving_mean', input_shape[-1:],
+                                  initializer=tf.zeros_initializer(),
+                                  trainable=False, restore=restore)
         moving_variance = vs.variable('moving_variance',
                                       input_shape[-1:],
                                       initializer=tf.constant_initializer(1.),
@@ -90,17 +87,10 @@ def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
         def update_mean_var():
             mean, variance = tf.nn.moments(incoming, axis)
 
-            # Fix TF 0.12
-            try:
-                update_moving_mean = moving_averages.assign_moving_average(
-                    moving_mean, mean, decay, zero_debias=False)
-                update_moving_variance = moving_averages.assign_moving_average(
-                    moving_variance, variance, decay, zero_debias=False)
-            except Exception as e:
-                update_moving_mean = moving_averages.assign_moving_average(
-                    moving_mean, mean, decay)
-                update_moving_variance = moving_averages.assign_moving_average(
-                    moving_variance, variance, decay)
+            update_moving_mean = moving_averages.assign_moving_average(
+                moving_mean, mean, decay, zero_debias=False)
+            update_moving_variance = moving_averages.assign_moving_average(
+                moving_variance, variance, decay, zero_debias=False)
 
             with tf.control_dependencies(
                     [update_moving_mean, update_moving_variance]):
@@ -111,17 +101,10 @@ def batch_normalization(incoming, beta=0.0, gamma=1.0, epsilon=1e-5,
         mean, var = tf.cond(
             is_training, update_mean_var, lambda: (moving_mean, moving_variance))
 
-        try:
-            inference = tf.nn.batch_normalization(
-                incoming, mean, var, beta, gamma, epsilon)
-            inference.set_shape(input_shape)
-        # Fix for old Tensorflow
-        except Exception as e:
-            inference = tf.nn.batch_norm_with_global_normalization(
-                incoming, mean, var, beta, gamma, epsilon,
-                scale_after_normalization=True,
-            )
-            inference.set_shape(input_shape)
+        inference = tf.nn.batch_normalization(
+            incoming, mean, var, beta, gamma, epsilon)
+        inference.set_shape(input_shape)
+
 
     # Add attributes for easy access
     inference.scope = scope
