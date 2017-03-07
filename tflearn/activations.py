@@ -243,8 +243,7 @@ def elu(x):
 
     Arguments:
         x : A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
-            `int16`, or `int8`.
-        name : A name for this activation op (optional).
+            `int16`, or `int8`
 
     Returns:
         A `tuple` of `tf.Tensor`. This layer inference, i.e. output Tensors
@@ -260,3 +259,27 @@ def elu(x):
     """
 
     return tf.nn.elu(x)
+
+
+def crelu(x):
+    """ CReLU
+
+    Computes Concatenated ReLU.
+
+    Concatenates a ReLU which selects only the positive part of the activation
+    with a ReLU which selects only the negative part of the activation. Note
+    that as a result this non-linearity doubles the depth of the activations.
+
+    Arguments:
+        x : A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
+            `int16`, or `int8`.
+
+    Returns:
+        A `Tensor` with the same type as `x`.
+
+    Links:
+        [https://arxiv.org/abs/1603.05201](https://arxiv.org/abs/1603.05201)
+
+    """
+
+    return tf.nn.crelu(x)
