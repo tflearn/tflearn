@@ -19,7 +19,7 @@ def preprocess(passengers, columns_to_delete):
         [passenger.pop(column_to_delete) for passenger in passengers]
     for i in range(len(passengers)):
         # Converting 'sex' field to float (id is 1 after removing labels column)
-        passengers[i][1] = 1. if data[i][1] == 'female' else 0.
+        passengers[i][1] = 1. if passengers[i][1] == 'female' else 0.
     return np.array(passengers, dtype=np.float32)
 
 # Ignore 'name' and 'ticket' columns (id 1 & 6 of data array)
