@@ -22,7 +22,7 @@ with tf.name_scope('conv1'):
     W = tf.Variable(tf.random_normal([5, 5, 1, 32]), dtype=tf.float32, name='Weights')
     b = tf.Variable(tf.random_normal([32]), dtype=tf.float32, name='biases')
     x = tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')
-    x = tf.add_bias(W, b)
+    x = tf.add_bias(x, b)
     x = tf.nn.relu(x)
 ```
 
