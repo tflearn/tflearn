@@ -295,12 +295,11 @@ def atrous_conv_2d(incoming, nb_filter, filter_size, rate=1, padding='same',
         incoming: `Tensor`. Incoming 4-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
         filter_size: `int` or `list of int`. Size of filters.
-        rate: 'int` or list of `int`.  A positive int32. The stride with
-            which we sample input values across the height and width dimensions.
-            Equivalently, the rate by which we upsample the filter values by
-            inserting zeros across the height and width dimensions. In the
-            literature, the same parameter is sometimes called input
-            `stride` or `dilation`.
+        rate: 'int`.  A positive int32. The stride with which we sample input
+            values across the height and width dimensions. Equivalently, the
+            rate by which we upsample the filter values by inserting zeros
+            across the height and width dimensions. In the literature, the
+            same parameter is sometimes called input `stride` or `dilation`.
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
         activation: `str` (name) or `function` (returning a `Tensor`) or None.
@@ -335,7 +334,6 @@ def atrous_conv_2d(incoming, nb_filter, filter_size, rate=1, padding='same',
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
-    rate = utils.autoformat_kernel_2d(rate)
     padding = utils.autoformat_padding(padding)
 
     with tf.variable_scope(scope, default_name=name, values=[incoming],
