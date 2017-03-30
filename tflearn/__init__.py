@@ -30,7 +30,8 @@ from . import variables
 from . import collections # Add TFLearn collections to Tensorflow GraphKeys
 
 # Direct ops inclusion
-from .optimizers import SGD, AdaGrad, Adam, RMSProp, Momentum, Ftrl, AdaDelta
+from .optimizers import SGD, AdaGrad, Adam, RMSProp, Momentum, Ftrl, AdaDelta, \
+    ProximalAdaGrad
 from .activations import linear, tanh, sigmoid, softmax, softplus, softsign,\
     relu, relu6, leaky_relu, prelu, elu
 from .variables import variable, get_all_trainable_variable, \

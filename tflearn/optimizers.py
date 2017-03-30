@@ -454,3 +454,50 @@ class AdaDelta(Optimizer):
             use_locking=self.use_locking, name=self.name)
 
 adadelta = AdaDelta
+
+
+class ProximalAdaGrad(Optimizer):
+    """ ProximalAdaGrad.
+
+    Examples:
+        ```python
+        # With TFLearn estimators
+        proxi_adagrad = ProximalAdaGrad(learning_rate=0.01,
+                                        l2_regularization_strength=0.01,
+                                        initial_accumulator_value=0.01)
+        regression = regression(net, optimizer=proxi_adagrad)
+
+        # Without TFLearn estimators (returns tf.Optimizer)
+        adagrad = ProximalAdaGrad(learning_rate=0.01).get_tensor()
+        ```
+
+    Arguments:
+        learning_rate: `float`. Learning rate.
+        initial_accumulator_value: `float`. Starting value for the
+            accumulators, must be positive
+        use_locking: `bool`. If True use locks for update operation.
+        name: `str`. Optional name prefix for the operations created when
+            applying gradients. Defaults to "AdaGrad".
+
+    References:
+        Efficient Learning using Forward-Backward Splitting. J. Duchi, Yoram
+        Singer, 2009.
+
+    Links:
+        [Paper](http://papers.nips.cc/paper/3793-efficient-learning-using-forward-backward-splitting.pdf)
+
+    """
+
+    def __init__(self, learning_rate=0.001, initial_accumulator_value=0.1,
+                 use_locking=False, name="AdaGrad"):
+        super(ProximalAdaGrad, self).__init__(learning_rate, use_locking, name)
+        self.initial_accumulator_value = initial_accumulator_value
+
+    def build(self, step_tensor=None):
+        self.built = True
+        self.tensor = tf.train.AdagradOptimizer(
+            self.learning_rate,
+            initial_accumulator_value=self.initial_accumulator_value,
+            use_locking=self.use_locking, name=self.name)
+
+proximaladagrad = ProximalAdaGrad
