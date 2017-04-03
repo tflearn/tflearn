@@ -245,7 +245,11 @@ class DNN(object):
 
         """
         feed_dict = feed_dict_builder(X, None, self.inputs, None)
-        return np.argsort(self.predictor.predict(feed_dict))[::-1]
+        labels = np.argsort(self.predictor.predict(feed_dict))
+        if labels.ndim == 1:
+            return labels[::-1]
+        else:
+            return labels[:, ::-1]
 
     def save(self, model_file):
         """ Save.
