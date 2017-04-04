@@ -11,6 +11,7 @@ from .. import activations
 from .. import initializations
 from .. import losses
 from .. import utils
+from ..layers.normalization import batch_normalization
 
 
 def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
@@ -1433,6 +1434,132 @@ def residual_bottleneck(incoming, nb_blocks, bottleneck_size, out_channels,
                 resnet = tflearn.activation(resnet, activation)
 
     return resnet
+
+
+def resnext_block(incoming, nb_blocks, out_channels, cardinality,
+                  downsample=False, downsample_strides=2, activation='relu',
+                  batch_norm=True, weights_init='variance_scaling',
+                  regularizer='L2', weight_decay=0.0001, bias=True,
+                  bias_init='zeros', trainable=True, restore=True,
+                  reuse=False, scope=None, name="ResNeXtBlock"):
+    """ ResNeXt Block.
+
+    A ResNeXt block as described in ResNeXt paper.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        4-D Tensor [batch, new height, new width, nb_filter].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Layer.
+        nb_blocks: `int`. Number of layer blocks.
+        out_channels: `int`. The number of convolutional filters of the
+            layers surrounding the bottleneck layer.
+        cardinality: `int`. Number of aggregated residual transformations.
+        downsample: `bool`. If True, apply downsampling using
+            'downsample_strides' for strides.
+        downsample_strides: `int`. The strides to use when downsampling.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
+        batch_norm: `bool`. If True, apply batch normalization.
+        bias: `bool`. If True, a bias is used.
+        weights_init: `str` (name) or `Tensor`. Weights initialization.
+            (see tflearn.initializations) Default: 'uniform_scaling'.
+        bias_init: `str` (name) or `tf.Tensor`. Bias initialization.
+            (see tflearn.initializations) Default: 'zeros'.
+        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
+            layer weights (see tflearn.regularizers). Default: None.
+        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share variables between layers. Note that scope will
+            override name.
+        name: A name for this layer (optional). Default: 'ResNeXtBlock'.
+
+    References:
+        Aggregated Residual Transformations for Deep Neural Networks. Saining
+        Xie, Ross Girshick, Piotr Dollar, Zhuowen Tu, Kaiming He. 2016.
+
+    Links:
+        [https://arxiv.org/pdf/1611.05431.pdf]
+        (https://arxiv.org/pdf/1611.05431.pdf)
+
+    """
+    resnet = incoming
+    in_channels = incoming.get_shape().as_list()[-1]
+
+    # Bottleneck size related to cardinality (see paper, Table 2)
+    card_values = [1, 2, 4, 8, 32]
+    bottleneck_values = [64, 40, 24, 14, 4]
+    bottleneck_size = bottleneck_values[card_values.index(cardinality)]
+
+    assert cardinality in card_values, "cardinality must be in [1, 2, 4, 8, 32]"
+
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
+
+        for i in range(nb_blocks):
+
+            identity = resnet
+
+            card_branches = list()
+            for i in range(cardinality):
+
+                if not downsample:
+                    downsample_strides = 1
+
+                branch = conv_2d(resnet, bottleneck_size, 1,
+                             downsample_strides, 'valid',
+                             'linear', bias, weights_init,
+                             bias_init, regularizer, weight_decay,
+                             trainable, restore)
+
+                if batch_norm:
+                    branch = batch_normalization(branch, trainable=trainable)
+                branch = tflearn.activation(branch, activation)
+
+                branch = conv_2d(branch, bottleneck_size, 3, 1, 'same',
+                             'linear', bias, weights_init,
+                             bias_init, regularizer, weight_decay,
+                             trainable, restore)
+                if batch_norm:
+                    branch = batch_normalization(branch, trainable=trainable)
+                branch = tflearn.activation(branch, activation)
+
+                branch = conv_2d(branch, out_channels, 1, 1, 'valid',
+                             activation, bias, weights_init,
+                             bias_init, regularizer, weight_decay,
+                             trainable, restore)
+
+                if batch_norm:
+                    branch = batch_normalization(branch, trainable=trainable)
+
+                card_branches.append(branch)
+
+            resnet = tf.add_n(card_branches)
+
+            # Downsampling
+            if downsample_strides > 1:
+                identity = avg_pool_2d(identity, 1, downsample_strides)
+
+            # Projection to new dimension
+            if in_channels != out_channels:
+                ch = (out_channels - in_channels) // 2
+                identity = tf.pad(identity,
+                                  [[0, 0], [0, 0], [0, 0], [ch, ch]])
+                in_channels = out_channels
+
+            resnet = resnet + identity
+            resnet = tflearn.activation(resnet, activation)
+
+        return resnet
 
 
 def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
