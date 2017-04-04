@@ -19,7 +19,7 @@ install:
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
 
-  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy six pytest h5py
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy six pytest-cov h5py
   - source activate test-environment
   - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
       conda install pil;
