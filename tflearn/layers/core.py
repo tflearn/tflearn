@@ -645,3 +645,18 @@ def time_distributed(incoming, fn, args=None, scope=None):
     except:
       x = list(map(lambda t: tf.reshape(t, [-1, 1]+utils.get_incoming_shape(t)[1:]), x))
     return tf.concat(1, x)
+
+
+def get_layer_by_name(name):
+    """ get_layer_by_name.
+
+    Retrieve a layer, given its name.
+
+    Arguments:
+        name: `str`. The layer name.
+
+    Returns:
+        A list of Variables.
+
+    """
+    return tf.get_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name)
