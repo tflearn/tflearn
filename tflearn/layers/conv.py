@@ -388,6 +388,136 @@ def atrous_conv_2d(incoming, nb_filter, filter_size, rate=1, padding='same',
     return inference
 
 
+def grouped_conv_2d(incoming, channel_multiplier, filter_size, strides=1,
+                    padding='same', activation='linear', bias=False,
+                    weights_init='uniform_scaling', bias_init='zeros',
+                    regularizer=None, weight_decay=0.001, trainable=True,
+                    restore=True, reuse=False, scope=None,
+                    name="GroupedConv2D"):
+    """ Grouped Convolution 2D.
+
+    a.k.a DepthWise Convolution 2D.
+
+    Given a 4D input tensor ('NHWC' or 'NCHW' data formats), a kernel_size and
+    a channel_multiplier, grouped_conv_2d applies a different filter to each
+    input channel (expanding from 1 channel to channel_multiplier channels
+    for each), then concatenates the results together. The output has
+    in_channels * channel_multiplier channels.
+
+    In detail,
+    ```
+    output[b, i, j, k * channel_multiplier + q] = sum_{di, dj}
+         filter[di, dj, k, q] * input[b, strides[1] * i + rate[0] * di,
+                                         strides[2] * j + rate[1] * dj, k]
+    ```
+    Must have strides[0] = strides[3] = 1. For the most common case of the same
+    horizontal and vertical strides, strides = [1, stride, stride, 1]. If any
+    value in rate is greater than 1, we perform atrous depthwise convolution,
+    in which case all values in the strides tensor must be equal to 1.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        4-D Tensor [batch, new height, new width, in_channels * channel_multiplier].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Tensor.
+        channel_multiplier: `int`. The number of channels to expand to.
+        filter_size: `int` or `list of int`. Size of filters.
+        strides: 'int` or list of `int`. Strides of conv operation.
+            Default: [1 1 1 1].
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        activation: `str` (name) or `function` (returning a `Tensor`) or None.
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
+        bias: `bool`. If True, a bias is used.
+        weights_init: `str` (name) or `Tensor`. Weights initialization.
+            (see tflearn.initializations) Default: 'truncated_normal'.
+        bias_init: `str` (name) or `Tensor`. Bias initialization.
+            (see tflearn.initializations) Default: 'zeros'.
+        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
+            layer weights (see tflearn.regularizers). Default: None.
+        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share variables between layers. Note that scope will
+            override name.
+        name: A name for this layer (optional). Default: 'Conv2D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+        W: `Variable`. Variable representing filter weights.
+        b: `Variable`. Variable representing biases.
+
+    """
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+
+    nb_filter = channel_multiplier * input_shape[-1]
+
+    strides = utils.autoformat_kernel_2d(strides)
+    filter_size = utils.autoformat_filter_conv2d(filter_size,
+                                                 input_shape[-1],
+                                                 channel_multiplier)
+    padding = utils.autoformat_padding(padding)
+
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
+        name = scope.name
+
+        W_init = weights_init
+        if isinstance(weights_init, str):
+            W_init = initializations.get(weights_init)()
+        W_regul = None
+        if regularizer:
+            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        W = vs.variable('W', shape=filter_size, regularizer=W_regul,
+                        initializer=W_init, trainable=trainable,
+                        restore=restore)
+
+        # Track per layer variables
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
+
+        b = None
+        if bias:
+            if isinstance(bias_init, str):
+                bias_init = initializations.get(bias_init)()
+            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+                            trainable=trainable, restore=restore)
+            # Track per layer variables
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
+
+        inference = tf.nn.depthwise_conv2d(incoming, W, strides, padding)
+        if b: inference = tf.nn.bias_add(inference, b)
+
+        if activation:
+            if isinstance(activation, str):
+                inference = activations.get(activation)(inference)
+            elif hasattr(activation, '__call__'):
+                inference = activation(inference)
+            else:
+                raise ValueError("Invalid Activation.")
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights.
+    inference.scope = scope
+    inference.W = W
+    inference.b = b
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
+    return inference
+
+
 def max_pool_2d(incoming, kernel_size, strides=None, padding='same',
                 name="MaxPool2D"):
     """ Max Pooling 2D.
@@ -1444,13 +1574,13 @@ def resnext_block(incoming, nb_blocks, out_channels, cardinality,
                   reuse=False, scope=None, name="ResNeXtBlock"):
     """ ResNeXt Block.
 
-    A ResNeXt block as described in ResNeXt paper.
+    A ResNeXt block as described in ResNeXt paper (Figure 2, c).
 
     Input:
         4-D Tensor [batch, height, width, in_channels].
 
     Output:
-        4-D Tensor [batch, new height, new width, nb_filter].
+        4-D Tensor [batch, new height, new width, out_channels].
 
     Arguments:
         incoming: `Tensor`. Incoming 4-D Layer.
@@ -1492,13 +1622,16 @@ def resnext_block(incoming, nb_blocks, out_channels, cardinality,
         (https://arxiv.org/pdf/1611.05431.pdf)
 
     """
-    resnet = incoming
+    resnext = incoming
     in_channels = incoming.get_shape().as_list()[-1]
 
-    # Bottleneck size related to cardinality (see paper, Table 2)
+    # Bottleneck width related to cardinality for perplexity conservation
+    # compare to ResNet (see paper, Table 2).
     card_values = [1, 2, 4, 8, 32]
     bottleneck_values = [64, 40, 24, 14, 4]
     bottleneck_size = bottleneck_values[card_values.index(cardinality)]
+    # Group width for reference
+    group_width = [64, 80, 96, 112, 128]
 
     assert cardinality in card_values, "cardinality must be in [1, 2, 4, 8, 32]"
 
@@ -1507,43 +1640,35 @@ def resnext_block(incoming, nb_blocks, out_channels, cardinality,
 
         for i in range(nb_blocks):
 
-            identity = resnet
+            identity = resnext
+            if not downsample:
+                downsample_strides = 1
 
-            card_branches = list()
-            for i in range(cardinality):
+            resnext = conv_2d(resnext, bottleneck_size, 1,
+                              downsample_strides, 'valid',
+                              'linear', bias, weights_init,
+                              bias_init, regularizer, weight_decay,
+                              trainable, restore)
 
-                if not downsample:
-                    downsample_strides = 1
+            if batch_norm:
+                resnext = batch_normalization(resnext, trainable=trainable)
+            resnext = tflearn.activation(resnext, activation)
 
-                branch = conv_2d(resnet, bottleneck_size, 1,
-                             downsample_strides, 'valid',
-                             'linear', bias, weights_init,
-                             bias_init, regularizer, weight_decay,
-                             trainable, restore)
+            resnext = grouped_conv_2d(resnext, cardinality, 3, 1, 'same',
+                                      'linear', False, weights_init,
+                                      bias_init, regularizer, weight_decay,
+                                      trainable, restore)
+            if batch_norm:
+                resnext = batch_normalization(resnext, trainable=trainable)
+            resnext = tflearn.activation(resnext, activation)
 
-                if batch_norm:
-                    branch = batch_normalization(branch, trainable=trainable)
-                branch = tflearn.activation(branch, activation)
+            resnext = conv_2d(resnext, out_channels, 1, 1, 'valid',
+                              activation, bias, weights_init,
+                              bias_init, regularizer, weight_decay,
+                              trainable, restore)
 
-                branch = conv_2d(branch, bottleneck_size, 3, 1, 'same',
-                             'linear', bias, weights_init,
-                             bias_init, regularizer, weight_decay,
-                             trainable, restore)
-                if batch_norm:
-                    branch = batch_normalization(branch, trainable=trainable)
-                branch = tflearn.activation(branch, activation)
-
-                branch = conv_2d(branch, out_channels, 1, 1, 'valid',
-                             activation, bias, weights_init,
-                             bias_init, regularizer, weight_decay,
-                             trainable, restore)
-
-                if batch_norm:
-                    branch = batch_normalization(branch, trainable=trainable)
-
-                card_branches.append(branch)
-
-            resnet = tf.add_n(card_branches)
+            if batch_norm:
+                resnext = batch_normalization(resnext, trainable=trainable)
 
             # Downsampling
             if downsample_strides > 1:
@@ -1556,10 +1681,10 @@ def resnext_block(incoming, nb_blocks, out_channels, cardinality,
                                   [[0, 0], [0, 0], [0, 0], [ch, ch]])
                 in_channels = out_channels
 
-            resnet = resnet + identity
-            resnet = tflearn.activation(resnet, activation)
+            resnext = resnext + identity
+            resnext = tflearn.activation(resnext, activation)
 
-        return resnet
+        return resnext
 
 
 def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
