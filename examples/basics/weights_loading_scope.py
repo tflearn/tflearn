@@ -103,7 +103,7 @@ class Model12(object):
         with tf.variable_scope("scope2") as scope:
             net_dnn = Model2.make_core_network(inputs)	# shape (?, 10)
 
-        network = tf.concat(1, [net_conv, net_dnn], name="concat")	# shape (?, 20)
+        network = tf.concat([net_conv, net_dnn], 1, name="concat")	# shape (?, 20)
         network = tflearn.fully_connected(network, 10, activation="softmax")
         network = regression(network, optimizer='adam', learning_rate=0.01,
                              loss='categorical_crossentropy', name='target')
