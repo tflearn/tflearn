@@ -644,4 +644,4 @@ def time_distributed(incoming, fn, args=None, scope=None):
       x = map(lambda t: tf.reshape(t, [-1, 1]+utils.get_incoming_shape(t)[1:]), x)
     except:
       x = list(map(lambda t: tf.reshape(t, [-1, 1]+utils.get_incoming_shape(t)[1:]), x))
-    return tf.concat(1, x)
+    return tf.concat(x, 1)
