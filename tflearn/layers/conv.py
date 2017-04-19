@@ -530,8 +530,8 @@ def max_pool_2d(incoming, kernel_size, strides=None, padding='same',
 
     Arguments:
         incoming: `Tensor`. Incoming 4-D Layer.
-        kernel_size: 'int` or `list of int`. Pooling kernel size.
-        strides: 'int` or `list of int`. Strides of conv operation.
+        kernel_size: `int` or `list of int`. Pooling kernel size.
+        strides: `int` or `list of int`. Strides of conv operation.
             Default: same as kernel_size.
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -575,8 +575,8 @@ def avg_pool_2d(incoming, kernel_size, strides=None, padding='same',
 
     Arguments:
         incoming: `Tensor`. Incoming 4-D Layer.
-        kernel_size: 'int` or `list of int`. Pooling kernel size.
-        strides: 'int` or `list of int`. Strides of conv operation.
+        kernel_size: `int` or `list of int`. Pooling kernel size.
+        strides: `int` or `list of int`. Strides of conv operation.
             Default: same as kernel_size.
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -619,7 +619,7 @@ def upsample_2d(incoming, kernel_size, name="UpSample2D"):
 
     Arguments:
         incoming: `Tensor`. Incoming 4-D Layer to upsample.
-        kernel_size: 'int` or `list of int`. Upsampling kernel size.
+        kernel_size: `int` or `list of int`. Upsampling kernel size.
         name: A name for this layer (optional). Default: 'UpSample2D'.
 
     Attributes:
@@ -667,8 +667,8 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
             [batch_size, new height, new width]. For convinience four values
              are allows [batch_size, new height, new width, X], where X
              is ignored.
-        kernel_size: 'int` or `list of int`. Upsampling kernel size.
-        strides: 'int` or `list of int`. Strides of conv operation.
+        kernel_size: `int` or `list of int`. Upsampling kernel size.
+        strides: `int` or `list of int`. Strides of conv operation.
             Default: [1 2 2 1].
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
@@ -763,8 +763,8 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     Arguments:
         incoming: `Tensor`. Incoming 3-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
-        filter_size: 'int` or `list of int`. Size of filters.
-        strides: 'int` or `list of int`. Strides of conv operation.
+        filter_size: `int` or `list of int`. Size of filters.
+        strides: `int` or `list of int`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -1087,7 +1087,8 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
         filter_size: `int` or `list of int`. Size of filters.
         output_shape: `list of int`. Dimensions of the output tensor.
             Can optionally include the number of conv filters.
-            [new depth, new height, new width, nb_filter] or [new depth, new height, new width].
+            [new depth, new height, new width, nb_filter] or
+            [new depth, new height, new width].
         strides: `int` or list of `int`. Strides of conv operation.
             Default: [1 1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
@@ -1204,9 +1205,10 @@ def max_pool_3d(incoming, kernel_size, strides=1, padding='same',
 
     Arguments:
         incoming: `Tensor`. Incoming 5-D Layer.
-        kernel_size: 'int` or `list of int`. Pooling kernel size.Must have kernel_size[0] = kernel_size[1] = 1
-        strides: 'int` or `list of int`. Strides of conv operation.Must have strides[0] = strides[4] = 1.
-            Default: [1 1 1 1 1]
+        kernel_size: `int` or `list of int`. Pooling kernel size.
+            Must have kernel_size[0] = kernel_size[1] = 1
+        strides: `int` or `list of int`. Strides of conv operation.
+            Must have strides[0] = strides[4] = 1. Default: [1 1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
         name: A name for this layer (optional). Default: 'MaxPool3D'.
@@ -1237,7 +1239,7 @@ def max_pool_3d(incoming, kernel_size, strides=1, padding='same',
     return inference
 
 
-def avg_pool_3d(incoming, kernel_size, strides=None, padding='same',
+def avg_pool_3d(incoming, kernel_size, strides=1, padding='same',
                 name="AvgPool3D"):
     """ Average Pooling 3D.
 
@@ -1249,8 +1251,10 @@ def avg_pool_3d(incoming, kernel_size, strides=None, padding='same',
 
     Arguments:
         incoming: `Tensor`. Incoming 5-D Layer.
-        kernel_size: 'int` or `list of int`. Pooling kernel size.Must have kernel_size[0] = kernel_size[1] = 1
-        strides: 'int` or `list of int`. Strides of conv operation.Must have strides[0] = strides[4] = 1.
+        kernel_size: `int` or `list of int`. Pooling kernel size.
+            Must have kernel_size[0] = kernel_size[1] = 1
+        strides: `int` or `list of int`. Strides of conv operation.
+            Must have strides[0] = strides[4] = 1.
             Default: [1 1 1 1 1]
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -1703,8 +1707,8 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     Arguments:
         incoming: `Tensor`. Incoming 4-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
-        filter_size: 'int` or `list of int`. Size of filters.
-        strides: 'int` or `list of int`. Strides of conv operation.
+        filter_size: `int` or `list of int`. Size of filters.
+        strides: `int` or `list of int`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -1826,8 +1830,8 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     Arguments:
         incoming: `Tensor`. Incoming 3-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
-        filter_size: 'int` or `list of int`. Size of filters.
-        strides: 'int` or `list of int`. Strides of conv operation.
+        filter_size: `int` or `list of int`. Size of filters.
+        strides: `int` or `list of int`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
