@@ -11,6 +11,7 @@ from .. import activations
 from .. import initializations
 from .. import losses
 from .. import utils
+from ..layers.normalization import batch_normalization
 
 
 def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
@@ -387,6 +388,136 @@ def atrous_conv_2d(incoming, nb_filter, filter_size, rate=1, padding='same',
     return inference
 
 
+def grouped_conv_2d(incoming, channel_multiplier, filter_size, strides=1,
+                    padding='same', activation='linear', bias=False,
+                    weights_init='uniform_scaling', bias_init='zeros',
+                    regularizer=None, weight_decay=0.001, trainable=True,
+                    restore=True, reuse=False, scope=None,
+                    name="GroupedConv2D"):
+    """ Grouped Convolution 2D.
+
+    a.k.a DepthWise Convolution 2D.
+
+    Given a 4D input tensor ('NHWC' or 'NCHW' data formats), a kernel_size and
+    a channel_multiplier, grouped_conv_2d applies a different filter to each
+    input channel (expanding from 1 channel to channel_multiplier channels
+    for each), then concatenates the results together. The output has
+    in_channels * channel_multiplier channels.
+
+    In detail,
+    ```
+    output[b, i, j, k * channel_multiplier + q] = sum_{di, dj}
+         filter[di, dj, k, q] * input[b, strides[1] * i + rate[0] * di,
+                                         strides[2] * j + rate[1] * dj, k]
+    ```
+    Must have strides[0] = strides[3] = 1. For the most common case of the same
+    horizontal and vertical strides, strides = [1, stride, stride, 1]. If any
+    value in rate is greater than 1, we perform atrous depthwise convolution,
+    in which case all values in the strides tensor must be equal to 1.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        4-D Tensor [batch, new height, new width, in_channels * channel_multiplier].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Tensor.
+        channel_multiplier: `int`. The number of channels to expand to.
+        filter_size: `int` or `list of int`. Size of filters.
+        strides: 'int` or list of `int`. Strides of conv operation.
+            Default: [1 1 1 1].
+        padding: `str` from `"same", "valid"`. Padding algo to use.
+            Default: 'same'.
+        activation: `str` (name) or `function` (returning a `Tensor`) or None.
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
+        bias: `bool`. If True, a bias is used.
+        weights_init: `str` (name) or `Tensor`. Weights initialization.
+            (see tflearn.initializations) Default: 'truncated_normal'.
+        bias_init: `str` (name) or `Tensor`. Bias initialization.
+            (see tflearn.initializations) Default: 'zeros'.
+        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
+            layer weights (see tflearn.regularizers). Default: None.
+        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share variables between layers. Note that scope will
+            override name.
+        name: A name for this layer (optional). Default: 'Conv2D'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+        W: `Variable`. Variable representing filter weights.
+        b: `Variable`. Variable representing biases.
+
+    """
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+
+    nb_filter = channel_multiplier * input_shape[-1]
+
+    strides = utils.autoformat_kernel_2d(strides)
+    filter_size = utils.autoformat_filter_conv2d(filter_size,
+                                                 input_shape[-1],
+                                                 channel_multiplier)
+    padding = utils.autoformat_padding(padding)
+
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
+        name = scope.name
+
+        W_init = weights_init
+        if isinstance(weights_init, str):
+            W_init = initializations.get(weights_init)()
+        W_regul = None
+        if regularizer:
+            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        W = vs.variable('W', shape=filter_size, regularizer=W_regul,
+                        initializer=W_init, trainable=trainable,
+                        restore=restore)
+
+        # Track per layer variables
+        tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
+
+        b = None
+        if bias:
+            if isinstance(bias_init, str):
+                bias_init = initializations.get(bias_init)()
+            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+                            trainable=trainable, restore=restore)
+            # Track per layer variables
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
+
+        inference = tf.nn.depthwise_conv2d(incoming, W, strides, padding)
+        if b: inference = tf.nn.bias_add(inference, b)
+
+        if activation:
+            if isinstance(activation, str):
+                inference = activations.get(activation)(inference)
+            elif hasattr(activation, '__call__'):
+                inference = activation(inference)
+            else:
+                raise ValueError("Invalid Activation.")
+
+        # Track activations.
+        tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
+
+    # Add attributes to Tensor to easy access weights.
+    inference.scope = scope
+    inference.W = W
+    inference.b = b
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, inference)
+
+    return inference
+
+
 def max_pool_2d(incoming, kernel_size, strides=None, padding='same',
                 name="MaxPool2D"):
     """ Max Pooling 2D.
@@ -399,8 +530,8 @@ def max_pool_2d(incoming, kernel_size, strides=None, padding='same',
 
     Arguments:
         incoming: `Tensor`. Incoming 4-D Layer.
-        kernel_size: 'int` or `list of int`. Pooling kernel size.
-        strides: 'int` or `list of int`. Strides of conv operation.
+        kernel_size: `int` or `list of int`. Pooling kernel size.
+        strides: `int` or `list of int`. Strides of conv operation.
             Default: same as kernel_size.
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -444,8 +575,8 @@ def avg_pool_2d(incoming, kernel_size, strides=None, padding='same',
 
     Arguments:
         incoming: `Tensor`. Incoming 4-D Layer.
-        kernel_size: 'int` or `list of int`. Pooling kernel size.
-        strides: 'int` or `list of int`. Strides of conv operation.
+        kernel_size: `int` or `list of int`. Pooling kernel size.
+        strides: `int` or `list of int`. Strides of conv operation.
             Default: same as kernel_size.
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -488,7 +619,7 @@ def upsample_2d(incoming, kernel_size, name="UpSample2D"):
 
     Arguments:
         incoming: `Tensor`. Incoming 4-D Layer to upsample.
-        kernel_size: 'int` or `list of int`. Upsampling kernel size.
+        kernel_size: `int` or `list of int`. Upsampling kernel size.
         name: A name for this layer (optional). Default: 'UpSample2D'.
 
     Attributes:
@@ -536,8 +667,8 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
             [batch_size, new height, new width]. For convinience four values
              are allows [batch_size, new height, new width, X], where X
              is ignored.
-        kernel_size: 'int` or `list of int`. Upsampling kernel size.
-        strides: 'int` or `list of int`. Strides of conv operation.
+        kernel_size: `int` or `list of int`. Upsampling kernel size.
+        strides: `int` or `list of int`. Strides of conv operation.
             Default: [1 2 2 1].
         trainable: `bool`. If True, weights will be trainable.
         restore: `bool`. If True, this layer weights will be restored when
@@ -632,8 +763,8 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     Arguments:
         incoming: `Tensor`. Incoming 3-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
-        filter_size: 'int` or `list of int`. Size of filters.
-        strides: 'int` or `list of int`. Strides of conv operation.
+        filter_size: `int` or `list of int`. Size of filters.
+        strides: `int` or `list of int`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -956,7 +1087,8 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
         filter_size: `int` or `list of int`. Size of filters.
         output_shape: `list of int`. Dimensions of the output tensor.
             Can optionally include the number of conv filters.
-            [new depth, new height, new width, nb_filter] or [new depth, new height, new width].
+            [new depth, new height, new width, nb_filter] or
+            [new depth, new height, new width].
         strides: `int` or list of `int`. Strides of conv operation.
             Default: [1 1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
@@ -1073,9 +1205,10 @@ def max_pool_3d(incoming, kernel_size, strides=1, padding='same',
 
     Arguments:
         incoming: `Tensor`. Incoming 5-D Layer.
-        kernel_size: 'int` or `list of int`. Pooling kernel size.Must have kernel_size[0] = kernel_size[1] = 1
-        strides: 'int` or `list of int`. Strides of conv operation.Must have strides[0] = strides[4] = 1.
-            Default: [1 1 1 1 1]
+        kernel_size: `int` or `list of int`. Pooling kernel size.
+            Must have kernel_size[0] = kernel_size[1] = 1
+        strides: `int` or `list of int`. Strides of conv operation.
+            Must have strides[0] = strides[4] = 1. Default: [1 1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
         name: A name for this layer (optional). Default: 'MaxPool3D'.
@@ -1106,7 +1239,7 @@ def max_pool_3d(incoming, kernel_size, strides=1, padding='same',
     return inference
 
 
-def avg_pool_3d(incoming, kernel_size, strides=None, padding='same',
+def avg_pool_3d(incoming, kernel_size, strides=1, padding='same',
                 name="AvgPool3D"):
     """ Average Pooling 3D.
 
@@ -1118,8 +1251,10 @@ def avg_pool_3d(incoming, kernel_size, strides=None, padding='same',
 
     Arguments:
         incoming: `Tensor`. Incoming 5-D Layer.
-        kernel_size: 'int` or `list of int`. Pooling kernel size.Must have kernel_size[0] = kernel_size[1] = 1
-        strides: 'int` or `list of int`. Strides of conv operation.Must have strides[0] = strides[4] = 1.
+        kernel_size: `int` or `list of int`. Pooling kernel size.
+            Must have kernel_size[0] = kernel_size[1] = 1
+        strides: `int` or `list of int`. Strides of conv operation.
+            Must have strides[0] = strides[4] = 1.
             Default: [1 1 1 1 1]
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -1435,6 +1570,127 @@ def residual_bottleneck(incoming, nb_blocks, bottleneck_size, out_channels,
     return resnet
 
 
+def resnext_block(incoming, nb_blocks, out_channels, cardinality,
+                  downsample=False, downsample_strides=2, activation='relu',
+                  batch_norm=True, weights_init='variance_scaling',
+                  regularizer='L2', weight_decay=0.0001, bias=True,
+                  bias_init='zeros', trainable=True, restore=True,
+                  reuse=False, scope=None, name="ResNeXtBlock"):
+    """ ResNeXt Block.
+
+    A ResNeXt block as described in ResNeXt paper (Figure 2, c).
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        4-D Tensor [batch, new height, new width, out_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Layer.
+        nb_blocks: `int`. Number of layer blocks.
+        out_channels: `int`. The number of convolutional filters of the
+            layers surrounding the bottleneck layer.
+        cardinality: `int`. Number of aggregated residual transformations.
+        downsample: `bool`. If True, apply downsampling using
+            'downsample_strides' for strides.
+        downsample_strides: `int`. The strides to use when downsampling.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
+        batch_norm: `bool`. If True, apply batch normalization.
+        bias: `bool`. If True, a bias is used.
+        weights_init: `str` (name) or `Tensor`. Weights initialization.
+            (see tflearn.initializations) Default: 'uniform_scaling'.
+        bias_init: `str` (name) or `tf.Tensor`. Bias initialization.
+            (see tflearn.initializations) Default: 'zeros'.
+        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
+            layer weights (see tflearn.regularizers). Default: None.
+        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share variables between layers. Note that scope will
+            override name.
+        name: A name for this layer (optional). Default: 'ResNeXtBlock'.
+
+    References:
+        Aggregated Residual Transformations for Deep Neural Networks. Saining
+        Xie, Ross Girshick, Piotr Dollar, Zhuowen Tu, Kaiming He. 2016.
+
+    Links:
+        [https://arxiv.org/pdf/1611.05431.pdf]
+        (https://arxiv.org/pdf/1611.05431.pdf)
+
+    """
+    resnext = incoming
+    in_channels = incoming.get_shape().as_list()[-1]
+
+    # Bottleneck width related to cardinality for perplexity conservation
+    # compare to ResNet (see paper, Table 2).
+    card_values = [1, 2, 4, 8, 32]
+    bottleneck_values = [64, 40, 24, 14, 4]
+    bottleneck_size = bottleneck_values[card_values.index(cardinality)]
+    # Group width for reference
+    group_width = [64, 80, 96, 112, 128]
+
+    assert cardinality in card_values, "cardinality must be in [1, 2, 4, 8, 32]"
+
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
+
+        for i in range(nb_blocks):
+
+            identity = resnext
+            if not downsample:
+                downsample_strides = 1
+
+            resnext = conv_2d(resnext, bottleneck_size, 1,
+                              downsample_strides, 'valid',
+                              'linear', bias, weights_init,
+                              bias_init, regularizer, weight_decay,
+                              trainable, restore)
+
+            if batch_norm:
+                resnext = batch_normalization(resnext, trainable=trainable)
+            resnext = tflearn.activation(resnext, activation)
+
+            resnext = grouped_conv_2d(resnext, cardinality, 3, 1, 'same',
+                                      'linear', False, weights_init,
+                                      bias_init, regularizer, weight_decay,
+                                      trainable, restore)
+            if batch_norm:
+                resnext = batch_normalization(resnext, trainable=trainable)
+            resnext = tflearn.activation(resnext, activation)
+
+            resnext = conv_2d(resnext, out_channels, 1, 1, 'valid',
+                              activation, bias, weights_init,
+                              bias_init, regularizer, weight_decay,
+                              trainable, restore)
+
+            if batch_norm:
+                resnext = batch_normalization(resnext, trainable=trainable)
+
+            # Downsampling
+            if downsample_strides > 1:
+                identity = avg_pool_2d(identity, 1, downsample_strides)
+
+            # Projection to new dimension
+            if in_channels != out_channels:
+                ch = (out_channels - in_channels) // 2
+                identity = tf.pad(identity,
+                                  [[0, 0], [0, 0], [0, 0], [ch, ch]])
+                in_channels = out_channels
+
+            resnext = resnext + identity
+            resnext = tflearn.activation(resnext, activation)
+
+        return resnext
+
+
 def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
                     activation='linear', weights_init='uniform_scaling',
                     bias_init='zeros', regularizer=None, weight_decay=0.001,
@@ -1451,8 +1707,8 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
     Arguments:
         incoming: `Tensor`. Incoming 4-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
-        filter_size: 'int` or `list of int`. Size of filters.
-        strides: 'int` or `list of int`. Strides of conv operation.
+        filter_size: `int` or `list of int`. Size of filters.
+        strides: `int` or `list of int`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -1574,8 +1830,8 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
     Arguments:
         incoming: `Tensor`. Incoming 3-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
-        filter_size: 'int` or `list of int`. Size of filters.
-        strides: 'int` or `list of int`. Strides of conv operation.
+        filter_size: `int` or `list of int`. Size of filters.
+        strides: `int` or `list of int`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.

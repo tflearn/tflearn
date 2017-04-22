@@ -239,7 +239,7 @@ class TFLearnWideAndDeep(object):
                 print ("    %s_embed = %s" % (cc, cc_embed_var[cc]))
             flat_vars.append(tf.squeeze(cc_embed_var[cc], squeeze_dims=[1], name="%s_squeeze" % cc))
 
-        network = tf.concat(1, [wide_inputs] + flat_vars, name="deep_concat")
+        network = tf.concat([wide_inputs] + flat_vars, 1, name="deep_concat")
         for k in range(len(n_nodes)):
             network = tflearn.fully_connected(network, n_nodes[k], activation="relu", name="deep_fc%d" % (k+1))
             if use_dropout:

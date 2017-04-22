@@ -2,27 +2,32 @@ sudo: required
 dist: trusty
 language: python
 python:
-  - 2.7
-  - 3.6
-virtualenv:
-  system_site_package: true
-addons:
-  apt:
-    sources:
-      - ubuntu-toolchain-r-test
-    packages:
-      - g++-4.8
+  - "2.7"
+  - "3.4"
 
 install:
-  - echo $TRAVIS_PYTHON_VERSION
-  - pip install -U pytest-cov
-  - pip install -U h5py Pillow six numpy
-  - if [[ $TRAVIS_PYTHON_VERSION == 2* ]]; then travis_retry pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.0.0-cp27-none-linux_x86_64.whl; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.6* ]]; then travis_retry pip3 install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-1.0.0-cp36-cp36m-linux_x86_64.whl; fi
+  # http://conda.pydata.org/docs/travis.html
+  - sudo apt-get update
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda update -q conda
+
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION numpy scipy six pytest-cov h5py
+  - source activate test-environment
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      conda install pil;
+    elif [[ "$TRAVIS_PYTHON_VERSION" == "3.5" ]]; then
+      conda install Pillow;
+    fi
+  - pip install tensorflow
   - python setup.py install
 
 script:
   - python setup.py test
-
-matrix:
-  fast_finish: true
