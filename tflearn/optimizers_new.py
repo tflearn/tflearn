@@ -180,6 +180,11 @@ class RMSProp(Optimizer):
 
     def build(self, step_tensor=None):
         self.built = True
+		if self.has_decay:
+			if not step.tensor:
+				raise Exception("Learning rate decay but no step_tensor provided.")
+			self.learning_rate = tf.train.exponential_decay(self.learning_rate, self.decay, self.momentum, self.epsilon, self.use_locking, self.name)
+			tf.add_to_collection(tf.GraphKeys.LR_VARIABLES, self.learning_rate)
         self.tensor = tf.train.RMSPropOptimizer(
             learning_rate=self.learning_rate, decay=self.decay,
             momentum=self.momentum, epsilon=self.epsilon,
