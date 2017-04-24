@@ -124,7 +124,7 @@ def regression(incoming, placeholder=None, optimizer='adam',
         try:
             optimizer, step_tensor = optimizer(learning_rate)
         except Exception as e:
-            print(e.message)
+            print(str(e))
             print("Reminder: Custom Optimizer function must return (optimizer, "
                   "step_tensor) and take one argument: 'learning_rate'. "
                   "Note that returned step_tensor can be 'None' if no decay.")
@@ -153,9 +153,9 @@ def regression(incoming, placeholder=None, optimizer='adam',
             try:
                 metric = metric(incoming, placeholder, inputs)
             except Exception as e:
-                print(e.message)
+                print(str(e))
                 print('Reminder: Custom metric function arguments must be '
-                      'define as follow: custom_metric(y_pred, y_true, x).')
+                      'defined as: custom_metric(y_pred, y_true, x).')
                 exit()
         elif not isinstance(metric, tf.Tensor):
             raise ValueError("Invalid Metric type.")
@@ -168,9 +168,9 @@ def regression(incoming, placeholder=None, optimizer='adam',
         try:
             loss = loss(incoming, placeholder)
         except Exception as e:
-            print(e.message)
-            print('Reminder: Custom loss function arguments must be define as '
-                  'follow: custom_loss(y_pred, y_true).')
+            print(str(e))
+            print('Reminder: Custom loss function arguments must be defined as: '
+                  'custom_loss(y_pred, y_true).')
             exit()
     elif not isinstance(loss, tf.Tensor):
         raise ValueError("Invalid Loss type.")
