@@ -501,3 +501,68 @@ class ProximalAdaGrad(Optimizer):
             use_locking=self.use_locking, name=self.name)
 
 proximaladagrad = ProximalAdaGrad
+
+
+class Nesterov(Optimizer):
+    """ Nesterov.
+
+    The main difference between classical momentum and nesterov is:
+    In classical momentum you first correct your velocity and 
+    then make a big step according to that velocity (and then repeat), 
+    but in Nesterov momentum you first making a step into velocity 
+    direction and then make a correction to a velocity vector based on
+    new location (then repeat).
+    See [Sutskever et. al., 2013](
+            http://jmlr.org/proceedings/papers/v28/sutskever13.pdf)
+
+    Examples:
+        ```python
+        # With TFLearn estimators
+        nesterov = Nesterov(learning_rate=0.01, lr_decay=0.96, decay_step=100)
+        regression = regression(net, optimizer=nesterov)
+
+        # Without TFLearn estimators (returns tf.Optimizer)
+        mm = Neserov(learning_rate=0.01, lr_decay=0.96).get_tensor()
+        ```
+
+    Arguments:
+        learning_rate: `float`. Learning rate.
+        momentum: `float`. Momentum.
+        lr_decay: `float`. The learning rate decay to apply.
+        decay_step: `int`. Apply decay every provided steps.
+        staircase: `bool`. It `True` decay learning rate at discrete intervals.
+        use_locking: `bool`. If True use locks for update operation.
+        name: `str`. Optional name prefix for the operations created when
+            applying gradients. Defaults to "Momentum".
+
+    """
+
+    def __init__(self, learning_rate=0.001, momentum=0.9, lr_decay=0.,
+                 decay_step=100, staircase=False, use_locking=False,
+                 name="Nesterov"):
+        super(Nesterov, self).__init__(learning_rate, use_locking, name)
+        self.momentum = momentum
+        self.lr_decay = lr_decay
+        if self.lr_decay > 0.:
+            self.has_decay = True
+        self.decay_step = decay_step
+        self.staircase = staircase
+
+    def build(self, step_tensor=None):
+        self.built = True
+        if self.has_decay:
+            if not step_tensor:
+                raise Exception("Learning rate decay but no step_tensor "
+                                "provided.")
+            self.learning_rate = tf.train.exponential_decay(
+                self.learning_rate, step_tensor,
+                self.decay_step, self.lr_decay,
+                staircase=self.staircase)
+            tf.add_to_collection(tf.GraphKeys.LR_VARIABLES, self.learning_rate)
+        self.tensor = tf.train.MomentumOptimizer(
+            learning_rate=self.learning_rate,
+            momentum=self.momentum,
+            use_locking=self.use_locking,
+            name=self.name,use_nesterov=True)
+
+nesterov = Nesterov
