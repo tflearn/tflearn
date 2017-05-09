@@ -30,7 +30,7 @@ encoder = tflearn.fully_connected(encoder, 64)
 
 # Building the decoder
 decoder = tflearn.fully_connected(encoder, 256)
-decoder = tflearn.fully_connected(decoder, 784)
+decoder = tflearn.fully_connected(decoder, 784, activation='sigmoid')
 
 # Regression, with mean square error
 net = tflearn.regression(decoder, optimizer='adam', learning_rate=0.001,
@@ -38,7 +38,7 @@ net = tflearn.regression(decoder, optimizer='adam', learning_rate=0.001,
 
 # Training the auto encoder
 model = tflearn.DNN(net, tensorboard_verbose=0)
-model.fit(X, X, n_epoch=10, validation_set=(testX, testX),
+model.fit(X, X, n_epoch=20, validation_set=(testX, testX),
           run_id="auto_encoder", batch_size=256)
 
 # Encoding X[0] for test
@@ -55,8 +55,10 @@ encode_decode = model.predict(testX)
 # Compare original images with their reconstructions
 f, a = plt.subplots(2, 10, figsize=(10, 2))
 for i in range(10):
-    a[0][i].imshow(np.reshape(testX[i], (28, 28)))
-    a[1][i].imshow(np.reshape(encode_decode[i], (28, 28)))
+    temp = [[ii, ii, ii] for ii in list(testX[i])]
+    a[0][i].imshow(np.reshape(temp, (28, 28, 3)))
+    temp = [[ii, ii, ii] for ii in list(encode_decode[i])]
+    a[1][i].imshow(np.reshape(temp, (28, 28, 3)))
 f.show()
 plt.draw()
 plt.waitforbuttonpress()
