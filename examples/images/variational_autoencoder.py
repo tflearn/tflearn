@@ -72,7 +72,7 @@ net = tflearn.regression(decoder, optimizer='rmsprop', learning_rate=0.001,
 
 # Train the VAE
 training_model = tflearn.DNN(net, tensorboard_verbose=0)
-training_model.fit({'input_images': X}, {'target_images': X}, n_epoch=1,
+training_model.fit({'input_images': X}, {'target_images': X}, n_epoch=100,
                    validation_set=(testX, testX), batch_size=256, run_id="vae")
 
 # Build an image generator (re-using the decoding layers)
