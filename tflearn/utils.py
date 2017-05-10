@@ -392,7 +392,7 @@ def autoformat_kernel_2d(strides):
 def autoformat_filter_conv2d(fsize, in_depth, out_depth):
     if isinstance(fsize,int):
         return [fsize, fsize, in_depth, out_depth]
-    elif isinstance(fsize, (tuple, list)):
+    elif isinstance(fsize, (tuple, list, tf.TensorShape)):
         if len(fsize) == 2:
             return [fsize[0], fsize[1], in_depth, out_depth]
         else:
