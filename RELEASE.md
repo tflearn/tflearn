@@ -1,3 +1,12 @@
+# Release 0.3.1
+
+Minor changes:
+- Grouped Convolution support (depthwise conv).
+- VAE and ResNeXt Examples.
+- New optimizers.
+- New activation functions.
+- Various bug fix.
+
 # Release 0.3.0
 
 Major changes:
