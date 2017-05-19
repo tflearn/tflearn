@@ -217,11 +217,7 @@ class SequenceGenerator(object):
             next_index = _sample(preds, temperature)
             next_char = self.rev_dic[next_index]
 
-            try: #Python 2
-                unicode_or_str = [str, unicode]
-            except: #Python 3
-                unicode_or_str = [str]
-            if type(sequence) in unicode_or_str:
+            if type(sequence) == str:
                 generated += next_char
                 sequence = sequence[1:] + next_char
                 whole_sequence += next_char
