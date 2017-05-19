@@ -375,7 +375,7 @@ def check_restore_tensor(tensor_to_check, exclvars):
 def autoformat_kernel_2d(strides):
     if isinstance(strides, int):
         return [1, strides, strides, 1]
-    elif isinstance(strides, (tuple, list)):
+    elif isinstance(strides, (tuple, list, tf.TensorShape)):
         if len(strides) == 2:
             return [1, strides[0], strides[1], 1]
         elif len(strides) == 4:
@@ -392,7 +392,7 @@ def autoformat_kernel_2d(strides):
 def autoformat_filter_conv2d(fsize, in_depth, out_depth):
     if isinstance(fsize,int):
         return [fsize, fsize, in_depth, out_depth]
-    elif isinstance(fsize, (tuple, list)):
+    elif isinstance(fsize, (tuple, list, tf.TensorShape)):
         if len(fsize) == 2:
             return [fsize[0], fsize[1], in_depth, out_depth]
         else:
@@ -415,7 +415,7 @@ def autoformat_padding(padding):
 def autoformat_filter_conv3d(fsize, in_depth, out_depth):
     if isinstance(fsize, int):
         return [fsize, fsize, fsize, in_depth, out_depth]
-    elif isinstance(fsize, (tuple, list)):
+    elif isinstance(fsize, (tuple, list, tf.TensorShape)):
         if len(fsize) == 3:
             return [fsize[0], fsize[1],fsize[2], in_depth, out_depth]
         else:
@@ -429,7 +429,7 @@ def autoformat_filter_conv3d(fsize, in_depth, out_depth):
 def autoformat_stride_3d(strides):
     if isinstance(strides, int):
         return [1, strides, strides, strides, 1]
-    elif isinstance(strides, (tuple, list)):
+    elif isinstance(strides, (tuple, list, tf.TensorShape)):
         if len(strides) == 3:
             return [1, strides[0], strides[1],strides[2], 1]
         elif len(strides) == 5:
@@ -446,7 +446,7 @@ def autoformat_stride_3d(strides):
 def autoformat_kernel_3d(kernel):
     if isinstance(kernel, int):
         return [1, kernel, kernel, kernel, 1]
-    elif isinstance(kernel, (tuple, list)):
+    elif isinstance(kernel, (tuple, list, tf.TensorShape)):
         if len(kernel) == 3:
             return [1, kernel[0], kernel[1], kernel[2], 1]
         elif len(kernel) == 5:
