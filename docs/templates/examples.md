@@ -31,7 +31,6 @@
 - [ResNeXt (CIFAR-10)](https://github.com/tflearn/tflearn/blob/master/examples/images/resnext_cifar10.py). Aggregated residual transformations network (ResNeXt) applied to CIFAR-10 classification task.
 - [Google Inception (v3)](https://github.com/tflearn/tflearn/blob/master/examples/images/googlenet.py). Google's Inception v3 network applied to Oxford Flowers 17 classification task.
 - [Auto Encoder](https://github.com/tflearn/tflearn/blob/master/examples/images/autoencoder.py). An auto encoder applied to MNIST handwritten digits.
-- [Variational Auto Encoder](https://github.com/tflearn/tflearn/blob/master/examples/images/variational_autoencoder.py). A Variational Auto Encoder (VAE) trained to generate digit images.
 
 ## Natural Language Processing
 - [Recurrent Neural Network (LSTM)](https://github.com/tflearn/tflearn/blob/master/examples/nlp/lstm.py). Apply an LSTM to IMDB sentiment dataset classification task.
