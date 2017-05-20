@@ -644,6 +644,9 @@ def upsample_2d(incoming, kernel_size, name="UpSample2D"):
 
     return inference
 
+# Shortcut
+deconv_2d = upsample_2d
+
 
 def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
                   strides=2, trainable=True, restore=True,
