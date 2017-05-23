@@ -99,11 +99,12 @@ def regression(incoming, placeholder='default', optimizer='adam',
         with tf.name_scope(pscope):
             p_shape = [None] if to_one_hot else input_shape
             placeholder = tf.placeholder(shape=p_shape, dtype=dtype, name="Y")
-    elif not placeholder:
+    elif placeholder is None:
         placeholder = None
 
-    if placeholder and placeholder not in tf.get_collection(tf.GraphKeys.TARGETS):
-        tf.add_to_collection(tf.GraphKeys.TARGETS, placeholder)
+    if placeholder is not None:
+        if placeholder not in tf.get_collection(tf.GraphKeys.TARGETS):
+            tf.add_to_collection(tf.GraphKeys.TARGETS, placeholder)
 
     if to_one_hot:
         if n_classes is None:
@@ -144,7 +145,7 @@ def regression(incoming, placeholder='default', optimizer='adam',
     if len(input_shape) == 1 and metric == 'default':
         metric = None
     # If no placeholder, only a Tensor can be pass as metric
-    if not placeholder and not isinstance(metric, tf.Tensor):
+    if not isinstance(metric, tf.Tensor) and placeholder is None:
         metric = None
     if metric is not None:
         # Default metric is accuracy

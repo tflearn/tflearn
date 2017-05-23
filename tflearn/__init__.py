@@ -49,7 +49,7 @@ from .layers.conv import conv_2d, max_pool_2d, avg_pool_2d, conv_1d, \
     resnext_block, upscore_layer, deconv_2d
 from .layers.core import input_data, dropout, custom_layer, reshape, \
     flatten, activation, fully_connected, single_unit, highway, \
-    one_hot_encoding, time_distributed
+    one_hot_encoding, time_distributed, multi_target_data
 from .layers.normalization import batch_normalization, local_response_normalization
 from .layers.estimator import regression
 from .layers.recurrent import lstm, gru, simple_rnn, bidirectional_rnn, \

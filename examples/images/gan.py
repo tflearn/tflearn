@@ -1,6 +1,17 @@
 # -*- coding: utf-8 -*-
 """ GAN Example
 
+Use a generative adversarial network (DCGAN) to generate digit images from a
+noise distribution.
+
+References:
+    - Generative adversarial nets. I Goodfellow, J Pouget-Abadie, M Mirza,
+    B Xu, D Warde-Farley, S Ozair, Y. Bengio. Advances in neural information
+    processing systems, 2672-2680.
+
+Links:
+    - [GAN Paper](https://arxiv.org/pdf/1406.2661.pdf).
+
 """
 
 from __future__ import division, print_function, absolute_import
@@ -15,14 +26,14 @@ import tflearn.datasets.mnist as mnist
 X, Y, testX, testY = mnist.load_data()
 
 image_dim = 784 # 28*28 pixels
-z_dim = 100 # Noise data points
+z_dim = 200 # Noise data points
 total_samples = len(X)
 
 
 # Generator
 def generator(x, reuse=False):
     with tf.variable_scope('Generator', reuse=reuse):
-        x = tflearn.fully_connected(x, 256, activation='leakyrelu')
+        x = tflearn.fully_connected(x, 256, activation='relu')
         x = tflearn.fully_connected(x, image_dim, activation='sigmoid')
         return x
 
@@ -30,7 +41,7 @@ def generator(x, reuse=False):
 # Discriminator
 def discriminator(x, reuse=False):
     with tf.variable_scope('Discriminator', reuse=reuse):
-        x = tflearn.fully_connected(x, 256, activation='leakyrelu')
+        x = tflearn.fully_connected(x, 256, activation='relu')
         x = tflearn.fully_connected(x, 1, activation='sigmoid')
         return x
 
@@ -53,11 +64,11 @@ gen_loss = -tf.reduce_mean(tf.log(disc_fake))
 gen_vars = tflearn.get_layer_variables_by_scope('Generator')
 gen_model = tflearn.regression(gen_sample, placeholder=None, optimizer='adam',
                                loss=gen_loss, trainable_vars=gen_vars,
-                               name='target_gen', op_name='GEN')
+                               batch_size=64, name='target_gen', op_name='GEN')
 disc_vars = tflearn.get_layer_variables_by_scope('Discriminator')
 disc_model = tflearn.regression(disc_real, placeholder=None, optimizer='adam',
                                 loss=disc_loss, trainable_vars=disc_vars,
-                                name='target_disc', op_name='DISC')
+                                batch_size=64, name='target_disc', op_name='DISC')
 # Define GAN model, that output the generated images.
 gan = tflearn.DNN(gen_model)
 
@@ -67,12 +78,12 @@ z = np.random.uniform(-1., 1., size=[total_samples, z_dim])
 # Start training, feed both noise and real images.
 gan.fit(X_inputs={gen_input: z, disc_input: X},
         Y_targets=None,
-        n_epoch=50)
+        n_epoch=100)
 
 # Generate images from noise, using the generator network.
-f, a = plt.subplots(4, 10, figsize=(10, 4))
+f, a = plt.subplots(2, 10, figsize=(10, 4))
 for i in range(10):
-    for j in range(4):
+    for j in range(2):
         # Noise input.
         z = np.random.uniform(-1., 1., size=[1, z_dim])
         # Generate image from noise. Extend to 3 channels for matplot figure.
