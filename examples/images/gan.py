@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """ GAN Example
 
-Use a generative adversarial network (DCGAN) to generate digit images from a
+Use a generative adversarial network (GAN) to generate digit images from a
 noise distribution.
 
 References:
