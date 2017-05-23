@@ -34,7 +34,7 @@
 ### Unsupervised
 - [Auto Encoder](https://github.com/tflearn/tflearn/blob/master/examples/images/autoencoder.py). An auto encoder applied to MNIST handwritten digits.
 - [Variational Auto Encoder](https://github.com/tflearn/tflearn/blob/master/examples/images/variational_autoencoder.py). A Variational Auto Encoder (VAE) trained to generate digit images.
-- [GAN (Generative Adversarial Networks)](https://github.com/tflearn/tflearn/blob/master/examples/images/gan.py). Use generative adversarial networks (DCGAN) to generate digit images from a noise distribution.
+- [GAN (Generative Adversarial Networks)](https://github.com/tflearn/tflearn/blob/master/examples/images/gan.py). Use generative adversarial networks (GAN) to generate digit images from a noise distribution.
 - [DCGAN (Deep Convolutional Generative Adversarial Networks)](https://github.com/tflearn/tflearn/blob/master/examples/images/dcgan.py). Use deep convolutional generative adversarial networks (DCGAN) to generate digit images from a noise distribution.
 
 ## Natural Language Processing
