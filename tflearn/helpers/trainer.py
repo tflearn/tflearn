@@ -891,7 +891,8 @@ class TrainOp(object):
 
         """
         tflearn.is_training(True, session=self.session)
-        loss, _ = self.session.run([self.loss, self.summ_op], feed_dict=feed_dict)
+        _, loss, _ = self.session.run([self.train, self.loss, self.summ_op],
+                                      feed_dict=feed_dict)
         tflearn.is_training(False, session=self.session)
         return loss
 
