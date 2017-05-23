@@ -115,6 +115,14 @@ def get_layer_variables_by_name(name):
 get_layer_variables = get_layer_variables_by_name
 
 
+def get_layer_variables_by_scope(scope_name):
+    ret = []
+    for v in tf.get_collection(tf.GraphKeys.MODEL_VARIABLES):
+        if scope_name + '/' in v.name:
+            ret.append(v)
+    return ret
+
+
 def get_value(var, session=None):
     """ get_value.
 
