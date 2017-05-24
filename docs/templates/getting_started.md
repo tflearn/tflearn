@@ -205,7 +205,7 @@ model = DNN(network)
 model.fit(X, Y)
 ```
 
-For an example, see: [hdf5.py](https://github.com/tflearn/tflearn/blob/master/examples/basics/hdf5.py).
+For an example, see: [hdf5.py](https://github.com/tflearn/tflearn/blob/master/examples/basics/use_hdf5.py).
 
 ### Data Preprocessing and Data Augmentation
 It is common to perform data pre-processing and data augmentation while training a model, so TFLearn provides wrappers to easily handle it. Note also that TFLearn data stream is designed with computing pipelines in order to speed-up training (by pre-processing data on CPU while GPU is performing model training).
