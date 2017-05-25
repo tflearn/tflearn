@@ -116,20 +116,23 @@ gan.fit(X_inputs={'input_gen_noise': gen_noise,
         Y_targets={'target_gen': y_gen,
                    'target_disc_fake': y_disc_fake,
                    'target_disc_real': y_disc_real},
-        n_epoch=50)
+        n_epoch=10)
 
 # Create another model from the generator graph to generate some samples
 # for testing (re-using same session to re-use the weights learnt).
 gen = tflearn.DNN(gen_net, session=gan.session)
 
-f, a = plt.subplots(2, 10, figsize=(10, 2))
+f, a = plt.subplots(4, 10, figsize=(10, 4))
 for i in range(10):
-    for j in range(2):
-        # Noise input.
-        z = np.random.uniform(-1., 1., size=[1, z_dim])
+    # Noise input.
+    z = np.random.uniform(-1., 1., size=[4, z_dim])
+    g = np.array(gen.predict({'input_gen_noise': z}))
+    for j in range(4):
         # Generate image from noise. Extend to 3 channels for matplot figure.
-        temp = [[ii, ii, ii] for ii in list(gen.predict({'input_gen_noise': z})[0])]
-        a[j][i].imshow(np.reshape(temp, (28, 28, 3)))
+        img = np.reshape(np.repeat(g[j][:, :, np.newaxis], 3, axis=2),
+                         newshape=(28, 28, 3))
+        a[j][i].imshow(img)
+
 f.show()
 plt.draw()
 plt.waitforbuttonpress()
