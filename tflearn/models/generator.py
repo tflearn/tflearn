@@ -213,7 +213,7 @@ class SequenceGenerator(object):
             for t, char in enumerate(sequence):
                 x[0, t, self.dic[char]] = 1.
 
-            preds = self._predict(x)[0]
+            preds = self._predict(x)[0].tolist()
             next_index = _sample(preds, temperature)
             next_char = self.rev_dic[next_index]
 
