@@ -5,10 +5,8 @@ import logging
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.ops import array_ops
-from tensorflow.contrib.rnn.python.ops.core_rnn import static_rnn as _rnn, \
-    static_bidirectional_rnn as _brnn
-from tensorflow.python.ops.rnn import rnn_cell_impl as _rnn_cell, \
-    dynamic_rnn as _drnn
+from tensorflow.python.ops.rnn import rnn_cell_impl as _rnn_cell, dynamic_rnn as _drnn, static_rnn as rnn, \
+    bidirectional_dynamic_rnn as brnn
 from tensorflow.python.util.nest import is_sequence
 from tensorflow.contrib.framework.python.ops.variables import model_variable
 from tensorflow.contrib.rnn.python.ops import core_rnn_cell
@@ -467,7 +465,7 @@ class BasicLSTMCell(core_rnn_cell.RNNCell):
     def __init__(self, num_units, forget_bias=1.0, input_size=None,
                  state_is_tuple=True, activation=tf.tanh,
                  inner_activation=tf.sigmoid, bias=True, weights_init=None,
-                 trainable=True, restore=True, reuse=False, batch_norm = False):
+                 trainable=True, restore=True, reuse=False, batch_norm=False):
         if not state_is_tuple:
             logging.warn(
                 "%s: Using a concatenated state is slower and will soon be "
@@ -529,14 +527,15 @@ class BasicLSTMCell(core_rnn_cell.RNNCell):
                 j = batch_normalization(j, gamma=0.1, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
                 f = batch_normalization(f, gamma=0.1, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
                 o = batch_normalization(o, gamma=0.1, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
-            
+
             new_c = (c * self._inner_activation(f + self._forget_bias) +
                      self._inner_activation(i) *
                      self._activation(j))
-            
+
             # hidden-to-hidden batch normalizaiton
             if self.batch_norm == True:
-                batch_norm_new_c = batch_normalization(new_c, gamma=0.1, trainable=self.trainable, restore=self.restore, reuse=self.reuse)
+                batch_norm_new_c = batch_normalization(new_c, gamma=0.1, trainable=self.trainable, restore=self.restore,
+                                                       reuse=self.reuse)
                 new_h = self._activation(batch_norm_new_c) * self._inner_activation(o)
             else:
                 new_h = self._activation(new_c) * self._inner_activation(o)
@@ -597,8 +596,8 @@ class GRUCell(core_rnn_cell.RNNCell):
             with tf.variable_scope("Gates"):  # Reset gate and update gate.
                 # We start with bias of 1.0 to not reset and not update.
                 _w = _linear([inputs, state],
-                    2 * self._num_units, True, 1.0, self.weights_init,
-                    self.trainable, self.restore, self.reuse)
+                             2 * self._num_units, True, 1.0, self.weights_init,
+                             self.trainable, self.restore, self.reuse)
                 r, u = array_ops.split(value=_w, num_or_size_splits=2, axis=1)
                 r, u = self._inner_activation(r), self._inner_activation(u)
             with tf.variable_scope("Candidate"):
@@ -674,18 +673,18 @@ class DropoutWrapper(core_rnn_cell.RNNCell):
         if (not isinstance(self._input_keep_prob, float) or
                     self._input_keep_prob < 1):
             inputs = tf.cond(is_training,
-                lambda: tf.nn.dropout(inputs,
-                                      self._input_keep_prob,
-                                      seed=self._seed),
-                lambda: inputs)
+                             lambda: tf.nn.dropout(inputs,
+                                                   self._input_keep_prob,
+                                                   seed=self._seed),
+                             lambda: inputs)
         output, new_state = self._cell(inputs, state)
         if (not isinstance(self._output_keep_prob, float) or
                     self._output_keep_prob < 1):
             output = tf.cond(is_training,
-                lambda: tf.nn.dropout(output,
-                                      self._output_keep_prob,
-                                      seed=self._seed),
-                lambda: output)
+                             lambda: tf.nn.dropout(output,
+                                                   self._output_keep_prob,
+                                                   seed=self._seed),
+                             lambda: output)
         return output, new_state
 
 
@@ -765,3 +764,4 @@ def advanced_indexing_op(input, index):
     flat = tf.reshape(input, [-1, dim_size])
     relevant = tf.gather(flat, index)
     return relevant
+
