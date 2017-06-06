@@ -786,7 +786,7 @@ class TrainOp(object):
             self.test_dflow = data_flow.FeedDictFlow(val_feed_dict, coord,
                                                      batch_size=self.validation_batch_size,
                                                      dprep_dict=dprep_dict,
-                                                     daug_dict=None,
+                                                     daug_dict=daug_dict,
                                                      index_array=self.val_index_array,
                                                      num_threads=1)
 
