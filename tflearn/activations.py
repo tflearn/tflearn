@@ -172,8 +172,8 @@ def leaky_relu(x, alpha=0.1, name="LeakyReLU"):
     """
 
     with tf.name_scope(name) as scope:
-        x = tf.nn.relu(x)
         m_x = tf.nn.relu(-x)
+        x = tf.nn.relu(x)
         x -= alpha * m_x
 
     x.scope = scope
