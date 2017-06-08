@@ -5,10 +5,11 @@ import logging
 import numpy as np
 import tensorflow as tf
 from tensorflow.python.ops import array_ops
-from tensorflow.contrib.rnn.python.ops.core_rnn import static_rnn as _rnn, \
-    static_bidirectional_rnn as _brnn
-from tensorflow.python.ops.rnn import rnn_cell_impl as _rnn_cell, \
-    dynamic_rnn as _drnn
+try:
+    from tensorflow.python.ops.rnn import rnn_cell_impl as _rnn_cell, dynamic_rnn as _drnn, static_rnn as _rnn, bidirectional_dynamic_rnn as _brnn
+except:
+    from tensorflow.contrib.rnn.python.ops.core_rnn import static_rnn as _rnn, static_bidirectional_rnn as _brnn
+    from tensorflow.python.ops.rnn import rnn_cell_impl as _rnn_cell, dynamic_rnn as _drnn
 from tensorflow.python.util.nest import is_sequence
 from tensorflow.contrib.framework.python.ops.variables import model_variable
 from tensorflow.contrib.rnn.python.ops import core_rnn_cell
@@ -19,7 +20,6 @@ from .. import activations
 from .. import initializations
 from .. import variables as va
 from .normalization import batch_normalization
-
 
 # --------------------------
 #  RNN Layers
