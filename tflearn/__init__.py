@@ -33,7 +33,7 @@ from . import collections # Add TFLearn collections to Tensorflow GraphKeys
 from .optimizers import SGD, AdaGrad, Adam, RMSProp, Momentum, Ftrl, AdaDelta, \
     ProximalAdaGrad
 from .activations import linear, tanh, sigmoid, softmax, softplus, softsign,\
-    relu, relu6, leaky_relu, prelu, elu
+    relu, relu6, leaky_relu, prelu, elu, crelu, selu
 from .variables import variable, get_all_trainable_variable, \
     get_all_variables, get_layer_variables_by_name, get_layer_variables_by_scope
 from .objectives import categorical_crossentropy, binary_crossentropy, \

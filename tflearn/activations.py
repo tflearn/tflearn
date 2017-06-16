@@ -283,3 +283,24 @@ def crelu(x):
     """
 
     return tf.nn.crelu(x)
+
+
+def selu(x):
+    """ SELU.
+
+    Scaled Exponential Linear Unit.
+
+    Arguments
+        x : A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
+            `int16`, or `int8`
+
+    References:
+        Self-Normalizing Neural Networks, Klambauer et al., 2017.
+
+    Links:
+        [https://arxiv.org/abs/1706.02515](https://arxiv.org/abs/1706.02515)
+
+    """
+    alpha = 1.6732632423543772848170429916717
+    scale = 1.0507009873554804934193349852946
+    return scale * tf.nn.elu(x, alpha)
