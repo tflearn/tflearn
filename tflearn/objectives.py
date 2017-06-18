@@ -256,3 +256,24 @@ def weak_cross_entropy_2d(y_pred, y_true, num_classes=None, epsilon=0.0001,
                                             name="xentropy_mean")
 
     return cross_entropy_mean
+
+def contrastive_loss(y_pred, y_true, margin = 1.0):
+    """ Contrastive Loss.
+    
+        Computes the constrative loss between y_pred (logits) and
+        y_true (labels).
+
+        http://yann.lecun.com/exdb/publis/pdf/chopra-05.pdf
+        Sumit Chopra, Raia Hadsell and Yann LeCun (2005).
+        Learning a Similarity Metric Discriminatively, with Application to Face Verification.
+
+        Arguments:
+            y_pred: `Tensor`. Predicted values.
+            y_true: `Tensor`. Targets (labels).
+            margin: . A self-set parameters that indicate the distance between the expected different identity features. Defaults 1.
+    """
+
+    with tf.name_scope("ContrastiveLoss"):
+        dis1 = y_true * tf.square(y_pred)
+        dis2 = (1 - y_true) * tf.square(tf.maximum((margin - y_pred), 0))
+        return tf.reduce_sum(dis1 +dis2) / 2.
