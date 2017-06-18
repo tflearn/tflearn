@@ -1,3 +1,14 @@
+# Release 0.3.2
+
+Major changes:
+- TensorFlow 1.2.0 support
+
+Minor changes:
+- GAN and DCGAN examples
+- SELU activation
+- Weighted Cross-Entropy
+- Various bug fix
+
 # Release 0.3.1
 
 Minor changes:
