@@ -338,7 +338,7 @@ def activation(incoming, activation='linear', name='activation'):
 
     if isinstance(activation, str):
         x = activations.get(activation)(incoming)
-    elif hasattr(incoming, '__call__'):
+    elif hasattr(activation, '__call__'):
         x = activation(incoming)
     else:
         raise ValueError('Unknown activation type.')
