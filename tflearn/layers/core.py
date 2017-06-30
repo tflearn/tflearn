@@ -150,7 +150,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = va.variable('W', shape=[n_inputs, n_units], regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
@@ -171,7 +171,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
             inference = tf.reshape(inference, [-1, n_inputs])
 
         inference = tf.matmul(inference, W)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
         if activation:
             if isinstance(activation, str):
                 inference = activations.get(activation)(inference)
@@ -407,7 +407,7 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
             inference = tf.reshape(inference, [-1])
 
         inference = tf.multiply(inference, W)
-        if b: inference = tf.add(inference, b)
+        if b is not None: inference = tf.add(inference, b)
 
         if isinstance(activation, str):
             inference = activations.get(activation)(inference)
@@ -494,7 +494,7 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = va.variable('W', shape=[n_inputs, n_units], regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
