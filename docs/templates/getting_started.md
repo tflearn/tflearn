@@ -45,7 +45,7 @@ File | Layers
 
 ### Built-in Operations
 
-Besides layers concept, TFLearn also provides many different ops to be used when building a neural network. These ops are firstly mean to be part of the above 'layers' arguments, but they can also be used independently in any other Tensorflow graph for convenience. In practice, just providing the op name as argument is enough (such as activation='relu' or regularizer='L2' for conv_2d), but a function can also be provided for further customization.
+Besides layers concept, TFLearn also provides many different ops to be used when building a neural network. These ops are firstly meant to be part of the above 'layers' arguments, but they can also be used independently in any other Tensorflow graph for convenience. In practice, just providing the op name as argument is enough (such as activation='relu' or regularizer='L2' for conv_2d), but a function can also be provided for further customization.
 
 File | Ops
 -----|----
