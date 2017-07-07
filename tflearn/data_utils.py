@@ -7,6 +7,7 @@ import numpy as np
 from PIL import Image
 import pickle
 import csv
+import warnings
 
 """
 Preprocessing provides some useful functions to preprocess data before
@@ -36,6 +37,12 @@ def to_categorical(y, nb_classes):
 
     """
     y = np.asarray(y, dtype='int32')
+    # high dimensional array warning
+    if len(y.shape) > 2:
+        warnings.warn('{}-dimensional array is used as input array.'.format(len(y.shape)), stacklevel=2)
+    # flatten high dimensional array
+    if len(y.shape) > 1:
+        y = y.reshape(-1)
     if not nb_classes:
         nb_classes = np.max(y)+1
     Y = np.zeros((len(y), nb_classes))
