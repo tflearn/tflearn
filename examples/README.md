@@ -16,6 +16,7 @@
 - [Variables](https://github.com/tflearn/tflearn/blob/master/examples/extending_tensorflow/variables.py). Use TFLearn variables along with TensorFlow.
 
 ## Computer Vision
+### Supervised
 - [Multi-layer perceptron](https://github.com/tflearn/tflearn/blob/master/examples/images/dnn.py). A multi-layer perceptron implementation for MNIST classification task.
 - [Convolutional Network (MNIST)](https://github.com/tflearn/tflearn/blob/master/examples/images/convnet_mnist.py). A Convolutional neural network implementation for classifying MNIST dataset.
 - [Convolutional Network (CIFAR-10)](https://github.com/tflearn/tflearn/blob/master/examples/images/convnet_cifar10.py). A Convolutional neural network implementation for classifying CIFAR-10 dataset.
@@ -30,8 +31,11 @@
 - [Residual Network (CIFAR-10)](https://github.com/tflearn/tflearn/blob/master/examples/images/residual_network_cifar10.py). A residual network applied to CIFAR-10 classification task.
 - [ResNeXt (CIFAR-10)](https://github.com/tflearn/tflearn/blob/master/examples/images/resnext_cifar10.py). Aggregated residual transformations network (ResNeXt) applied to CIFAR-10 classification task.
 - [Google Inception (v3)](https://github.com/tflearn/tflearn/blob/master/examples/images/googlenet.py). Google's Inception v3 network applied to Oxford Flowers 17 classification task.
+### Unsupervised
 - [Auto Encoder](https://github.com/tflearn/tflearn/blob/master/examples/images/autoencoder.py). An auto encoder applied to MNIST handwritten digits.
 - [Variational Auto Encoder](https://github.com/tflearn/tflearn/blob/master/examples/images/variational_autoencoder.py). A Variational Auto Encoder (VAE) trained to generate digit images.
+- [GAN (Generative Adversarial Networks)](https://github.com/tflearn/tflearn/blob/master/examples/images/gan.py). Use generative adversarial networks (GAN) to generate digit images from a noise distribution.
+- [DCGAN (Deep Convolutional Generative Adversarial Networks)](https://github.com/tflearn/tflearn/blob/master/examples/images/dcgan.py). Use deep convolutional generative adversarial networks (DCGAN) to generate digit images from a noise distribution.
 
 ## Natural Language Processing
 - [Recurrent Neural Network (LSTM)](https://github.com/tflearn/tflearn/blob/master/examples/nlp/lstm.py). Apply an LSTM to IMDB sentiment dataset classification task.

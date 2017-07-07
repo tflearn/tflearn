@@ -65,15 +65,16 @@ class Evaluator(object):
             # Prediction for each tensor
             tflearn.is_training(False, self.session)
             prediction = []
-            for output in self.tensors:
-                o_pred = self.session.run(output, feed_dict=feed_dict).tolist()
-                for i, val in enumerate(o_pred): # Reshape pred per sample
-                    if len(self.tensors) > 1:
-                        if not len(prediction) > i: prediction.append([])
-                        prediction[i].append(val)
-                    else:
-                        prediction.append(val)
-            return prediction
+            if len(self.tensors) == 1:
+                return self.session.run(self.tensors[0], feed_dict=feed_dict)
+            else:
+                for output in self.tensors:
+                    o_pred = self.session.run(output, feed_dict=feed_dict).tolist()
+                    for i, val in enumerate(o_pred): # Reshape pred per sample
+                        if len(self.tensors) > 1:
+                            if not len(prediction) > i: prediction.append([])
+                            prediction[i].append(val)
+                return prediction
 
     def evaluate(self, feed_dict, ops, batch_size=128):
         """ Evaluate.

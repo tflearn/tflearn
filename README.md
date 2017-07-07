@@ -54,7 +54,18 @@ There are many more examples available *[here](http://tflearn.org/examples)*.
 
 **TensorFlow Installation**
 
-TFLearn requires Tensorflow (version 1.0) to be installed: *[Tensorflow installation instructions](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md)*.
+TFLearn requires Tensorflow (version 1.0+) to be installed.
+
+To install TensorFlow, simply run:
+```
+pip install tensorflow
+```
+or, with GPU-support:
+```
+pip install tensorflow-gpu
+```
+
+For more details see *[TensorFlow installation instructions](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md)*
 
 **TFLearn Installation**
 

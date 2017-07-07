@@ -45,7 +45,7 @@ File | Layers
 
 ### Built-in Operations
 
-Besides layers concept, TFLearn also provides many different ops to be used when building a neural network. These ops are firstly mean to be part of the above 'layers' arguments, but they can also be used independently in any other Tensorflow graph for convenience. In practice, just providing the op name as argument is enough (such as activation='relu' or regularizer='L2' for conv_2d), but a function can also be provided for further customization.
+Besides layers concept, TFLearn also provides many different ops to be used when building a neural network. These ops are firstly meant to be part of the above 'layers' arguments, but they can also be used independently in any other Tensorflow graph for convenience. In practice, just providing the op name as argument is enough (such as activation='relu' or regularizer='L2' for conv_2d), but a function can also be provided for further customization.
 
 File | Ops
 -----|----
@@ -205,7 +205,7 @@ model = DNN(network)
 model.fit(X, Y)
 ```
 
-For an example, see: [hdf5.py](https://github.com/tflearn/tflearn/blob/master/examples/basics/hdf5.py).
+For an example, see: [hdf5.py](https://github.com/tflearn/tflearn/blob/master/examples/basics/use_hdf5.py).
 
 ### Data Preprocessing and Data Augmentation
 It is common to perform data pre-processing and data augmentation while training a model, so TFLearn provides wrappers to easily handle it. Note also that TFLearn data stream is designed with computing pipelines in order to speed-up training (by pre-processing data on CPU while GPU is performing model training).

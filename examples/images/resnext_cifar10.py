@@ -55,11 +55,11 @@ opt = tflearn.Momentum(0.1, lr_decay=0.1, decay_step=32000, staircase=True)
 net = tflearn.regression(net, optimizer=opt,
                          loss='categorical_crossentropy')
 # Training
-model = tflearn.DNN(net, checkpoint_path='model_resnet_cifar10',
+model = tflearn.DNN(net, checkpoint_path='model_resnext_cifar10',
                     max_checkpoints=10, tensorboard_verbose=0,
                     clip_gradients=0.)
 
 model.fit(X, Y, n_epoch=200, validation_set=(testX, testY),
           snapshot_epoch=False, snapshot_step=500,
           show_metric=True, batch_size=128, shuffle=True,
-          run_id='resnet_cifar10')
+          run_id='resnext_cifar10')
