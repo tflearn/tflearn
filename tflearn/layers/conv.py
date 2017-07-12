@@ -78,7 +78,7 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
@@ -97,7 +97,7 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
         inference = tf.nn.conv2d(incoming, W, strides, padding)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
 
         if activation:
             if isinstance(activation, str):
@@ -196,7 +196,7 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size,
                         regularizer=W_regul, initializer=W_init,
@@ -229,7 +229,7 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
         # Reshape tensor so its shape is correct.
         inference.set_shape([None] + output_shape)
 
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
 
         if isinstance(activation, str):
             inference = activations.get(activation)(inference)
@@ -345,7 +345,7 @@ def atrous_conv_2d(incoming, nb_filter, filter_size, rate=1, padding='same',
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
@@ -364,7 +364,7 @@ def atrous_conv_2d(incoming, nb_filter, filter_size, rate=1, padding='same',
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
         inference = tf.nn.atrous_conv2d(incoming, W, rate, padding)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
 
         if activation:
             if isinstance(activation, str):
@@ -475,7 +475,7 @@ def grouped_conv_2d(incoming, channel_multiplier, filter_size, strides=1,
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
@@ -494,7 +494,7 @@ def grouped_conv_2d(incoming, channel_multiplier, filter_size, strides=1,
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
         inference = tf.nn.depthwise_conv2d(incoming, W, strides, padding)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
 
         if activation:
             if isinstance(activation, str):
@@ -818,7 +818,7 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
@@ -838,7 +838,7 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         # Adding dummy dimension to fit with Tensorflow conv2d
         inference = tf.expand_dims(incoming, 2)
         inference = tf.nn.conv2d(inference, W, strides, padding)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
         inference = tf.squeeze(inference, [2])
 
         if isinstance(activation, str):
@@ -1023,7 +1023,7 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
@@ -1041,7 +1041,7 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
         inference = tf.nn.conv3d(incoming, W, strides, padding)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
 
         if isinstance(activation, str):
             inference = activations.get(activation)(inference)
@@ -1140,7 +1140,7 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size,
                         regularizer=W_regul, initializer=W_init,
@@ -1173,7 +1173,7 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
         # Reshape tensor so its shape is correct.
         inference.set_shape([None] + output_shape)
 
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
 
         if isinstance(activation, str):
             inference = activations.get(activation)(inference)
@@ -1760,7 +1760,7 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
@@ -1887,7 +1887,7 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size,
                         regularizer=W_regul, initializer=W_init,
