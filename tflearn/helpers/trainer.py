@@ -237,10 +237,9 @@ class Trainer(object):
 
         original_train_ops = list(self.train_ops)
         # Remove excluded train_ops
-        for t in self.train_ops:
-            if excl_trainops and t in excl_trainops:
-                self.train_ops.remove(t)
-
+        if excl_trainops:
+            self.train_ops = list(filter(lambda a: a not in excl_trainops, self.train_ops))
+	    
         # shuffle is an override for simplicty, it will overrides every
         # training op batch shuffling
         if isinstance(shuffle_all, bool):
