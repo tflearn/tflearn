@@ -115,7 +115,7 @@ class TFLearnWideAndDeep(object):
         with tf.name_scope("Y"):			# placeholder for target variable (i.e. trainY input)
             Y_in = tf.placeholder(shape=[None, 1], dtype=tf.float32, name="Y")
 
-        with tf.variable_op_scope([wide_inputs], None, "cb_unit", reuse=False) as scope:
+        with tf.variable_scope(None, "cb_unit", [wide_inputs]) as scope:
             central_bias = tflearn.variables.variable('central_bias', shape=[1],
                                                       initializer=tf.constant_initializer(np.random.randn()),
                                                       trainable=True, restore=True)
