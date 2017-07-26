@@ -51,7 +51,7 @@ net = tflearn.global_avg_pool(net)
 
 # Regression
 net = tflearn.fully_connected(net, 10, activation='softmax')
-opt = tflearn.SGD(0.1, lr_decay=0.1, decay_step=32000, staircase=True)
+opt = tflearn.Nesterov(0.1, lr_decay=0.1, decay_step=32000, staircase=True)
 net = tflearn.regression(net, optimizer=opt,
                          loss='categorical_crossentropy')
 # Training

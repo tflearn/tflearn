@@ -1757,10 +1757,10 @@ def densenet_block(incoming, nb_layers, growth, bottleneck=True,
     """
     densenet = incoming
 
-    with tf.variable_scope(scope, default_name=name, values=[incoming],
-                           reuse=reuse) as scope:
+    for i in range(nb_layers):
 
-        for i in range(nb_layers):
+        with tf.variable_scope(scope, default_name=name, values=[incoming],
+                               reuse=reuse) as scope:
 
             # Identity
             conn = densenet
