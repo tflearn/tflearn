@@ -8,6 +8,9 @@ from PIL import Image
 import pickle
 import csv
 import warnings
+from urllib.parse import urlparse
+from io import BytesIO
+from urllib import request
 
 """
 Preprocessing provides some useful functions to preprocess data before
@@ -538,7 +541,15 @@ def image_preloader(target_path, image_shape, mode='file', normalize=True,
 
 def load_image(in_image):
     """ Load an image, returns PIL.Image. """
-    img = Image.open(in_image)
+    # if the path appears to be an URL
+    if urlparse(in_image).scheme in ('http', 'https',):
+        # set up the byte stream
+        img_stream = BytesIO(request.urlopen(in_image).read())
+        # and read in as PIL image
+        img = Image.open(img_stream)
+    else:
+        # else use it as local file path
+        img = Image.open(in_image)
     return img
 
 
