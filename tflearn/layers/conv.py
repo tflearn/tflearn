@@ -77,6 +77,8 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
         if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
@@ -89,9 +91,12 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
         b = None
         if bias:
+            b_shape = [nb_filter]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            b = vs.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
@@ -195,6 +200,8 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
         if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
@@ -206,9 +213,12 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
 
         b = None
         if bias:
+            b_shape = [nb_filter]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            b = vs.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
@@ -344,6 +354,8 @@ def atrous_conv_2d(incoming, nb_filter, filter_size, rate=1, padding='same',
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
         if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
@@ -356,9 +368,12 @@ def atrous_conv_2d(incoming, nb_filter, filter_size, rate=1, padding='same',
 
         b = None
         if bias:
+            b_shape = [nb_filter]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            b = vs.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
@@ -474,6 +489,8 @@ def grouped_conv_2d(incoming, channel_multiplier, filter_size, strides=1,
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
         if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
@@ -486,9 +503,12 @@ def grouped_conv_2d(incoming, channel_multiplier, filter_size, strides=1,
 
         b = None
         if bias:
+            b_shape = [nb_filter]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            b = vs.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
@@ -817,6 +837,8 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
         if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
@@ -828,9 +850,12 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
         b = None
         if bias:
+            b_shape = [nb_filter]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            b = vs.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
@@ -1022,6 +1047,8 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
         if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
@@ -1033,9 +1060,12 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
         b = None
         if bias:
+            b_shape = [nb_filter]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            b = vs.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
@@ -1139,6 +1169,8 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
         if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
@@ -1150,9 +1182,12 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
 
         b = None
         if bias:
+            b_shape = [nb_filter]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            b = vs.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
@@ -2013,6 +2048,8 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
         if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)

@@ -147,21 +147,29 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
         name = scope.name
 
         W_init = weights_init
+        filter_size = [n_inputs, n_units]
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
         if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
-        W = va.variable('W', shape=[n_inputs, n_units], regularizer=W_regul,
+        W = va.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
 
         b = None
         if bias:
+            b_shape = [n_units]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = va.variable('b', shape=[n_units], initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            if isinstance(bias_init, str):
+                bias_init = initializations.get(bias_init)()
+            b = va.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
