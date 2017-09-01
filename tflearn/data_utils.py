@@ -8,9 +8,14 @@ from PIL import Image
 import pickle
 import csv
 import warnings
-from urllib.parse import urlparse
+try: #py3
+    from urllib.parse import urlparse
+    from urllib import request
+except: #py2
+    from urlparse import urlparse
+    from six.moves.urllib import request
 from io import BytesIO
-from urllib import request
+
 
 """
 Preprocessing provides some useful functions to preprocess data before
