@@ -419,7 +419,7 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
             img = resize_image(img, image_shape[0], image_shape[1])
         if grayscale:
             img = convert_color(img, 'L')
-        elif img.mode == 'L':
+        elif img.mode == 'L' or img.mode == 'RGBA':
             img = convert_color(img, 'RGB')
 
         img = pil_to_nparray(img)
