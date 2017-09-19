@@ -31,7 +31,7 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         incoming: `Tensor`. Incoming 4-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
         filter_size: `int` or `list of int`. Size of filters.
-        strides: 'int` or list of `int`. Strides of conv operation.
+        strides: `int` or list of `int`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -306,7 +306,7 @@ def atrous_conv_2d(incoming, nb_filter, filter_size, rate=1, padding='same',
         incoming: `Tensor`. Incoming 4-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
         filter_size: `int` or `list of int`. Size of filters.
-        rate: 'int`.  A positive int32. The stride with which we sample input
+        rate: `int`.  A positive int32. The stride with which we sample input
             values across the height and width dimensions. Equivalently, the
             rate by which we upsample the filter values by inserting zeros
             across the height and width dimensions. In the literature, the
@@ -440,7 +440,7 @@ def grouped_conv_2d(incoming, channel_multiplier, filter_size, strides=1,
         incoming: `Tensor`. Incoming 4-D Tensor.
         channel_multiplier: `int`. The number of channels to expand to.
         filter_size: `int` or `list of int`. Size of filters.
-        strides: 'int` or list of `int`. Strides of conv operation.
+        strides: `int` or list of `int`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -1001,7 +1001,7 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
         incoming: `Tensor`. Incoming 5-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
         filter_size: `int` or `list of int`. Size of filters.
-        strides: 'int` or list of `int`. Strides of conv operation.
+        strides: `int` or list of `int`. Strides of conv operation.
             Default: [1 1 1 1 1]. Must have strides[0] = strides[4] = 1.
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
