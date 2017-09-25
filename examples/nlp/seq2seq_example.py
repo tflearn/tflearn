@@ -14,7 +14,7 @@ import json
 import numpy as np
 import tensorflow as tf
 
-from tensorflow.python.ops import seq2seq
+from tensorflow.contrib.legacy_seq2seq.python.ops import seq2seq
 from tensorflow.python.ops import rnn_cell
 
 #-----------------------------------------------------------------------------
