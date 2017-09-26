@@ -179,6 +179,11 @@ def get_value_from_summary_string(tag, summary_str):
         `Exception` if tag not found.
 
     """
+
+    # Compatibility hotfix for the seq2seq example
+    if tag == u'acc:0/':
+        tag = u'acc_0/'
+
     # Fix for TF 0.12
     if tag[-1] == '/':
         tag = tag[:-1]
