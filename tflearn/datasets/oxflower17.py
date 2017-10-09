@@ -46,7 +46,7 @@ def maybe_download(filename, source_url, work_directory):
         filepath, _ = urllib.request.urlretrieve(source_url + filename,
                                                  filepath, reporthook)
         statinfo = os.stat(filepath)
-        print(('Succesfully downloaded', filename, statinfo.st_size, 'bytes.'))
+        print('Succesfully downloaded', filename, statinfo.st_size, 'bytes.')
 
         untar(filepath, work_directory)
         build_class_directories(os.path.join(work_directory, 'jpg'))
