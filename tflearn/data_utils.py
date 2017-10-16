@@ -232,7 +232,7 @@ class VocabularyProcessor(_VocabularyProcessor):
     def fit_transform(self, raw_documents, unused_y=None):
         """ fit_transform.
 
-        Learn the vocabulary dictionary and return indexies of words.
+        Learn the vocabulary dictionary and return indices of words.
 
         Arguments:
             raw_documents: An iterable which yield either str or unicode.
