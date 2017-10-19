@@ -33,7 +33,7 @@ _EPSILON = 1e-8
 # =======================
 
 
-def to_categorical(y):
+def to_categorical(y, nb_classes=None):
     """ to_categorical.
 
     Convert class vector (integers from 0 to nb_classes)
@@ -41,6 +41,7 @@ def to_categorical(y):
 
     Arguments:
         y: `array`. Class vector to convert.
+        nb_classes: `unused`. Used for older code compatibility.
     """
     return (y[:, None] == np.unique(y)).astype(np.float32)
 
