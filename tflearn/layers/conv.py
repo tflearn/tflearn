@@ -681,7 +681,7 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
         4-D Tensor [batch, height, width, in_channels].
 
     Output:
-        4-D Tensor [batch, pooled height, pooled width, in_channels].
+        4-D Tensor [pooled height, pooled width].
 
     Arguments:
         incoming: `Tensor`. Incoming 4-D Layer to upsample.
@@ -722,15 +722,15 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
                            reuse=reuse) as scope:
         name = scope.name
 
+        in_shape = tf.shape(incoming)
         if shape is None:
             # Compute shape out of Bottom
-            in_shape = tf.shape(incoming)
 
             h = ((in_shape[1] - 1) * strides[1]) + 1
             w = ((in_shape[2] - 1) * strides[1]) + 1
             new_shape = [in_shape[0], h, w, num_classes]
         else:
-            new_shape = [shape[0], shape[1], shape[2], num_classes]
+            new_shape = [in_shape[0], shape[0], shape[1], num_classes]
         output_shape = tf.stack(new_shape)
 
         def get_deconv_filter(f_shape):
@@ -769,7 +769,7 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
 
     return deconv
 
-def upscore_layer3D(incoming, num_classes, shape=None, kernel_size=4,
+def upscore_layer3d(incoming, num_classes, shape=None, kernel_size=4,
                   strides=2, trainable=True, restore=True,
                   reuse=False, scope=None, name='Upscore'):
     """ Upscore.
@@ -788,8 +788,8 @@ def upscore_layer3D(incoming, num_classes, shape=None, kernel_size=4,
         incoming: `Tensor`. Incoming 4-D Layer to upsample.
         num_classes: `int`. Number of output feature maps.
         shape: `list of int`. Dimension of the output map
-            [batch_size, new height, new width]. For convinience four values
-             are allows [batch_size, new height, new width, X], where X
+            [new height, new width, new depth]. For convinience four values
+             are allows [new height, new width, new depth, X], where X
              is ignored.
         kernel_size: 'int` or `list of int`. Upsampling kernel size.
         strides: 'int` or `list of int`. Strides of conv operation.
@@ -829,17 +829,17 @@ def upscore_layer3D(incoming, num_classes, shape=None, kernel_size=4,
     with vscope as scope:
         name = scope.name
 
+        in_shape = tf.shape(incoming)
         if shape is None:
             # Compute shape out of Bottom
-            in_shape = tf.shape(incoming)
 
             h = ((in_shape[1] - 1) * strides[1]) + 1
             w = ((in_shape[2] - 1) * strides[1]) + 1
             d = ((in_shape[3] - 1) * strides[1]) + 1
             new_shape = [in_shape[0], h, w, d, num_classes]
         else:
-            new_shape = [shape[0], shape[1], shape[2], shape[3], num_classes]
-        output_shape = tf.pack(new_shape)
+            new_shape = [in_shape[0], shape[0], shape[1], shape[2], num_classes]
+        output_shape = tf.stack(new_shape)
 
         def get_deconv_filter(f_shape):
             """
@@ -850,7 +850,7 @@ def upscore_layer3D(incoming, num_classes, shape=None, kernel_size=4,
             depth = f_shape[0]
             f = ceil(width/2.0)
             c = (2 * f - 1 - f % 2) / (2.0 * f)
-            bilinear = np.zeros([f_shape[0], f_shape[1], fshape[2]])
+            bilinear = np.zeros([f_shape[0], f_shape[1], f_shape[2]])
             for x in range(width):
                 for y in range(heigh):
                     for z in range(depth):
@@ -869,7 +869,7 @@ def upscore_layer3D(incoming, num_classes, shape=None, kernel_size=4,
             return W
 
         weights = get_deconv_filter(filter_size)
-        deconv = tf.nn.conv2d_transpose(incoming, weights, output_shape,
+        deconv = tf.nn.conv3d_transpose(incoming, weights, output_shape,
                                         strides=strides, padding='SAME')
 
     deconv.scope = scope
