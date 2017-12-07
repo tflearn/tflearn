@@ -59,7 +59,7 @@ network = fully_connected(network, 17, activation='softmax')
 
 network = regression(network, optimizer='rmsprop',
                      loss='categorical_crossentropy',
-                     learning_rate=0.001)
+                     learning_rate=0.0001)
 
 # Training
 model = tflearn.DNN(network, checkpoint_path='model_vgg',

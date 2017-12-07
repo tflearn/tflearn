@@ -30,13 +30,14 @@ from . import variables
 from . import collections # Add TFLearn collections to Tensorflow GraphKeys
 
 # Direct ops inclusion
-from .optimizers import SGD, AdaGrad, Adam, RMSProp, Momentum, Ftrl, AdaDelta
+from .optimizers import SGD, AdaGrad, Adam, RMSProp, Momentum, Ftrl, AdaDelta, \
+    ProximalAdaGrad, Nesterov
 from .activations import linear, tanh, sigmoid, softmax, softplus, softsign,\
-    relu, relu6, leaky_relu, prelu, elu
+    relu, relu6, leaky_relu, prelu, elu, crelu, selu
 from .variables import variable, get_all_trainable_variable, \
-    get_all_variables, get_layer_variables_by_name
+    get_all_variables, get_layer_variables_by_name, get_layer_variables_by_scope
 from .objectives import categorical_crossentropy, binary_crossentropy, \
-    softmax_categorical_crossentropy, hinge_loss, mean_square
+    softmax_categorical_crossentropy, hinge_loss, mean_square, weighted_crossentropy
 from .metrics import Top_k, Accuracy, R2, top_k_op, accuracy_op, r2_op, Prediction_Counts
 
 # Direct layers inclusion
@@ -44,10 +45,11 @@ from . import layers
 from .layers.conv import conv_2d, max_pool_2d, avg_pool_2d, conv_1d, \
     highway_conv_2d, highway_conv_1d, max_pool_1d, avg_pool_1d, \
     global_avg_pool, residual_block, residual_bottleneck, \
-    conv_2d_transpose, upsample_2d, conv_3d, max_pool_3d, avg_pool_3d
+    conv_2d_transpose, upsample_2d, conv_3d, max_pool_3d, avg_pool_3d, \
+    resnext_block, upscore_layer, deconv_2d, densenet_block
 from .layers.core import input_data, dropout, custom_layer, reshape, \
     flatten, activation, fully_connected, single_unit, highway, \
-    one_hot_encoding, time_distributed
+    one_hot_encoding, time_distributed, multi_target_data
 from .layers.normalization import batch_normalization, local_response_normalization
 from .layers.estimator import regression
 from .layers.recurrent import lstm, gru, simple_rnn, bidirectional_rnn, \

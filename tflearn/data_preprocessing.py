@@ -100,6 +100,21 @@ class DataPreprocessing(object):
     #  Preprocessing Methods
     # -----------------------
 
+    def add_custom_preprocessing(self, func):
+        """ add_custom_preprocessing.
+
+        Apply any custom pre-processing function to the .
+
+        Arguments:
+            func: a `Function` that take a numpy array as input and returns
+                a numpy array.
+
+        Returns:
+            Nothing.
+        """
+        self.methods.append(func)
+        self.args.append(None)
+
     def add_samplewise_zero_center(self):
         """ add_samplewise_zero_center.
 

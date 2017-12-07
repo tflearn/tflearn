@@ -1,9 +1,9 @@
 # TFLearn - Quick Start
 
-In this tutorial, you will learn to use TFLearn and TensorFlow to estimate Titanic passengers chance of surviving the sinking, using their personal information (such as gender, age, etc.). To tackle this classic machine learning task, we are going to build a deep neural network classifier.
+In this tutorial, you will learn to use TFLearn and TensorFlow to estimate Titanic passengers' likelihood of survival based on their personal information (such as gender, age, etc.). To tackle this classic machine learning task, we are going to build a deep neural network classifier.
 
 ## Prerequisite
-Make sure that you have tensorflow and tflearn (bleeding edge version) installed. If you don't, please follow these [instructions](http://tflearn.org/installation).
+Make sure you have TensorFlow and TFLearn (the bleeding edge version) installed. If you don't, please follow these [instructions](http://tflearn.org/installation).
 
 # Overview
 ![Titanic](http://www.maritime-reproductions.com/images/1000_titanic_sinking_12x8.jpg)
@@ -40,7 +40,7 @@ There are 2 classes in our task 'not survived' (class 0) and 'survived' (class 1
 
 # Build the Classifier
 ## Loading Data
-The dataset is stored in a csv file, so we can use the TFLearn `load_csv()` function to load the data from the csv file into a python `list`. We specify the 'target_column' argument to indicate that our labels (survived or not) are located in the first column (id: 0). The function will return a tuple: (data, labels).
+The dataset is stored in a CSV file, so we can use the TFLearn `load_csv()` function to load the data from the CSV file into a python `list`. We specify the 'target_column' argument to indicate that our labels (survived or not) are located in the first column (id: 0). The function will return a tuple: (data, labels).
 ```python
 import numpy as np
 import tflearn
@@ -58,21 +58,21 @@ data, labels = load_csv('titanic_dataset.csv', target_column=0,
 ## Preprocessing Data
 Data are given 'as is' and need some preprocessing to be ready for use in our deep neural network classifier.
 
-First, we will discard the fields that are not likely to help in our analysis. For example, we make the assumption that 'name' field will not be very useful in our task, because we estimate that a passenger name and his chance of surviving are not correlated. With such thinking, we discard the 'name' and 'ticket' fields.
+First, we will discard the fields that are not likely to help in our analysis. For example, we make the assumption that the 'name' field will not be very useful in our task, since a passenger's name and his or her chance of surviving are probably not correlated. With such thinking, we can go ahead and discard the 'name' and 'ticket' fields.
 
-Then, we need to convert all our data to numerical values, because a neural network model can only perform operations over numbers. However, our dataset contains some non-numerical values, such as 'name' and 'sex'. Because 'name' is discarded, we just need to handle 'sex' field. In this simple case, we will just assign '0' to males and '1' to females.
+Then, we need to convert all our data to numerical values, because a neural network model can only perform operations over numbers. However, our dataset contains some non-numerical values, such as 'name' and 'sex'. Because 'name' is discarded, we just need to handle the 'sex' field. In this simple case, we will just assign '0' to males and '1' to females.
 
 Here is the preprocessing function:
 ```python
 # Preprocessing function
-def preprocess(data, columns_to_ignore):
+def preprocess(passengers, columns_to_delete):
     # Sort by descending id and delete columns
-    for id in sorted(columns_to_ignore, reverse=True):
-        [r.pop(id) for r in data]
-    for i in range(len(data)):
-      # Converting 'sex' field to float (id is 1 after removing labels column)
-      data[i][1] = 1. if data[i][1] == 'female' else 0.
-    return np.array(data, dtype=np.float32)
+    for column_to_delete in sorted(columns_to_delete, reverse=True):
+        [passenger.pop(column_to_delete) for passenger in passengers]
+    for i in range(len(passengers)):
+        # Converting 'sex' field to float (id is 1 after removing labels column)
+        passengers[i][1] = 1. if passengers[i][1] == 'female' else 0.
+    return np.array(passengers, dtype=np.float32)
 
 # Ignore 'name' and 'ticket' columns (id 1 & 6 of data array)
 to_ignore=[1, 6]
@@ -82,7 +82,7 @@ data = preprocess(data, to_ignore)
 ```
 
 ## Build a Deep Neural Network
-We are building a 3-layer neural network using TFLearn. We need to specify the shape of our input data. In our case, each sample has a total of 6 features and we will process samples per batch to save memory, so our data input shape is \[None, 6\] ('None' stands for an unknown dimension, so we can change the total number of samples that are processed in a batch).
+We are building a 3-layer neural network using TFLearn. First, we need to specify the shape of our input data. In our case, each sample has a total of 6 features, and we will process samples per batch to save memory. So our data input shape is \[None, 6\] ('None' stands for an unknown dimension, so we can change the total number of samples that are processed in a batch).
 ```python
 # Build neural network
 net = tflearn.input_data(shape=[None, 6])
@@ -93,8 +93,8 @@ net = tflearn.regression(net)
 ```
 
 ## Training
-TFLearn provides a model wrapper 'DNN' that automatically performs neural network classifier tasks, such as training, prediction, save/restore, etc...
-We will run it for 10 epochs (the network will see all data 10 times) with a batch size of 16.
+TFLearn provides a model wrapper ('DNN') that automatically performs neural network classifier tasks, such as training, prediction, save/restore, and more.
+We will run it for 10 epochs (i.e., the network will see all data 10 times) with a batch size of 16.
 ```python
 # Define model
 model = tflearn.DNN(net)
@@ -146,7 +146,7 @@ Training Step: 820  | total loss: 0.41557
 Our model finished training with an overall accuracy around 81%, which means that it can predict the correct outcome (survived or not) for 81% of the total passengers.
 
 ## Try the Model
-It is time to try out our model. For fun, let's take Titanic movie protagonists (DiCaprio and Winslet) and calculate their chance of surviving (class 1).
+It's time to try out our model. For fun, let's take Titanic movie protagonists (DiCaprio and Winslet) and calculate their chance of surviving (class 1).
 ```python
 # Let's create some data for DiCaprio and Winslet
 dicaprio = [3, 'Jack Dawson', 'male', 19, 0, 0, 'N/A', 5.0000]
@@ -165,9 +165,9 @@ DiCaprio Surviving Rate: 0.13849584758281708
 Winslet Surviving Rate: 0.92201167345047
 ```
 
-Impressive! Our model accurately predicted the outcome of the movie. Odds were against DiCaprio, but Winslet had a high chance of surviving.
+Impressive! Our model accurately predicted the outcome of the movie. The odds were against DiCaprio, but Winslet had a high chance of surviving.
 
-More generally, it can bee seen through this study that women and children passengers from first class have the highest chance of surviving, while third class male passengers have the lowest.
+More generally, it can be seen through this study that women and children passengers from first class have the highest chance of surviving, while third class male passengers have the lowest.
 
 # Source Code
 ```python
@@ -187,14 +187,14 @@ data, labels = load_csv('titanic_dataset.csv', target_column=0,
 
 
 # Preprocessing function
-def preprocess(data, columns_to_ignore):
+def preprocess(passengers, columns_to_delete):
     # Sort by descending id and delete columns
-    for id in sorted(columns_to_ignore, reverse=True):
-        [r.pop(id) for r in data]
-    for i in range(len(data)):
-      # Converting 'sex' field to float (id is 1 after removing labels column)
-      data[i][1] = 1. if data[i][1] == 'female' else 0.
-    return np.array(data, dtype=np.float32)
+    for column_to_delete in sorted(columns_to_delete, reverse=True):
+        [passenger.pop(column_to_delete) for passenger in passengers]
+    for i in range(len(passengers)):
+        # Converting 'sex' field to float (id is 1 after removing labels column)
+        passengers[i][1] = 1. if data[i][1] == 'female' else 0.
+    return np.array(passengers, dtype=np.float32)
 
 # Ignore 'name' and 'ticket' columns (id 1 & 6 of data array)
 to_ignore=[1, 6]

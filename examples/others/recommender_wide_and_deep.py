@@ -115,7 +115,7 @@ class TFLearnWideAndDeep(object):
         with tf.name_scope("Y"):			# placeholder for target variable (i.e. trainY input)
             Y_in = tf.placeholder(shape=[None, 1], dtype=tf.float32, name="Y")
 
-        with tf.variable_op_scope([wide_inputs], None, "cb_unit", reuse=False) as scope:
+        with tf.variable_scope(None, "cb_unit", [wide_inputs]) as scope:
             central_bias = tflearn.variables.variable('central_bias', shape=[1],
                                                       initializer=tf.constant_initializer(np.random.randn()),
                                                       trainable=True, restore=True)
@@ -149,9 +149,9 @@ class TFLearnWideAndDeep(object):
             psize = tf.cast(tf.shape(pos)[0], tf.int64)
             nsize = tf.cast(tf.shape(neg)[0], tf.int64)
             true_positive = tf.reduce_sum(pos, name="true_positive")
-            false_negative = tf.sub(psize, true_positive, name="false_negative")
+            false_negative = tf.subtract(psize, true_positive, name="false_negative")
             false_positive = tf.reduce_sum(neg, name="false_positive")
-            true_negative = tf.sub(nsize, false_positive, name="true_negative")
+            true_negative = tf.subtract(nsize, false_positive, name="true_negative")
             overall_accuracy = tf.truediv(tf.add(true_positive, true_negative), tf.add(nsize, psize), name="overall_accuracy")
         vmset = [true_positive, true_negative, false_positive, false_negative, overall_accuracy]
 
@@ -239,7 +239,7 @@ class TFLearnWideAndDeep(object):
                 print ("    %s_embed = %s" % (cc, cc_embed_var[cc]))
             flat_vars.append(tf.squeeze(cc_embed_var[cc], squeeze_dims=[1], name="%s_squeeze" % cc))
 
-        network = tf.concat(1, [wide_inputs] + flat_vars, name="deep_concat")
+        network = tf.concat([wide_inputs] + flat_vars, 1, name="deep_concat")
         for k in range(len(n_nodes)):
             network = tflearn.fully_connected(network, n_nodes[k], activation="relu", name="deep_fc%d" % (k+1))
             if use_dropout:

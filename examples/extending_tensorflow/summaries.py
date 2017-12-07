@@ -74,11 +74,13 @@ with tf.Graph().as_default():
         return x
 
     net = dnn(X)
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(net, Y))
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.1)
-    accuracy = tf.reduce_mean(
-        tf.cast(tf.equal(tf.argmax(net, 1), tf.argmax(Y, 1)), tf.float32),
-        name="acc")
+        
+    with tf.name_scope('Summaries'):
+        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=net,labels=Y))
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.1)
+        accuracy = tf.reduce_mean(
+            tf.cast(tf.equal(tf.argmax(net, 1), tf.argmax(Y, 1)), tf.float32),
+            name="acc")
 
     # construct two varaibles to add as additional "valiation monitors"
     # these varaibles are evaluated each time validation happens (eg at a snapshot)
@@ -92,11 +94,10 @@ with tf.Graph().as_default():
     with tf.name_scope('CustomMonitor'):
         test_var = tf.reduce_sum(tf.cast(net, tf.float32), name="test_var")
         test_const = tf.constant(32.0, name="custom_constant")
-
-    # Define a train op
+        # Define a train op
     trainop = tflearn.TrainOp(loss=loss, optimizer=optimizer,
-                              validation_monitors=[test_var, test_const],
-                              metric=accuracy, batch_size=128)
+                            validation_monitors=[test_var, test_const],
+                            metric=accuracy, batch_size=128)
 
     # Tensorboard logs stored in /tmp/tflearn_logs/. Using verbose level 2.
     trainer = tflearn.Trainer(train_ops=trainop,

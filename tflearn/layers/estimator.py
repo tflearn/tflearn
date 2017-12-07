@@ -11,7 +11,7 @@ from tflearn import optimizers
 from tflearn.helpers.trainer import TrainOp
 
 
-def regression(incoming, placeholder=None, optimizer='adam',
+def regression(incoming, placeholder='default', optimizer='adam',
                loss='categorical_crossentropy', metric='default',
                learning_rate=0.001, dtype=tf.float32, batch_size=64,
                shuffle_batches=True, to_one_hot=False, n_classes=None,
@@ -32,7 +32,8 @@ def regression(incoming, placeholder=None, optimizer='adam',
     An optional placeholder 'placeholder' can be specified to use a custom
     TensorFlow target placeholder instead of creating a new one. The target
     placeholder is added to the 'tf.GraphKeys.TARGETS' TensorFlow
-    collection, so that it can be retrieved later.
+    collection, so that it can be retrieved later. In case no target is used,
+    set the placeholder to None.
 
     Additionaly, a list of variables 'trainable_vars' can be specified,
     so that only them will be updated when applying the backpropagation
@@ -47,9 +48,10 @@ def regression(incoming, placeholder=None, optimizer='adam',
     Arguments:
         incoming: `Tensor`. Incoming 2-D Tensor.
         placeholder: `Tensor`. This regression target (label) placeholder.
-            If 'None' provided, a placeholder will be added automatically.
+            If 'default', a placeholder will be added automatically.
             You can retrieve that placeholder through graph key: 'TARGETS',
             or the 'placeholder' attribute of this function's returned tensor.
+            If you do not want to use any target, set placeholder to 'None'.
         optimizer: `str` (name), `Optimizer` or `function`. Optimizer to use.
             Default: 'adam' (Adaptive Moment Estimation).
         loss: `str` (name) or `function`. Loss function used by this layer
@@ -92,14 +94,17 @@ def regression(incoming, placeholder=None, optimizer='adam',
 
     input_shape = utils.get_incoming_shape(incoming)
 
-    if placeholder is None:
+    if placeholder == 'default':
         pscope = "TargetsData" if not name else name
         with tf.name_scope(pscope):
             p_shape = [None] if to_one_hot else input_shape
             placeholder = tf.placeholder(shape=p_shape, dtype=dtype, name="Y")
+    elif placeholder is None:
+        placeholder = None
 
-    if placeholder not in tf.get_collection(tf.GraphKeys.TARGETS):
-        tf.add_to_collection(tf.GraphKeys.TARGETS, placeholder)
+    if placeholder is not None:
+        if placeholder not in tf.get_collection(tf.GraphKeys.TARGETS):
+            tf.add_to_collection(tf.GraphKeys.TARGETS, placeholder)
 
     if to_one_hot:
         if n_classes is None:
@@ -124,7 +129,7 @@ def regression(incoming, placeholder=None, optimizer='adam',
         try:
             optimizer, step_tensor = optimizer(learning_rate)
         except Exception as e:
-            print(e.message)
+            print(str(e))
             print("Reminder: Custom Optimizer function must return (optimizer, "
                   "step_tensor) and take one argument: 'learning_rate'. "
                   "Note that returned step_tensor can be 'None' if no decay.")
@@ -139,9 +144,13 @@ def regression(incoming, placeholder=None, optimizer='adam',
     # No auto accuracy for linear regression
     if len(input_shape) == 1 and metric == 'default':
         metric = None
+    # If no placeholder, only a Tensor can be pass as metric
+    if not isinstance(metric, tf.Tensor) and placeholder is None:
+        metric = None
     if metric is not None:
         # Default metric is accuracy
-        if metric == 'default': metric = 'accuracy'
+        if metric == 'default':
+            metric = 'accuracy'
         if isinstance(metric, str):
             metric = metrics.get(metric)()
             metric.build(incoming, placeholder, inputs)
@@ -153,12 +162,12 @@ def regression(incoming, placeholder=None, optimizer='adam',
             try:
                 metric = metric(incoming, placeholder, inputs)
             except Exception as e:
-                print(e.message)
+                print(str(e))
                 print('Reminder: Custom metric function arguments must be '
-                      'define as follow: custom_metric(y_pred, y_true, x).')
+                      'defined as: custom_metric(y_pred, y_true, x).')
                 exit()
         elif not isinstance(metric, tf.Tensor):
-            ValueError("Invalid Metric type.")
+            raise ValueError("Invalid Metric type.")
 
     # Building other ops (loss, training ops...)
     if isinstance(loss, str):
@@ -168,9 +177,9 @@ def regression(incoming, placeholder=None, optimizer='adam',
         try:
             loss = loss(incoming, placeholder)
         except Exception as e:
-            print(e.message)
-            print('Reminder: Custom loss function arguments must be define as '
-                  'follow: custom_loss(y_pred, y_true).')
+            print(str(e))
+            print('Reminder: Custom loss function arguments must be defined as: '
+                  'custom_loss(y_pred, y_true).')
             exit()
     elif not isinstance(loss, tf.Tensor):
         raise ValueError("Invalid Loss type.")

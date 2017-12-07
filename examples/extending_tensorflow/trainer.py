@@ -36,7 +36,7 @@ with tf.Graph().as_default():
         return x
 
     net = dnn(X)
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(net, Y))
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=net, labels=Y))
     optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.1)
     accuracy = tf.reduce_mean(
         tf.cast(tf.equal(tf.argmax(net, 1), tf.argmax(Y, 1)), tf.float32),

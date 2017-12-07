@@ -14,7 +14,7 @@ import json
 import numpy as np
 import tensorflow as tf
 
-from tensorflow.python.ops import seq2seq
+from tensorflow.contrib.legacy_seq2seq.python.ops import seq2seq
 from tensorflow.python.ops import rnn_cell
 
 #-----------------------------------------------------------------------------
@@ -119,8 +119,8 @@ class TFLearnSeq2Seq(object):
         then use seq2seq.sequence_loss to actually compute the loss function.
         '''
         if self.verbose > 2: print ("my_sequence_loss y_pred=%s, y_true=%s" % (y_pred, y_true))
-        logits = tf.unpack(y_pred, axis=1)		# list of [-1, num_decoder_synbols] elements
-        targets = tf.unpack(y_true, axis=1)		# y_true has shape [-1, self.out_seq_len]; unpack to list of self.out_seq_len [-1] elements
+        logits = tf.unstack(y_pred, axis=1)		# list of [-1, num_decoder_synbols] elements
+        targets = tf.unstack(y_true, axis=1)		# y_true has shape [-1, self.out_seq_len]; unpack to list of self.out_seq_len [-1] elements
         if self.verbose > 2:
             print ("my_sequence_loss logits=%s" % (logits,))
             print ("my_sequence_loss targets=%s" % (targets,))
@@ -159,12 +159,12 @@ class TFLearnSeq2Seq(object):
 
         network = tflearn.input_data(shape=[None, self.in_seq_len + self.out_seq_len], dtype=tf.int32, name="XY")
         encoder_inputs = tf.slice(network, [0, 0], [-1, self.in_seq_len], name="enc_in")	# get encoder inputs
-        encoder_inputs = tf.unpack(encoder_inputs, axis=1)					# transform into list of self.in_seq_len elements, each [-1]
+        encoder_inputs = tf.unstack(encoder_inputs, axis=1)					# transform into list of self.in_seq_len elements, each [-1]
 
         decoder_inputs = tf.slice(network, [0, self.in_seq_len], [-1, self.out_seq_len], name="dec_in")	# get decoder inputs
-        decoder_inputs = tf.unpack(decoder_inputs, axis=1)					# transform into list of self.out_seq_len elements, each [-1]
+        decoder_inputs = tf.unstack(decoder_inputs, axis=1)					# transform into list of self.out_seq_len elements, each [-1]
 
-        go_input = tf.mul( tf.ones_like(decoder_inputs[0], dtype=tf.int32), GO_VALUE ) # insert "GO" symbol as the first decoder input; drop the last decoder input
+        go_input = tf.multiply( tf.ones_like(decoder_inputs[0], dtype=tf.int32), GO_VALUE ) # insert "GO" symbol as the first decoder input; drop the last decoder input
         decoder_inputs = [go_input] + decoder_inputs[: self.out_seq_len-1]				# insert GO as first; drop last decoder input
 
         feed_previous = not (mode=="train")
@@ -209,7 +209,7 @@ class TFLearnSeq2Seq(object):
 
         # model_outputs: list of the same length as decoder_inputs of 2D Tensors with shape [batch_size x output_size] containing the generated outputs.
         if self.verbose > 2: print ("model outputs: %s" % model_outputs)
-        network = tf.pack(model_outputs, axis=1)		# shape [-1, n_decoder_inputs (= self.out_seq_len), num_decoder_symbols]
+        network = tf.stack(model_outputs, axis=1)		# shape [-1, n_decoder_inputs (= self.out_seq_len), num_decoder_symbols]
         if self.verbose > 2: print ("packed model outputs: %s" % network)
         
         if self.verbose > 3:

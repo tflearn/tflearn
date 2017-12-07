@@ -142,33 +142,34 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
     assert len(input_shape) > 1, "Incoming Tensor shape must be at least 2-D"
     n_inputs = int(np.prod(input_shape[1:]))
 
-    # Build variables and inference.
-    # Variable Scope fix for older TF
-    try:
-        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
-                                   reuse=reuse)
-    except Exception:
-        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
-
-    with vscope as scope:
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
         name = scope.name
 
         W_init = weights_init
+        filter_size = [n_inputs, n_units]
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
-        W = va.variable('W', shape=[n_inputs, n_units], regularizer=W_regul,
+        W = va.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
 
         b = None
         if bias:
+            b_shape = [n_units]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = va.variable('b', shape=[n_units], initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            if isinstance(bias_init, str):
+                bias_init = initializations.get(bias_init)()
+            b = va.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
@@ -178,7 +179,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
             inference = tf.reshape(inference, [-1, n_inputs])
 
         inference = tf.matmul(inference, W)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
         if activation:
             if isinstance(activation, str):
                 inference = activations.get(activation)(inference)
@@ -291,7 +292,7 @@ def reshape(incoming, new_shape, name="Reshape"):
     with tf.name_scope(name) as scope:
         inference = incoming
         if isinstance(inference, list):
-            inference = tf.concat(inference, 0)
+            inference = tf.concat(0, inference)
             inference = tf.cast(inference, tf.float32)
         inference = tf.reshape(inference, shape=new_shape)
 
@@ -345,7 +346,7 @@ def activation(incoming, activation='linear', name='activation'):
 
     if isinstance(activation, str):
         x = activations.get(activation)(incoming)
-    elif hasattr(incoming, '__call__'):
+    elif hasattr(activation, '__call__'):
         x = activation(incoming)
     else:
         raise ValueError('Unknown activation type.')
@@ -392,14 +393,8 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
     n_inputs = int(np.prod(input_shape[1:]))
 
     # Build variables and inference.
-    # Variable Scope fix for older TF
-    try:
-        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
-                                   reuse=reuse)
-    except Exception:
-        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
-
-    with vscope as scope:
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
         name = scope.name
 
         W = va.variable('W', shape=[n_inputs],
@@ -419,8 +414,8 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
         if len(input_shape) > 1:
             inference = tf.reshape(inference, [-1])
 
-        inference = tf.mul(inference, W)
-        if b: inference = tf.add(inference, b)
+        inference = tf.multiply(inference, W)
+        if b is not None: inference = tf.add(inference, b)
 
         if isinstance(activation, str):
             inference = activations.get(activation)(inference)
@@ -499,21 +494,15 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
     n_inputs = int(np.prod(input_shape[1:]))
 
     # Build variables and inference.
-    # Variable Scope fix for older TF
-    try:
-        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
-                                   reuse=reuse)
-    except Exception:
-        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
-
-    with vscope as scope:
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
         name = scope.name
 
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
+        if regularizer is not None:
             W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
         W = va.variable('W', shape=[n_inputs, n_units], regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
@@ -552,9 +541,9 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
         T = tf.sigmoid(tf.matmul(incoming, W_T) + b_T)
         if transform_dropout:
             T = dropout(T, transform_dropout)
-        C = tf.sub(1.0, T)
+        C = tf.subtract(1.0, T)
 
-        inference = tf.add(tf.mul(H, T), tf.mul(incoming, C))
+        inference = tf.add(tf.multiply(H, T), tf.multiply(incoming, C))
 
         # Track activations.
         tf.add_to_collection(tf.GraphKeys.ACTIVATIONS, inference)
@@ -649,18 +638,42 @@ def time_distributed(incoming, fn, args=None, scope=None):
     assert isinstance(args, list), "'args' must be a list."
 
     if not isinstance(incoming, tf.Tensor):
-        incoming = tf.transpose(tf.pack(incoming), [1, 0, 2])
+        incoming = tf.transpose(tf.stack(incoming), [1, 0, 2])
 
     input_shape = utils.get_incoming_shape(incoming)
     timestep = input_shape[1]
-    x = tf.unpack(incoming, axis=1)
+    x = tf.unstack(incoming, axis=1)
     if scope:
         x = [fn(x[i], scope=scope+'-'+str(i), *args)
              for i in range(timestep)]
     else:
         x = [fn(x[i], *args) for i in range(timestep)]
-    try:
-      x = map(lambda t: tf.reshape(t, [-1, 1]+utils.get_incoming_shape(t)[1:]), x)
-    except:
-      x = list(map(lambda t: tf.reshape(t, [-1, 1]+utils.get_incoming_shape(t)[1:]), x))
-    return tf.concat(1, x)
+
+    x = list(map(lambda t: tf.reshape(t, [-1, 1]+utils.get_incoming_shape(t)[1:]), x))
+    return tf.concat(x, 1)
+
+
+def multi_target_data(name_list, shape, dtype=tf.float32):
+    """ Multi Target Data.
+
+    Create and concatenate multiple placeholders. To be used when a regression
+    layer uses targets from different sources.
+
+    Arguments:
+        name_list: list of `str`. The names of the target placeholders.
+        shape: list of `int`. The shape of the placeholders.
+        dtype: `tf.type`, Placeholder data type (optional). Default: float32.
+
+    Return:
+        A `Tensor` of the concatenated placeholders.
+
+    """
+    placeholders = []
+    for i in range(len(name_list)):
+        with tf.name_scope(name_list[i]):
+            p = tf.placeholder(shape=shape, dtype=dtype, name='Y')
+        if p not in tf.get_collection(tf.GraphKeys.TARGETS):
+            tf.add_to_collection(tf.GraphKeys.TARGETS, p)
+        placeholders.append(p)
+
+    return tf.concat(placeholders, axis=0)

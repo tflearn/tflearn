@@ -48,8 +48,9 @@ class DNN(object):
     """
 
     def __init__(self, network, clip_gradients=5.0, tensorboard_verbose=0,
-                 tensorboard_dir="/tmp/tflearn_logs/", checkpoint_path=None, best_checkpoint_path=None,
-                 max_checkpoints=None, session=None, best_val_accuracy=0.0):
+                 tensorboard_dir="/tmp/tflearn_logs/", checkpoint_path=None,
+                 best_checkpoint_path=None, max_checkpoints=None, session=None,
+                 best_val_accuracy=0.0):
         assert isinstance(network, tf.Tensor), "'network' arg is not a Tensor!"
         self.net = network
         self.train_ops = tf.get_collection(tf.GraphKeys.TRAIN_OPS)
@@ -214,6 +215,31 @@ class DNN(object):
                          run_id=run_id,
                          callbacks=callbacks)
 
+    def fit_batch(self, X_inputs, Y_targets):
+
+        # For simplicity we build sync dict synchronously but Trainer support
+        # asynchronous feed dict allocation.
+        # TODO: check memory impact for large data and multiple optimizers
+        feed_dict = feed_dict_builder(X_inputs, Y_targets, self.inputs,
+                                      self.targets)
+        feed_dicts = [feed_dict for i in self.train_ops]
+
+        # Retrieve data preprocesing and augmentation
+        dprep_dict, daug_dict = {}, {}
+        dprep_collection = tf.get_collection(tf.GraphKeys.DATA_PREP)
+        daug_collection = tf.get_collection(tf.GraphKeys.DATA_AUG)
+        for i in range(len(self.inputs)):
+            # Support for custom inputs not using dprep/daug
+            if len(dprep_collection) > i:
+                if dprep_collection[i] is not None:
+                    dprep_dict[self.inputs[i]] = dprep_collection[i]
+            if len(daug_collection) > i:
+                if daug_collection[i] is not None:
+                    daug_dict[self.inputs[i]] = daug_collection[i]
+        return self.trainer.fit_batch(feed_dicts,
+                                      dprep_dict=dprep_dict,
+                                      daug_dict=daug_dict)
+
     def predict(self, X):
         """ Predict.
 
@@ -245,7 +271,11 @@ class DNN(object):
 
         """
         feed_dict = feed_dict_builder(X, None, self.inputs, None)
-        return np.argsort(self.predictor.predict(feed_dict))[::-1]
+        labels = np.argsort(self.predictor.predict(feed_dict))
+        if labels.ndim == 1:
+            return labels[::-1]
+        else:
+            return labels[:, ::-1]
 
     def save(self, model_file):
         """ Save.
@@ -338,3 +368,9 @@ class DNN(object):
         feed_dict = feed_dict_builder(X, Y, self.inputs, self.targets)
         ops = [o.metric for o in self.train_ops]
         return self.predictor.evaluate(feed_dict, ops, batch_size)
+
+    def get_train_vars(self):
+        ret = list()
+        for tr_op in self.train_ops:
+            ret = ret + tr_op.train_vars
+        return ret

@@ -202,27 +202,37 @@ class SequenceGenerator(object):
 
         """
 
-        generated = seq_seed
-        sequence = seq_seed
-        whole_sequence = seq_seed
+        generated = seq_seed[:]
+        sequence = seq_seed[:]
+        whole_sequence = seq_seed[:]
 
-        if display: sys.stdout.write(generated)
+        if display: sys.stdout.write(str(generated))
 
         for i in range(seq_length):
             x = np.zeros((1, self.seq_maxlen, len(self.dic)))
             for t, char in enumerate(sequence):
                 x[0, t, self.dic[char]] = 1.
 
-            preds = self._predict(x)[0]
+            preds = self._predict(x)[0].tolist()
             next_index = _sample(preds, temperature)
             next_char = self.rev_dic[next_index]
 
-            generated += next_char
-            sequence = sequence[1:] + next_char
-            whole_sequence += next_char
+            try: #Python 2
+                unicode_or_str = [str, unicode]
+            except: #Python 3
+                unicode_or_str = [str]
+            if type(sequence) in unicode_or_str:
+                generated += next_char
+                sequence = sequence[1:] + next_char
+                whole_sequence += next_char
+            else:
+                generated.append(next_char)
+                sequence = sequence[1:]
+                sequence.append(next_char)
+                whole_sequence.append(next_char)
 
             if display:
-                sys.stdout.write(next_char)
+                sys.stdout.write(str(next_char))
                 sys.stdout.flush()
 
         if display: print()
@@ -249,7 +259,7 @@ class SequenceGenerator(object):
             model_file: `str`. Model path.
             optargs: optional extra arguments for trainer.restore (see helpers/trainer.py)
                      These optional arguments may be used to limit the scope of
-                     variables restored, and to control whether a new session is 
+                     variables restored, and to control whether a new session is
                      created for the restored variables.
 
         """

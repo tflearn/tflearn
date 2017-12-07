@@ -49,14 +49,8 @@ def embedding(incoming, input_dim, output_dim, validate_indices=False,
     if isinstance(weights_init, str):
         W_init = initializations.get(weights_init)()
 
-    # Variable Scope fix for older TF
-    try:
-        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
-                                   reuse=reuse)
-    except Exception:
-        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
-
-    with vscope as scope:
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
         name = scope.name
         with tf.device('/cpu:0'):
             W = vs.variable("W", shape=[input_dim, output_dim],

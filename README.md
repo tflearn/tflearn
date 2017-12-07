@@ -18,7 +18,7 @@ TFLearn features include:
 
 The high-level API currently supports most of recent deep learning models, such as Convolutions, LSTM, BiRNN, BatchNorm, PReLU, Residual networks, Generative networks... In the future, TFLearn is also intended to stay up-to-date with latest deep learning techniques.
 
-Note: This is the first release of TFLearn. Contributions are more than welcome!
+Note: Latest TFLearn (v0.3) is only compatible with TensorFlow v1.0 and over.
 
 ## Overview
 ```python
@@ -54,7 +54,18 @@ There are many more examples available *[here](http://tflearn.org/examples)*.
 
 **TensorFlow Installation**
 
-TFLearn requires Tensorflow (version >= 0.11) to be installed: *[Tensorflow installation instructions](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md)*.
+TFLearn requires Tensorflow (version 1.0+) to be installed.
+
+To install TensorFlow, simply run:
+```
+pip install tensorflow
+```
+or, with GPU-support:
+```
+pip install tensorflow-gpu
+```
+
+For more details see *[TensorFlow installation instructions](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md)*
 
 **TFLearn Installation**
 

@@ -10,6 +10,7 @@ except Exception:
     # Python 3
     import queue
 
+import tensorflow as tf
 from . import utils
 
 
@@ -284,3 +285,87 @@ class DataFlowStatus(object):
     def reset(self):
         self.step = 0
         self.epoch = 0
+
+
+class ArrayFlow(object):
+    """ ArrayFlow.
+
+    Convert array samples to tensors and store them in a queue.
+
+    Arguments:
+        X: `array`. The features data array.
+        Y: `array`. The targets data array.
+        multi_inputs: `bool`. Set to True if X has multiple input sources (i.e.
+            X is a list of arrays).
+        batch_size: `int`. The batch size.
+        shuffle: `bool`. If True, data will be shuffled.
+
+    Returns:
+        The `X` and `Y` data tensors or a list(`X`) and `Y` data tensors if
+        multi_inputs is True.
+
+    """
+    def __init__(self, X, Y, multi_inputs=False, batch_size=32, shuffle=True):
+        # Handle multiple inputs
+        if not multi_inputs:
+            X = [X]
+        X = [np.array(x) for x in X]
+        self.X = X
+        self.Xlen = len(X[0])
+        Y = np.array(Y)
+        self.Y = Y
+        # Create X placeholders
+        self.tensorX = [tf.placeholder(
+                dtype=tf.float32,
+                shape=[None] + list(utils.get_incoming_shape(x)[1:]))
+            for x in X]
+        # Create Y placeholders
+        self.tensorY = tf.placeholder(
+            dtype=tf.float32,
+            shape=[None] + list(utils.get_incoming_shape(Y)[1:]))
+        # FIFO Queue for feeding data
+        self.queue = tf.FIFOQueue(
+            dtypes=[x.dtype for x in self.tensorX] + [self.tensorY.dtype],
+            capacity=batch_size * 8)
+        self.enqueue_op = self.queue.enqueue(self.tensorX + [self.tensorY])
+        self.batch_size = batch_size
+        self.multi_inputs = multi_inputs
+        self.shuffle = shuffle
+
+    def iterate(self, X, Y, batch_size):
+        while True:
+            # Shuffle array if specified
+            if self.shuffle:
+                idxs = np.arange(0, len(X[0]))
+                np.random.shuffle(idxs)
+                X = [x[idxs] for x in X]
+                Y = Y[idxs]
+            # Split array by batch
+            for batch_idx in range(0, self.Xlen, batch_size):
+                batchX = [x[batch_idx:batch_idx + batch_size] for x in X]
+                batchY = Y[batch_idx:batch_idx + batch_size]
+                yield batchX, batchY
+
+    def get(self):
+        # get data from the queue
+        dequeue = self.queue.dequeue()
+        if self.multi_inputs:
+            return dequeue[:-1], dequeue[-1]
+        else:
+            return dequeue[0], dequeue[1]
+
+    def launch_threads(self, session, num_threads=1):
+        threads = []
+        for i in range(num_threads):
+            t = threading.Thread(target=self.thread_main, args=(session,))
+            t.daemon = True
+            t.start()
+            threads.append(t)
+        return threads
+
+    def thread_main(self, sess):
+        for dataX, dataY in self.iterate(self.X, self.Y, self.batch_size):
+            feed_dict = {self.tensorY: dataY}
+            for i, x in enumerate(self.tensorX):
+                feed_dict[x] = dataX[i]
+            sess.run(self.enqueue_op, feed_dict=feed_dict)

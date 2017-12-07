@@ -13,16 +13,14 @@ from tflearn.data_utils import load_csv
 data, labels = load_csv('titanic_dataset.csv', target_column=0,
                         categorical_labels=True, n_classes=2)
 
-
-# Preprocessing function
-def preprocess(data, columns_to_ignore):
+def preprocess(passengers, columns_to_delete):
     # Sort by descending id and delete columns
-    for id in sorted(columns_to_ignore, reverse=True):
-        [r.pop(id) for r in data]
-    for i in range(len(data)):
-      # Converting 'sex' field to float (id is 1 after removing labels column)
-      data[i][1] = 1. if data[i][1] == 'female' else 0.
-    return np.array(data, dtype=np.float32)
+    for column_to_delete in sorted(columns_to_delete, reverse=True):
+        [passenger.pop(column_to_delete) for passenger in passengers]
+    for i in range(len(passengers)):
+        # Converting 'sex' field to float (id is 1 after removing labels column)
+        passengers[i][1] = 1. if passengers[i][1] == 'female' else 0.
+    return np.array(passengers, dtype=np.float32)
 
 # Ignore 'name' and 'ticket' columns (id 1 & 6 of data array)
 to_ignore=[1, 6]

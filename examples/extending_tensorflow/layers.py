@@ -36,7 +36,7 @@ with tf.Graph().as_default():
     net = tflearn.dropout(net, 0.8)
     net = tflearn.fully_connected(net, 256, activation='tanh')
     net = tflearn.dropout(net, 0.8)
-    net = tflearn.fully_connected(net, 10, activation='softmax')
+    net = tflearn.fully_connected(net, 10, activation='linear')
 
     # Defining other ops using Tensorflow
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(net, Y))

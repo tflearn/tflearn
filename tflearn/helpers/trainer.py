@@ -133,7 +133,8 @@ class Trainer(object):
             # Saver for saving a model
             self.saver = tf.train.Saver(
                 max_to_keep=max_checkpoints,
-                keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours)
+                keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours,
+                allow_empty=True)
             # Saver for restoring a model (With exclude variable list)
             all_vars = variables.get_all_variables()
             excl_vars = tf.get_collection(tf.GraphKeys.EXCL_RESTORE_VARS)
@@ -142,14 +143,16 @@ class Trainer(object):
             self.restorer = tf.train.Saver(
                 var_list=to_restore,
                 max_to_keep=max_checkpoints,
-                keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours)
+                keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours,
+                allow_empty=True)
             # A second Saver, that only restore trainable variables
             to_restore_trainvars = [item for item in tf.trainable_variables()
                                     if check_restore_tensor(item, excl_vars)]
             self.restorer_trainvars = tf.train.Saver(
                 var_list=to_restore_trainvars,
                 max_to_keep=max_checkpoints,
-                keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours)
+                keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours,
+                allow_empty=True)
 
             self.to_restore = to_restore
             self.to_restore_trainvars = to_restore_trainvars
@@ -165,10 +168,13 @@ class Trainer(object):
                 except Exception as e:
                     init = tf.initialize_all_variables()
                 self.session.run(init)
+            # Fix for re-using sessions
+            #initialize_uninit_variables(self.session)
 
     def fit(self, feed_dicts, n_epoch=10, val_feed_dicts=None, show_metric=False,
             snapshot_step=None, snapshot_epoch=True, shuffle_all=None,
-            dprep_dict=None, daug_dict=None, excl_trainops=None, run_id=None, callbacks=[]):
+            dprep_dict=None, daug_dict=None, excl_trainops=None, run_id=None,
+            callbacks=[]):
         """ fit.
 
         Train network with feeded data dicts.
@@ -231,10 +237,9 @@ class Trainer(object):
 
         original_train_ops = list(self.train_ops)
         # Remove excluded train_ops
-        for t in self.train_ops:
-            if excl_trainops and t in excl_trainops:
-                self.train_ops.remove(t)
-
+        if excl_trainops:
+            self.train_ops = list(filter(lambda a: a not in excl_trainops, self.train_ops))
+	    
         # shuffle is an override for simplicty, it will overrides every
         # training op batch shuffling
         if isinstance(shuffle_all, bool):
@@ -353,6 +358,41 @@ class Trainer(object):
                 self.train_ops = original_train_ops
 
         self.summ_writer.close()
+
+    def fit_batch(self, feed_dicts, dprep_dict=None, daug_dict=None):
+        """ fit_batch.
+
+        Train network with a single batch.
+
+        Arguments:
+            feed_dicts: `dict` or list of `dict`. The dictionary to feed
+                data to the network. It follows Tensorflow feed dict
+                specifications: '{placeholder: data}'. In case of multiple
+                optimizers, a list of dict is expected, that will
+                respectively feed optimizers.
+            dprep_dict: `dict` with `Placeholder` as key and
+                `DataPreprocessing` as value. Apply realtime data
+                preprocessing to the given placeholders (Applied at training
+                and testing time).
+            daug_dict: `dict` with `Placeholder` as key and
+                `DataAugmentation` as value. Apply realtime data
+                augmentation to the given placeholders (Only applied at
+                training time).
+        """
+        feed_dicts = to_list(feed_dicts)
+        for d in feed_dicts: standarize_dict(d)
+        val_loss = []
+        for train_op in self.train_ops:
+            if daug_dict:
+                for k in daug_dict:
+                    feed_dicts[k] = daug_dict.apply(feed_dicts[k])
+            if dprep_dict:
+                for k in dprep_dict:
+                    feed_dicts[k] = dprep_dict.apply(feed_dicts[k])
+        for d in feed_dicts:
+            val_loss.append(train_op._train_batch(d))
+        if len(val_loss) == 1: val_loss = val_loss[0]
+        return val_loss
 
     def save(self, model_file, global_step=None):
         """ save.
@@ -525,7 +565,8 @@ class TrainOp(object):
 
     def __init__(self, loss, optimizer, metric=None, batch_size=64, ema=0.,
                  trainable_vars=None, shuffle=True, step_tensor=None,
-                 validation_monitors=None, validation_batch_size=None, name=None, graph=None):
+                 validation_monitors=None, validation_batch_size=None,
+                 name=None, graph=None):
         self.graph = tf.get_default_graph()
         if graph:
             self.graph = graph
@@ -753,7 +794,9 @@ class TrainOp(object):
 
     def _train(self, training_step, snapshot_epoch, snapshot_step,
                show_metric):
-        """ Training process for this optimizer.
+        """ _train.
+
+        Training process for this optimizer.
 
         Arguments:
             training_step: `int`. The global step.
@@ -836,6 +879,21 @@ class TrainOp(object):
                     test_summ_str, n_step)
 
         return snapshot
+
+    def _train_batch(self, feed_dict):
+        """ _train_batch.
+
+        Train on a single batch.
+
+        Arguments:
+            feed_dict: `dict`. The data dictionary to feed.
+
+        """
+        tflearn.is_training(True, session=self.session)
+        _, loss, _ = self.session.run([self.train, self.loss, self.summ_op],
+                                      feed_dict=feed_dict)
+        tflearn.is_training(False, session=self.session)
+        return loss
 
     def duplicate(self):
         """ Returns a duplicated `TrainOp` """
@@ -1029,3 +1087,12 @@ class TrainingState(object):
     def resetGlobal(self):
         self.global_acc = 0.0
         self.global_loss = 0.0
+
+
+# def initialize_uninit_variables(session, list_of_variables=None):
+#     if list_of_variables is None:
+#         list_of_variables = tf.global_variables()
+#     uninitialized_variables = list(tf.get_variable(name) for name in
+#                                    session.run(tf.report_uninitialized_variables(list_of_variables)))
+#     session.run(tf.variables_initializer(uninitialized_variables))
+#     return uninitialized_variables
