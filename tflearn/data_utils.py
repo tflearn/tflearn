@@ -374,8 +374,8 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
     assert mode in ['folder', 'file'], "`mode` arg must be 'folder' or 'file'"
 
     if mode == 'folder':
-        images, labels = directory_to_samples(target_path,
-                                              flags=files_extension)
+        images, labels, classes = directory_to_samples(target_path,
+                                                       flags=files_extension)
     else:
         with open(target_path, 'r') as f:
             images, labels = [], []
@@ -418,6 +418,9 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
             dataset['Y'][i] = to_categorical([labels[i]], n_classes)[0]
         else:
             dataset['Y'][i] = labels[i]
+
+    return H5pyDataset(classes, image_shape, image_count)
+
 
 def get_img_channel(image_path):
     """
@@ -755,7 +758,7 @@ def directory_to_samples(directory, flags=None, filter_channel=False):
                 samples.append(os.path.join(c_dir, sample))
                 targets.append(label)
         label += 1
-    return samples, targets
+    return samples, targets, classes
 
 
 # ==================
@@ -856,6 +859,11 @@ class LabelPreloader(Preloader):
         else:
             return label
 
+class H5pyDataset(object):
+    def __init__(self, classes, image_shape, image_count):
+        self.classes = classes
+        self.image_shape = image_shape
+        self.image_count = image_count
 
 def get_max(X):
     return np.max(X)
