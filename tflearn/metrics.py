@@ -5,7 +5,7 @@ import tensorflow as tf
 
 
 def get(identifier):
-    return get_from_module(identifier, globals(), 'optimizer')
+    return get_from_module(identifier, globals(), 'metrics')
 
 """
 Metric classes are meant to be used with TFLearn models (such as DNN). For

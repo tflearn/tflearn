@@ -12,6 +12,7 @@ except Exception as e:
     H5PY_SUPPORTED = False
 import numpy as np
 import tensorflow as tf
+from tensorflow.python import pywrap_tensorflow
 
 import tflearn.variables as vs
 
@@ -132,6 +133,22 @@ def get_all_tensor_children(tensor):
         for t in tensor.op.outputs:
             children_list += get_all_tensor_children(t)
     return list(set(children_list))
+
+
+# ---------------
+#   Tensor Utils
+# ---------------
+
+def read_tensor_in_checkpoint(tensor_name, checkpoint_path):
+    try:
+        reader = pywrap_tensorflow.NewCheckpointReader(checkpoint_path)
+        return reader.get_tensor(tensor_name)
+    except Exception as e:  # pylint: disable=broad-except
+        print(str(e))
+        if "corrupted compressed block contents" in str(e):
+            print("It's likely that your checkpoint file has been compressed "
+                  "with SNAPPY.")
+
 
 # ------------------
 #  Other utils
@@ -512,3 +529,53 @@ def fix_saver(collection_lists=None):
             tf.add_to_collection(tf.GraphKeys.DATA_AUG, t)
         for t in collection_lists[3]:
             tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, t)
+
+
+def validate_func(x, allow_none=True):
+    if not (allow_none and x is None) and hasattr(x, '__call__'):
+        raise ValueError("'%s' must be a function." % x.__name__)
+
+
+def validate_dim(x, max_dim=None, min_dim=None, var_name='var'):
+    # Calculate dimension
+    if isinstance(x, tf.Tensor):
+        dim = len(x.get_shape().as_list())
+    elif type(x) in [np.ndarray, np.array, list]:
+        dim = np.ndim(x)
+    else:
+        #TODO: check hdf5, panda
+        return
+    # Verify dimension conditions
+    if max_dim == min_dim:
+        if dim != max_dim:
+            raise ValueError("%s must be %s-D." % (var_name, max_dim))
+    else:
+        if min_dim and dim < min_dim:
+            raise ValueError(
+                "%s must be at least %s-D." % (var_name, min_dim))
+        elif max_dim and dim > max_dim:
+            raise ValueError(
+                "%s must be %s-D or less." % (var_name, max_dim))
+
+
+def prepare_X(X, target_ndim, max_dim=None, min_dim=None, debug_msg="Data"):
+
+    # Validate the dimension
+    validate_dim(X, max_dim, min_dim)
+
+    X_ndim = np.ndim(X)
+    # Reshape to the desired dimension
+    if X_ndim < target_ndim:
+        for i in range(target_ndim - X_ndim):
+            try:
+                X = np.expand_dims(X, axis=0)
+            except Exception:
+                raise Exception(debug_msg + " shape mismatch (too few dimensions).")
+    elif X_ndim > target_ndim:
+        for i in range(X_ndim - target_ndim):
+            try:
+                X = np.reshape(X, newshape=np.shape(X)[:-1])
+            except Exception:
+                raise Exception(debug_msg +  " shape mismatch (too many dimensions).")
+    return X, X_ndim
+
