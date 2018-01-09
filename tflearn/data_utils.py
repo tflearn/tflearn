@@ -33,7 +33,7 @@ _EPSILON = 1e-8
 # =======================
 
 
-def to_categorical(y, nb_classes):
+def to_categorical(y, nb_classes=None):
     """ to_categorical.
 
     Convert class vector (integers from 0 to nb_classes)
@@ -41,21 +41,9 @@ def to_categorical(y, nb_classes):
 
     Arguments:
         y: `array`. Class vector to convert.
-        nb_classes: `int`. Total number of classes.
-
+        nb_classes: `unused`. Used for older code compatibility.
     """
-    y = np.asarray(y, dtype='int32')
-    # high dimensional array warning
-    if len(y.shape) > 2:
-        warnings.warn('{}-dimensional array is used as input array.'.format(len(y.shape)), stacklevel=2)
-    # flatten high dimensional array
-    if len(y.shape) > 1:
-        y = y.reshape(-1)
-    if not nb_classes:
-        nb_classes = np.max(y)+1
-    Y = np.zeros((len(y), nb_classes))
-    Y[np.arange(len(y)), y] = 1.
-    return Y
+    y[:, None] == np.unique(y)).astype(np.float32)
 
 
 # =====================
@@ -232,7 +220,7 @@ class VocabularyProcessor(_VocabularyProcessor):
     def fit_transform(self, raw_documents, unused_y=None):
         """ fit_transform.
 
-        Learn the vocabulary dictionary and return indexies of words.
+        Learn the vocabulary dictionary and return indices of words.
 
         Arguments:
             raw_documents: An iterable which yield either str or unicode.
