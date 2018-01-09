@@ -43,7 +43,7 @@ def to_categorical(y, nb_classes=None):
         y: `array`. Class vector to convert.
         nb_classes: `unused`. Used for older code compatibility.
     """
-    y[:, None] == np.unique(y)).astype(np.float32)
+    return (y[:, None] == np.unique(y)).astype(np.float32)
 
 
 # =====================
