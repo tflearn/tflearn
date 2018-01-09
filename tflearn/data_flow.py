@@ -305,10 +305,13 @@ class ArrayFlow(object):
         multi_inputs is True.
 
     """
-    def __init__(self, X, Y, multi_inputs=False, batch_size=32, shuffle=True):
+    def __init__(self, X, Y, multi_inputs=False, batch_size=32, shuffle=True,
+                 capacity=None):
         # Handle multiple inputs
         if not multi_inputs:
             X = [X]
+        if not capacity:
+            capacity =batch_size * 8
         X = [np.array(x) for x in X]
         self.X = X
         self.Xlen = len(X[0])
@@ -326,7 +329,7 @@ class ArrayFlow(object):
         # FIFO Queue for feeding data
         self.queue = tf.FIFOQueue(
             dtypes=[x.dtype for x in self.tensorX] + [self.tensorY.dtype],
-            capacity=batch_size * 8)
+            capacity=capacity)
         self.enqueue_op = self.queue.enqueue(self.tensorX + [self.tensorY])
         self.batch_size = batch_size
         self.multi_inputs = multi_inputs
@@ -369,3 +372,40 @@ class ArrayFlow(object):
             for i, x in enumerate(self.tensorX):
                 feed_dict[x] = dataX[i]
             sess.run(self.enqueue_op, feed_dict=feed_dict)
+
+
+def generate_data_tensor(X, Y, batch_size, shuffle=True, num_threads=1,
+                         capacity=None):
+    #TODO: Add a way with no batch?
+    #TODO: Set threads to #CPUs fo machine
+    cr = None
+    if capacity is None:
+        capacity = batch_size * num_threads * 4
+
+    if isinstance(X, tf.Tensor) and isinstance(Y, tf.Tensor):
+        # Optional Image and Label Batching
+        if shuffle:
+            X, Y = tf.train.shuffle_batch([X, Y], batch_size=batch_size,
+                                          min_after_dequeue=batch_size,
+                                          capacity=capacity,
+                                          num_threads=num_threads)
+        else:
+            X, Y = tf.train.batch([X, Y], batch_size=batch_size,
+                                  capacity=capacity,
+                                  num_threads=num_threads)
+
+    # Array Input
+    elif X is not None and Y is not None:
+        X_shape = list(np.shape(X))
+        Y_shape = list(np.shape(Y))
+        # Create a queue using feed_dicts
+        cr = ArrayFlow(X, Y, batch_size=batch_size, shuffle=shuffle,
+                       capacity=capacity)
+        X, Y = cr.get()
+        # Assign a shape to tensors
+        X_reshape = [-1] + X_shape[1:] if len(X_shape[1:]) > 0 else [-1, 1]
+        Y_reshape = [-1] + Y_shape[1:] if len(Y_shape[1:]) > 0 else [-1, 1]
+        X = tf.reshape(X, X_reshape)
+        Y = tf.reshape(Y, Y_reshape)
+
+    return X, Y, cr

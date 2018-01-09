@@ -19,7 +19,7 @@ def get(identifier):
     if hasattr(identifier, '__call__'):
         return identifier
     else:
-        return get_from_module(identifier, globals(), 'initialization')
+        return get_from_module(identifier, globals(), 'initializations')
 
 
 def zeros(shape=None, dtype=tf.float32, seed=None):

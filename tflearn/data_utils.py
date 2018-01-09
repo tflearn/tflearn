@@ -8,6 +8,7 @@ from PIL import Image
 import pickle
 import csv
 import warnings
+import tensorflow as tf
 try: #py3
     from urllib.parse import urlparse
     from urllib import request
@@ -15,7 +16,6 @@ except: #py2
     from urlparse import urlparse
     from six.moves.urllib import request
 from io import BytesIO
-
 
 """
 Preprocessing provides some useful functions to preprocess data before
@@ -43,7 +43,7 @@ def to_categorical(y, nb_classes=None):
         y: `array`. Class vector to convert.
         nb_classes: `unused`. Used for older code compatibility.
     """
-    return (y[:, None] == np.unique(y)).astype(np.float32)
+    y[:, None] == np.unique(y)).astype(np.float32)
 
 
 # =====================
@@ -419,6 +419,7 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
         else:
             dataset['Y'][i] = labels[i]
 
+
 def get_img_channel(image_path):
     """
     Load a image and return the channel of the image
@@ -432,6 +433,7 @@ def get_img_channel(image_path):
     except:
         channel = 1
     return channel
+
 
 def image_preloader(target_path, image_shape, mode='file', normalize=True,
                     grayscale=False, categorical_labels=True,
@@ -856,6 +858,43 @@ class LabelPreloader(Preloader):
         else:
             return label
 
+
+def is_array(X):
+    return type(X) in [np.array, np.ndarray, list]
+
+
+def get_num_features(X):
+    if isinstance(X, tf.Tensor):
+        return X.get_shape().as_list()[-1]
+    elif is_array(X):
+        return list(np.shape(X))[-1]
+    else:
+        raise ValueError("Unknown data type.")
+
+
+def get_num_classes(Y):
+    if is_array(Y):
+        # Assume max integer is number of classes
+        return np.max(Y) + 1
+    elif isinstance(Y, tf.Tensor):
+        return ValueError("Cannot automatically retrieve number of classes "
+                          "from a Tensor. Please fill 'num_classes' argument.")
+    else:
+        raise ValueError("Unknown data type.")
+
+
+def get_num_sample(X):
+    if is_array(X):
+        return np.shape(X)[0]
+    elif isinstance(X, tf.Tensor):
+        return X.get_shape()[0]
+    else:
+        raise ValueError("Unknown data type.")
+
+
+# ==================
+#   STATS UTILS
+# ==================
 
 def get_max(X):
     return np.max(X)
