@@ -41,9 +41,22 @@ def to_categorical(y, nb_classes=None):
 
     Arguments:
         y: `array`. Class vector to convert.
-        nb_classes: `unused`. Used for older code compatibility.
+        nb_classes: `int`. The total number of classes.
     """
-    return (y[:, None] == np.unique(y)).astype(np.float32)
+    if nb_classes is None:
+        y = np.asarray(y, dtype='int32')
+        if len(y.shape) > 2:
+            print("Warning: data array ndim > 2")
+        if len(y.shape) > 1:
+            y = y.reshape(-1)
+        if not nb_classes:
+            nb_classes = np.max(y) + 1
+        Y = np.zeros((len(y), nb_classes))
+        Y[np.arange(len(y)), y] = 1.
+        return Y
+    else:
+        y = np.array(y)
+        return (y[:, None] == np.unique(y)).astype(np.float32)
 
 
 # =====================

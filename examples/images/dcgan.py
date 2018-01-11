@@ -99,15 +99,15 @@ disc_noise = np.random.uniform(-1., 1., size=[total_samples, z_dim])
 # Prepare target data to feed to the discriminator (0: fake image, 1: real image)
 y_disc_fake = np.zeros(shape=[total_samples])
 y_disc_real = np.ones(shape=[total_samples])
-y_disc_fake = tflearn.data_utils.to_categorical(y_disc_fake)
-y_disc_real = tflearn.data_utils.to_categorical(y_disc_real)
+y_disc_fake = tflearn.data_utils.to_categorical(y_disc_fake, 2)
+y_disc_real = tflearn.data_utils.to_categorical(y_disc_real, 2)
 
 # Prepare input data to feed to the stacked generator/discriminator
 gen_noise = np.random.uniform(-1., 1., size=[total_samples, z_dim])
 # Prepare target data to feed to the discriminator
 # Generator tries to fool the discriminator, thus target is 1 (e.g. real images)
 y_gen = np.ones(shape=[total_samples])
-y_gen = tflearn.data_utils.to_categorical(y_gen)
+y_gen = tflearn.data_utils.to_categorical(y_gen, 2)
 
 # Start training, feed both noise and real images.
 gan.fit(X_inputs={'input_gen_noise': gen_noise,
