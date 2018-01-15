@@ -103,7 +103,7 @@ def binary_crossentropy(y_pred, y_true):
             logits=y_pred, labels=y_true))
 
 
-def weighted_crossentropy(y_pred, y_true, weight):
+def weighted_crossentropy(y_pred, y_true, weight=1.):
     """ Weighted Crossentropy.
 
     Computes weighted sigmoid cross entropy between y_pred (logits) and y_true
