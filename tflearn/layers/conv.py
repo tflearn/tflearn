@@ -9,7 +9,7 @@ import tflearn
 from .. import variables as vs
 from .. import activations
 from .. import initializations
-from .. import losses
+from .. import regularizers
 from .. import utils
 from ..layers.normalization import batch_normalization
 
@@ -81,7 +81,7 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
             filter_size = None
         W_regul = None
         if regularizer is not None:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
@@ -204,7 +204,7 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
             filter_size = None
         W_regul = None
         if regularizer is not None:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size,
                         regularizer=W_regul, initializer=W_init,
                         trainable=trainable, restore=restore)
@@ -358,7 +358,7 @@ def atrous_conv_2d(incoming, nb_filter, filter_size, rate=1, padding='same',
             filter_size = None
         W_regul = None
         if regularizer is not None:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
@@ -493,7 +493,7 @@ def grouped_conv_2d(incoming, channel_multiplier, filter_size, strides=1,
             filter_size = None
         W_regul = None
         if regularizer is not None:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
@@ -951,7 +951,7 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
             filter_size = None
         W_regul = None
         if regularizer is not None:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
@@ -1161,7 +1161,7 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
             filter_size = None
         W_regul = None
         if regularizer is not None:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
@@ -1283,7 +1283,7 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
             filter_size = None
         W_regul = None
         if regularizer is not None:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size,
                         regularizer=W_regul, initializer=W_init,
                         trainable=trainable, restore=restore)
@@ -2033,7 +2033,7 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
             W_init = initializations.get(weights_init)()
         W_regul = None
         if regularizer is not None:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
@@ -2162,7 +2162,7 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
             filter_size = None
         W_regul = None
         if regularizer is not None:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size,
                         regularizer=W_regul, initializer=W_init,
                         trainable=trainable, restore=restore)

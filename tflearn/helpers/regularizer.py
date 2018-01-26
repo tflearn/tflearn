@@ -1,7 +1,7 @@
 from __future__ import division, print_function, absolute_import
 
 import tensorflow as tf
-from .. import losses
+from .. import regularizers
 
 
 """
@@ -30,7 +30,7 @@ def add_weights_regularizer(variable, loss="L2", weight_decay=0.001,
     if not add_to_collection:
         add_to_collection = tf.GraphKeys.REGULARIZATION_LOSSES
     if isinstance(loss, str):
-        regul = losses.get(loss)
+        regul = regularizers.get(loss)
         weights_regularizer = regul(variable, weight_decay)
     elif loss and callable(loss):
         weights_regularizer = loss(variable)

@@ -22,7 +22,7 @@ from .layers import normalization
 from . import metrics
 from . import activations
 from . import distances
-from . import losses
+from . import regularizers
 from . import initializations
 from . import optimizers
 from . import summaries

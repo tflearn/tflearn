@@ -11,7 +11,7 @@ from tflearn import utils
 from tflearn import variables as va
 from tflearn import activations
 from tflearn import initializations
-from tflearn import losses
+from tflearn import regularizers
 
 
 def input_data(shape=None, placeholder=None, dtype=tf.float32,
@@ -154,7 +154,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
             filter_size = None
         W_regul = None
         if regularizer is not None:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = va.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
@@ -503,7 +503,7 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
             W_init = initializations.get(weights_init)()
         W_regul = None
         if regularizer is not None:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = va.variable('W', shape=[n_inputs, n_units], regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
