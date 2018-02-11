@@ -49,7 +49,7 @@ def variable(name, shape=None, dtype=tf.float32, initializer=None,
         shape = None
 
     if isinstance(regularizer, str):
-        regularizer = tflearn.losses.get(regularizer)
+        regularizer = tflearn.regularizers.get(regularizer)
 
     collections = set(collections or [])
     collections |= set([ops.GraphKeys.GLOBAL_VARIABLES,

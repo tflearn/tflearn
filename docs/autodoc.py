@@ -17,7 +17,7 @@ from tflearn import metrics
 from tflearn import objectives
 from tflearn import optimizers
 from tflearn import data_utils
-from tflearn import losses
+from tflearn import regularizers
 from tflearn import summaries
 from tflearn import utils
 from tflearn import variables
@@ -48,7 +48,7 @@ MODULES = [(activations, 'tflearn.activations'),
            (objectives, 'tflearn.objectives'),
            (optimizers, 'tflearn.optimizers'),
            (data_utils, 'tflearn.data_utils'),
-           (losses, 'tflearn.losses'),
+           (regularizers, 'tflearn.regularizers'),
            (summaries, 'tflearn.summaries'),
            (variables, 'tflearn.variables'),
            (utils, 'tflearn.utils'),
