@@ -279,32 +279,29 @@ def contrastive_loss(y_pred, y_true, margin=1.0):
         return tf.reduce_sum(dis1 + dis2) / 2.
 
 
-def ctc_loss(y_pred, y_true, eos_token=0, sequence_length=None):
+def ctc_loss(y_pred, y_true, eos_token=0):
     """ CTC Loss.
+        Computes the ctc loss between y_pred (logits) and
+        y_true (labels).
 
-            Computes the ctc loss between y_pred (logits) and
-            y_true (labels).
+        http://yann.lecun.com/exdb/publis/pdf/chopra-05.pdf
+        Sumit Chopra, Raia Hadsell and Yann LeCun (2005).
+        Learning a Similarity Metric Discriminatively, with Application to Face Verification.
 
-            http://yann.lecun.com/exdb/publis/pdf/chopra-05.pdf
-            Sumit Chopra, Raia Hadsell and Yann LeCun (2005).
-            Learning a Similarity Metric Discriminatively, with Application to Face Verification.
-
-            Arguments:
-                y_pred: `Tensor`. Predicted values.
-                y_true: `Tensor`. Targets (labels).
-                eos_token: . A self-set parameter that indicate the end of a `sentence`.
-                sequence_length: A self-set parameter that indicates the sequence length.
+        Arguments:
+            y_pred: `Tensor`. Predicted values.
+            y_true: `Tensor`. Targets (labels).
+            eos_token: . A self-set parameter that indicate the end of a `sentence`.
     """
-    if sequence_length is None:
-        sequence_length = [320]
     with tf.name_scope("CTCLoss"):
         # TODO: A dense_to_sparse op in tensorflow will be created so this should be replaced once it's released.
         indices = tf.where(tf.not_equal(y_true, tf.constant(eos_token, dtype=y_true.dtype)))
         values = tf.gather_nd(y_true, indices)
         shape = tf.shape(y_true, out_type=tf.int64)
-        sparse_y_true = tf.SparseTensor(
+        y_true = tf.SparseTensor(
             indices,
             values,
             shape
         )
-        return tf.nn.ctc_loss(labels=sparse_y_true, inputs=y_pred, sequence_length=sequence_length)
+        sequence_length = tf.fill(tf.shape(inputs)[0:1], tf.shape(inputs)[1])
+        return tf.nn.ctc_loss(labels=y_true, inputs=y_pred, sequence_length=sequence_length)
