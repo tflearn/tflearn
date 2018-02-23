@@ -62,13 +62,13 @@ def categorical_crossentropy(y_pred, y_true):
     """
     with tf.name_scope("Crossentropy"):
         y_pred /= tf.reduce_sum(y_pred,
-                                reduction_indices=len(y_pred.get_shape())-1,
+                                reduction_indices=len(y_pred.get_shape()) - 1,
                                 keep_dims=True)
-        # manual computation of crossentropy
+        # manual computation of cross entropy
         y_pred = tf.clip_by_value(y_pred, tf.cast(_EPSILON, dtype=_FLOATX),
-                                  tf.cast(1.-_EPSILON, dtype=_FLOATX))
+                                  tf.cast(1. - _EPSILON, dtype=_FLOATX))
         cross_entropy = - tf.reduce_sum(y_true * tf.log(y_pred),
-                               reduction_indices=len(y_pred.get_shape())-1)
+                                        reduction_indices=len(y_pred.get_shape()) - 1)
         return tf.reduce_mean(cross_entropy)
 
 
@@ -193,7 +193,6 @@ def roc_auc_score(y_pred, y_true):
 
     """
     with tf.name_scope("RocAucScore"):
-
         pos = tf.boolean_mask(y_pred, tf.cast(y_true, tf.bool))
         neg = tf.boolean_mask(y_pred, ~tf.cast(y_true, tf.bool))
 
@@ -202,7 +201,7 @@ def roc_auc_score(y_pred, y_true):
 
         # original paper suggests performance is robust to exact parameter choice
         gamma = 0.2
-        p     = 3
+        p = 3
 
         difference = tf.zeros_like(pos * neg) + pos - neg - gamma
 
@@ -247,7 +246,7 @@ def weak_cross_entropy_2d(y_pred, y_true, num_classes=None, epsilon=0.0001,
 
         if head is not None:
             cross_entropy = -tf.reduce_sum(tf.multiply(y_true * tf.log(softmax),
-                                                  head), reduction_indices=[1])
+                                                       head), reduction_indices=[1])
         else:
             cross_entropy = -tf.reduce_sum(y_true * tf.log(softmax),
                                            reduction_indices=[1])
@@ -257,7 +256,8 @@ def weak_cross_entropy_2d(y_pred, y_true, num_classes=None, epsilon=0.0001,
 
     return cross_entropy_mean
 
-def contrastive_loss(y_pred, y_true, margin = 1.0):
+
+def contrastive_loss(y_pred, y_true, margin=1.0):
     """ Contrastive Loss.
     
         Computes the constrative loss between y_pred (logits) and
@@ -276,4 +276,32 @@ def contrastive_loss(y_pred, y_true, margin = 1.0):
     with tf.name_scope("ContrastiveLoss"):
         dis1 = y_true * tf.square(y_pred)
         dis2 = (1 - y_true) * tf.square(tf.maximum((margin - y_pred), 0))
-        return tf.reduce_sum(dis1 +dis2) / 2.
+        return tf.reduce_sum(dis1 + dis2) / 2.
+
+
+def ctc_loss(y_pred, y_true, eos_token=0):
+    """ CTC Loss.
+        Computes the ctc loss between y_pred (logits) and
+        y_true (labels).
+
+        http://yann.lecun.com/exdb/publis/pdf/chopra-05.pdf
+        Sumit Chopra, Raia Hadsell and Yann LeCun (2005).
+        Learning a Similarity Metric Discriminatively, with Application to Face Verification.
+
+        Arguments:
+            y_pred: `Tensor`. Predicted values.
+            y_true: `Tensor`. Targets (labels).
+            eos_token: . A self-set parameter that indicate the end of a `sentence`.
+    """
+    with tf.name_scope("CTCLoss"):
+        # TODO: A dense_to_sparse op in tensorflow will be created so this should be replaced once it's released.
+        indices = tf.where(tf.not_equal(y_true, tf.constant(eos_token, dtype=y_true.dtype)))
+        values = tf.gather_nd(y_true, indices)
+        shape = tf.shape(y_true, out_type=tf.int64)
+        y_true = tf.SparseTensor(
+            indices,
+            values,
+            shape
+        )
+        sequence_length = tf.fill(tf.shape(inputs)[0:1], tf.shape(inputs)[1])
+        return tf.nn.ctc_loss(labels=y_true, inputs=y_pred, sequence_length=sequence_length)
