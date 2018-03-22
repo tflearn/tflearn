@@ -63,7 +63,7 @@ def categorical_crossentropy(y_pred, y_true):
     with tf.name_scope("Crossentropy"):
         y_pred /= tf.reduce_sum(y_pred,
                                 reduction_indices=len(y_pred.get_shape())-1,
-                                keep_dims=True)
+                                keepdims=True)
         # manual computation of crossentropy
         y_pred = tf.clip_by_value(y_pred, tf.cast(_EPSILON, dtype=_FLOATX),
                                   tf.cast(1.-_EPSILON, dtype=_FLOATX))
