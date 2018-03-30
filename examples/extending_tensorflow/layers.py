@@ -39,25 +39,25 @@ with tf.Graph().as_default():
     net = tflearn.fully_connected(net, 10, activation='linear')
 
     # Defining other ops using Tensorflow
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(net, Y))
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(logits=net, labels=Y))
     optimizer = tf.train.AdamOptimizer(learning_rate=0.01).minimize(loss)
 
     # Initializing the variables
-    init = tf.initialize_all_variables()
+    init = tf.global_variables_initializer()
 
     # Launch the graph
     with tf.Session() as sess:
         sess.run(init)
 
         batch_size = 128
-        for epoch in range(2): # 2 epochs
+        for epoch in range(2):  # 2 epochs
             avg_cost = 0.
-            total_batch = int(mnist_data.train.num_examples/batch_size)
+            total_batch = int(mnist_data.train.num_examples / batch_size)
             for i in range(total_batch):
                 batch_xs, batch_ys = mnist_data.train.next_batch(batch_size)
                 sess.run(optimizer, feed_dict={X: batch_xs, Y: batch_ys})
                 cost = sess.run(loss, feed_dict={X: batch_xs, Y: batch_ys})
-                avg_cost += cost/total_batch
+                avg_cost += cost / total_batch
                 if i % 20 == 0:
-                    print("Epoch:", '%03d' % (epoch+1), "Step:", '%03d' % i,
+                    print("Epoch:", '%03d' % (epoch + 1), "Step:", '%03d' % i,
                           "Loss:", str(cost))
