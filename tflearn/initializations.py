@@ -116,7 +116,7 @@ def uniform_scaling(shape=None, factor=1.0, dtype=tf.float32, seed=None):
         return tf.random_ops.random_uniform(shape, -max_val, max_val,
                                             dtype, seed=seed)
     else:
-        return tf.uniform_unit_scaling_initializer(seed=seed, dtype=dtype)
+        return tf.initializers.variance_scaling(distribution=uniform, seed=seed, dtype=dtype)
 
 
 def normal(shape=None, mean=0.0, stddev=0.02, dtype=tf.float32, seed=None):
