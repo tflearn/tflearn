@@ -22,7 +22,7 @@ def merge(tensors_list, mode, axis=1, name="Merge"):
             ```
             'concat': concatenate outputs along specified axis
             'elemwise_sum': outputs element-wise sum
-            'elemwise_mul': outputs element-wise sum
+            'elemwise_mul': outputs element-wise mul
             'sum': outputs element-wise sum along specified axis
             'mean': outputs element-wise average along specified axis
             'prod': outputs element-wise multiplication along specified axis
