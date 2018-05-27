@@ -286,7 +286,7 @@ class Trainer(object):
                                         daug_dict, show_metric,
                                         self.summ_writer, self.coord)
 
-                # Prepare TermLogger for training diplay
+                # Prepare TermLogger for training display
                 metric_term_name = None
                 if train_op.metric is not None:
                     if hasattr(train_op.metric, 'm_name'):
