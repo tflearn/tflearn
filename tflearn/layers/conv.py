@@ -1726,7 +1726,7 @@ def resnext_block(incoming, nb_blocks, out_channels, cardinality,
                   reuse=False, scope=None, name="ResNeXtBlock"):
     """ ResNeXt Block.
 
-    A ResNeXt block as described in ResNeXt paper (Figure 2, c).
+    A ResNeXt block as described in ResNeXt paper (Figure 3.c).
 
     Input:
         4-D Tensor [batch, height, width, in_channels].
