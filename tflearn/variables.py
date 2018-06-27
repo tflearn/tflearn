@@ -4,7 +4,7 @@ from __future__ import division, print_function, absolute_import
 import tensorflow as tf
 import tflearn
 
-from tensorflow.contrib.framework.python.ops import add_arg_scope as contrib_add_arg_scope
+from tflearn.vendor.arg_scope import add_arg_scope as contrib_add_arg_scope
 from tensorflow.python.framework import ops
 from tensorflow.python.ops import variable_scope
 
