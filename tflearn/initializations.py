@@ -2,16 +2,7 @@ from __future__ import division, print_function, absolute_import
 
 import math
 import tensorflow as tf
-try:
-    from tensorflow.contrib.layers.python.layers.initializers import \
-        xavier_initializer
-except Exception:
-    xavier_initializer = None
-try:
-    from tensorflow.contrib.layers.python.layers.initializers import \
-        variance_scaling_initializer
-except Exception:
-    variance_scaling_initializer = None
+
 from .utils import get_from_module
 
 
@@ -203,7 +194,10 @@ def xavier(uniform=True, seed=None, dtype=tf.float32):
         [http://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf]
         (http://jmlr.org/proceedings/papers/v9/glorot10a/glorot10a.pdf)
     """
-    if xavier_initializer is None:
+    try:
+        from tensorflow.contrib.layers.python.layers.initializers import \
+            xavier_initializer
+    except ImportError:
         raise NotImplementedError("'xavier_initializer' not supported, "
                                   "please update TensorFlow.")
     return xavier_initializer(uniform=uniform, seed=seed, dtype=dtype)
@@ -259,7 +253,10 @@ def variance_scaling(factor=2.0, mode='FAN_IN', uniform=False, seed=None,
         ValueError: if `dtype` is not a floating point type.
         TypeError: if `mode` is not in ['FAN_IN', 'FAN_OUT', 'FAN_AVG'].
     """
-    if variance_scaling_initializer is None:
+    try:
+        from tensorflow.contrib.layers.python.layers.initializers import \
+            variance_scaling_initializer
+    except ImportError:
         raise NotImplementedError("'variance_scaling_initializer' not "
                                   "supported, please update TensorFlow.")
     return variance_scaling_initializer(factor=factor, mode=mode,

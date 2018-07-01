@@ -180,15 +180,8 @@ def random_sequence_from_textfile(path, seq_maxlen):
     text = open(path).read()
     return random_sequence_from_string(text, seq_maxlen)
 
-try:
-    from tensorflow.contrib.learn.python.learn.preprocessing.text import \
-        VocabularyProcessor as _VocabularyProcessor
-except Exception:
-    _VocabularyProcessor = object
 
-
-# Mirroring TensorFLow `VocabularyProcessor`
-class VocabularyProcessor(_VocabularyProcessor):
+class VocabularyProcessor(object):
     """ Vocabulary Processor.
 
     Maps documents to sequences of word ids.
@@ -209,10 +202,19 @@ class VocabularyProcessor(_VocabularyProcessor):
                  min_frequency=0,
                  vocabulary=None,
                  tokenizer_fn=None):
-        super(VocabularyProcessor, self).__init__(max_document_length,
-                                                  min_frequency,
-                                                  vocabulary,
-                                                  tokenizer_fn)
+        from tensorflow.contrib.learn.python.learn.preprocessing.text import \
+            VocabularyProcessor as _VocabularyProcessor
+        self.__dict__['_vocabulary_processor'] = _VocabularyProcessor(
+            max_document_length,
+            min_frequency,
+            vocabulary,
+            tokenizer_fn)
+
+    def __getattr__(self, key):
+        return getattr(self._vocabulary_processor, key)
+
+    def __setattr__(self, key, value):
+        setattr(self._vocabulary_processor, key, value)
 
     def fit(self, raw_documents, unused_y=None):
         """ fit.
@@ -226,7 +228,7 @@ class VocabularyProcessor(_VocabularyProcessor):
         Returns:
             self
         """
-        return super(VocabularyProcessor, self).fit(raw_documents, unused_y)
+        return self._vocabulary_processor.fit(raw_documents, unused_y)
 
     def fit_transform(self, raw_documents, unused_y=None):
         """ fit_transform.
@@ -240,7 +242,7 @@ class VocabularyProcessor(_VocabularyProcessor):
         Returns:
             X: iterable, [n_samples, max_document_length] Word-id matrix.
         """
-        return super(VocabularyProcessor, self).fit_transform(raw_documents,
+        return self._vocabulary_processor.fit_transform(raw_documents,
                                                               unused_y)
 
     def transform(self, raw_documents):
@@ -257,7 +259,7 @@ class VocabularyProcessor(_VocabularyProcessor):
         Yields:
             X: iterable, [n_samples, max_document_length] Word-id matrix.
         """
-        return super(VocabularyProcessor, self).transform(raw_documents)
+        return self._vocabulary_processor.transform(raw_documents)
 
     def reverse(self, documents):
         """ reverse.
@@ -270,7 +272,7 @@ class VocabularyProcessor(_VocabularyProcessor):
         Returns:
             Iterator over mapped in words documents.
         """
-        return super(VocabularyProcessor, self).reverse(documents)
+        return self._vocabulary_processor.reverse(documents)
 
     def save(self, filename):
         """ save.
@@ -280,7 +282,7 @@ class VocabularyProcessor(_VocabularyProcessor):
         Arguments:
             filename: Path to output file.
         """
-        super(VocabularyProcessor, self).save(filename)
+        return self._vocabulary_processor.save(filename)
 
     @classmethod
     def restore(cls, filename):
@@ -294,7 +296,7 @@ class VocabularyProcessor(_VocabularyProcessor):
         Returns:
             VocabularyProcessor object.
         """
-        return super(VocabularyProcessor, cls).restore(filename)
+        return self._vocabulary_processor.restore(filename)
 
 
 # ===================
