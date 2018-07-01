@@ -63,7 +63,7 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
@@ -185,7 +185,7 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
 
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  nb_filter,
@@ -341,7 +341,7 @@ def atrous_conv_2d(incoming, nb_filter, filter_size, rate=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
@@ -472,7 +472,7 @@ def grouped_conv_2d(incoming, channel_multiplier, filter_size, strides=1,
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
 
     nb_filter = channel_multiplier * input_shape[-1]
 
@@ -562,7 +562,7 @@ def max_pool_2d(incoming, kernel_size, strides=None, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
 
     kernel = utils.autoformat_kernel_2d(kernel_size)
     strides = utils.autoformat_kernel_2d(strides) if strides else kernel
@@ -607,7 +607,7 @@ def avg_pool_2d(incoming, kernel_size, strides=None, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
 
     kernel = utils.autoformat_kernel_2d(kernel_size)
     strides = utils.autoformat_kernel_2d(strides) if strides else kernel
@@ -647,7 +647,7 @@ def upsample_2d(incoming, kernel_size, name="UpSample2D"):
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
     kernel = utils.autoformat_kernel_2d(kernel_size)
 
     with tf.name_scope(name) as scope:
@@ -711,7 +711,7 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
 
     strides = utils.autoformat_kernel_2d(strides)
     filter_size = utils.autoformat_filter_conv2d(kernel_size,
@@ -812,7 +812,7 @@ def upscore_layer3d(incoming, num_classes, shape=None, kernel_size=4,
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D, not %d-D" % len(input_shape)
 
     strides = utils.autoformat_kernel_3d(strides)
     filter_size = utils.autoformat_filter_conv3d(kernel_size,
@@ -929,7 +929,7 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D"
+    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D, not %d-D" % len(input_shape)
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
@@ -1021,7 +1021,7 @@ def max_pool_1d(incoming, kernel_size, strides=None, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D"
+    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D, not %d-D" % len(input_shape)
 
     kernel = utils.autoformat_kernel_2d(kernel_size)
     kernel = [1, kernel[1], 1, 1]
@@ -1070,7 +1070,7 @@ def avg_pool_1d(incoming, kernel_size, strides=None, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D"
+    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D, not %d-D" % len(input_shape)
 
     kernel = utils.autoformat_kernel_2d(kernel_size)
     kernel = [1, kernel[1], 1, 1]
@@ -1143,7 +1143,7 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D, not %d-D" % len(input_shape)
     filter_size = utils.autoformat_filter_conv3d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
@@ -1264,7 +1264,7 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D, not %d-D" % len(input_shape)
 
     filter_size = utils.autoformat_filter_conv3d(filter_size,
                                                  nb_filter,
@@ -1366,7 +1366,7 @@ def max_pool_3d(incoming, kernel_size, strides=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D, not %d-D" % len(input_shape)
 
     kernel = utils.autoformat_kernel_3d(kernel_size)
     strides = utils.autoformat_stride_3d(strides)
@@ -1413,7 +1413,7 @@ def avg_pool_3d(incoming, kernel_size, strides=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D, not %d-D" % len(input_shape)
 
     kernel = utils.autoformat_kernel_3d(kernel_size)
     strides = utils.autoformat_stride_3d(strides)
@@ -1449,7 +1449,7 @@ def global_max_pool(incoming, name="GlobalMaxPool"):
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
 
     with tf.name_scope(name):
         inference = tf.reduce_max(incoming, [1, 2])
@@ -1475,7 +1475,7 @@ def global_avg_pool(incoming, name="GlobalAvgPool"):
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
 
     with tf.name_scope(name):
         inference = tf.reduce_mean(incoming, [1, 2])
@@ -2016,7 +2016,7 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
@@ -2139,7 +2139,7 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D"
+    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D, not %d-D" % len(input_shape)
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
