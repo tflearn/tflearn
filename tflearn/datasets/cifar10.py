@@ -66,7 +66,6 @@ def load_batch(fpath):
 
 
 def maybe_download(filename, source_url, work_directory):
-    from shutil import move
     if not os.path.exists(work_directory):
         os.mkdir(work_directory)
     filepath = os.path.join(work_directory, filename)
@@ -76,7 +75,6 @@ def maybe_download(filename, source_url, work_directory):
                                                  filepath, reporthook)
         statinfo = os.stat(filepath)
         print(('Succesfully downloaded', filename, statinfo.st_size, 'bytes.'))
-
         untar(filepath,work_directory)
     return filepath
 
