@@ -75,10 +75,11 @@ def maybe_download(filename, source_url, work_directory):
                                                  filepath, reporthook)
         statinfo = os.stat(filepath)
         print(('Succesfully downloaded', filename, statinfo.st_size, 'bytes.'))
-        untar(filepath)
+        untar(filepath,work_directory)
     return filepath
 
-#reporthook from stackoverflow #13881092
+
+# reporthook from stackoverflow #13881092
 def reporthook(blocknum, blocksize, totalsize):
     readsofar = blocknum * blocksize
     if totalsize > 0:
@@ -86,16 +87,24 @@ def reporthook(blocknum, blocksize, totalsize):
         s = "\r%5.1f%% %*d / %d" % (
             percent, len(str(totalsize)), readsofar, totalsize)
         sys.stderr.write(s)
-        if readsofar >= totalsize: # near the end
+        if readsofar >= totalsize:  # near the end
             sys.stderr.write("\n")
-    else: # total size is unknown
+    else:  # total size is unknown
         sys.stderr.write("read %d\n" % (readsofar,))
 
-def untar(fname):
+
+def untar(fname,path=""):
     if (fname.endswith("tar.gz")):
         tar = tarfile.open(fname)
-        tar.extractall(path = '/'.join(fname.split('/')[:-1]))
+        tar.extractall(path=os.path.join(
+            path,
+            '/'.join(fname.split('/')[:-1])
+        ))
         tar.close()
-        print("File Extracted in Current Directory")
+        if path is "":
+            print("File Extracted in Current Directory")
+        else:
+            print("File Extracted in to ".join(path))
     else:
         print("Not a tar.gz file: '%s '" % sys.argv[0])
+
