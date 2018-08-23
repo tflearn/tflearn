@@ -306,7 +306,7 @@ class VocabularyProcessor(object):
 def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
                              mode='file', categorical_labels=True,
                              normalize=True, grayscale=False,
-                             files_extension=None, chunks=False):
+                             files_extension=None, chunks=False, image_base_path='', float_labels=False):
     """ Build HDF5 Image Dataset.
 
     Build an HDF5 dataset by providing either a root folder or a plain text
@@ -377,6 +377,8 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
         chunks: `bool` Whether to chunks the dataset or not. You should use
             chunking only when you really need it. See HDF5 documentation.
             If chunks is 'True' a sensitive default will be computed.
+        image_base_path: `str`. Base path for the images listed in the file mode.
+        float_labels: `bool`. Read float labels instead of integers in file mode.
 
     """
     import h5py
@@ -394,8 +396,12 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
             images, labels = [], []
             for l in f.readlines():
                 l = l.strip('\n').split()
+                l[0] = image_base_path + l[0]
                 images.append(l[0])
-                labels.append(int(l[1]))
+                if float_labels:
+                    labels.append(float(l[1]))
+                else:
+                    labels.append(int(l[1]))
 
     n_classes = np.max(labels) + 1
 
@@ -450,7 +456,7 @@ def get_img_channel(image_path):
 
 def image_preloader(target_path, image_shape, mode='file', normalize=True,
                     grayscale=False, categorical_labels=True,
-                    files_extension=None, filter_channel=False):
+                    files_extension=None, filter_channel=False, image_base_path='', float_labels=False):
     """ Image PreLoader.
 
     Create a python array (`Preloader`) that loads images on the fly (from
@@ -519,6 +525,8 @@ def image_preloader(target_path, image_shape, mode='file', normalize=True,
             all files are allowed.
         filter_channel: `bool`. If true, images which the channel is not 3 should
             be filter.
+        image_base_path: `str`. Base path for the images listed in the file mode.
+        float_labels: `bool`. Read float labels instead of integers in file mode.
 
     Returns:
         (X, Y): with X the images array and Y the labels array.
@@ -533,12 +541,16 @@ def image_preloader(target_path, image_shape, mode='file', normalize=True,
             images, labels = [], []
             for l in f.readlines():
                 l = l.strip('\n').split()
+                l[0] = image_base_path + l[0]
                 if not files_extension or any(flag in l[0] for flag in files_extension):
                     if filter_channel:
                         if get_img_channel(l[0]) != 3:
                             continue
                     images.append(l[0])
-                    labels.append(int(l[1]))
+                    if float_labels:
+                        labels.append(float(l[1]))
+                    else:
+                        labels.append(int(l[1]))
 
     n_classes = np.max(labels) + 1
     X = ImagePreloader(images, image_shape, normalize, grayscale)
