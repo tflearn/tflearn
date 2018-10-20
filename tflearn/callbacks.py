@@ -204,9 +204,9 @@ class TermLogger(Callback):
                 print_acc = " - " + data['metric_name'] + ": " + \
                             "%.4f" % data['acc']
             if data['val_loss'] is not None:
-                print_val_loss = " | val_"+data['metric_name']+": " + "%.5f" % data['val_loss']
+                print_val_loss = " | val_loss: " + "%.5f" % data['val_loss']
             if data['val_acc'] is not None:
-                print_val_acc = " - val_acc: " + "%.4f" % data['val_acc']
+                print_val_acc = " - val_" + data['metric_name'] + ": " + "%.4f" % data['val_acc']
             # fix diplay, if step reached the whole epoch, display epoch - 1, as epoch has been updated
             print_epoch = data['epoch']
             # Smoothing display, so we show display at step + 1 to show data_size/data_size at end
