@@ -302,3 +302,22 @@ def selu(x):
 
     """
     return tf.nn.selu(x)
+
+
+def hard_sigmoid(x):
+    """Hard sigmoid activation function.
+    
+    Segment-wise linear approximation of sigmoid. Faster than sigmoid
+    
+    Arguments
+      x: Input tensor.
+      
+    Returns
+      Hard sigmoid activation:
+      
+      - `0` if `x < -2.5`
+      - `1` if `x > 2.5`
+      - `0.2 * x + 0.5` if `-2.5 <= x <= 2.5`.
+    
+    """
+    return tf.keras.backend.hard_sigmoid(x)
