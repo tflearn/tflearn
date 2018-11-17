@@ -362,9 +362,9 @@ def r2_op(predictions, targets):
 
     """
     with tf.name_scope('StandardError'):
-        a = tf.reduce_sum(tf.square(predictions))
-        b = tf.reduce_sum(tf.square(targets))
-        return tf.divide(a, b)
+        a = tf.reduce_sum(tf.square(tf.subtract(targets, predictions)))
+        b = tf.reduce_sum(tf.square(tf.subtract(targets, tf.reduce_mean(targets))))
+        return tf.subtract(1.0, tf.divide(a, b))
 
 
 def weighted_r2_op(predictions, targets, inputs):
