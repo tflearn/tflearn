@@ -306,4 +306,4 @@ class ModelSaver(Callback):
     def save_best(self, val_accuracy):
         if self.best_snapshot_path:
             snapshot_path = self.best_snapshot_path + str(val_accuracy)
-            self.save_func(snapshot_path)
+            self.save_func(snapshot_path, use_val_saver=True)
