@@ -35,7 +35,7 @@ setup(name='tflearn',
       url='https://github.com/tflearn/tflearn',
       download_url='https://github.com/tflearn/tflearn/tarball/0.3.2',
       license='MIT',
-      packages=find_packages(),
+      packages=find_packages(exclude=['tests*']),
       install_requires=[
           'numpy',
           'six',
