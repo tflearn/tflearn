@@ -52,8 +52,7 @@ def variable(name, shape=None, dtype=tf.float32, initializer=None,
         regularizer = tflearn.regularizers.get(regularizer)
 
     collections = set(collections or [])
-    collections |= set([ops.GraphKeys.GLOBAL_VARIABLES,
-                        ops.GraphKeys.MODEL_VARIABLES])
+    collections |= {ops.GraphKeys.GLOBAL_VARIABLES, ops.GraphKeys.MODEL_VARIABLES}
 
     with ops.device(device or ''):
         var = variable_scope.get_variable(name, shape=shape, dtype=dtype,
@@ -110,6 +109,7 @@ def get_layer_variables_by_name(name):
 
     """
     return tf.get_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name)
+
 
 # Shortcut
 get_layer_variables = get_layer_variables_by_name
