@@ -340,3 +340,21 @@ def gelu(x):
     """
     
     return 0.5 * x * (1 + tf.tanh(tf.sqrt(2 / np.pi) * (x + 0.044715 * tf.pow(x, 3))))
+
+
+def mish(x):
+    """Mish Activation Function
+    
+    Mish is self regularized and non-monotonous
+    
+    Arguments
+      x: Input tensor.
+    
+    References:
+      Mish: A Self Regularized Non-Monotonic Neural Activation Function, Misra.D et. al, 2019.
+      
+    Links: 
+        [https://arxiv.org/ftp/arxiv/papers/1908/1908.08681.pdf](https://arxiv.org/ftp/arxiv/papers/1908/1908.08681.pdf)
+    """
+    
+    return x * tf.math.tanh(tf.math.softplus(x))
