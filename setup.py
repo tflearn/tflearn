@@ -5,9 +5,6 @@ from setuptools.command.test import test as TestCommand
 
 # explicitly config
 test_args = [
-    '--cov-report=term',
-    '--cov-report=html',
-    '--cov=tflearn',
     'tests'
 ]
 
@@ -27,13 +24,13 @@ class PyTest(TestCommand):
 
 
 setup(name='tflearn',
-      version='0.4.0',
+      version='0.5.0',
       description='Deep Learning Library featuring a higher-level API for '
                   'TensorFlow',
       author='TFLearn contributors',
       author_email='aymeric.damien@gmail.com',
       url='https://github.com/tflearn/tflearn',
-      download_url='https://github.com/tflearn/tflearn/tarball/0.4.0',
+      download_url='https://github.com/tflearn/tflearn/tarball/0.5.0',
       license='MIT',
       packages=find_packages(exclude=['tests*']),
       install_requires=[
