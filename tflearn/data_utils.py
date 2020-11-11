@@ -8,7 +8,7 @@ from PIL import Image
 import pickle
 import csv
 import warnings
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 try: #py3
     from urllib.parse import urlparse
     from urllib import request

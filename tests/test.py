@@ -2,7 +2,7 @@
     This file contains test cases for tflearn
 '''
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import tflearn
 import unittest
 

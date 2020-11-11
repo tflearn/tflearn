@@ -6,7 +6,7 @@ import math
 import numpy as np
 import time
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from tensorflow.contrib.tensor_forest.python import tensor_forest
 from tensorflow.contrib.tensor_forest.python.ops import data_ops
 from tensorflow.python.ops import state_ops, array_ops, math_ops

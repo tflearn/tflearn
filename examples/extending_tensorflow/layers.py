@@ -4,7 +4,7 @@ TFLearn trainer with regular Tensorflow graph.
 """
 from __future__ import print_function
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import tflearn
 
 # --------------------------------------

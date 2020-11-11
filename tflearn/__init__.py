@@ -1,5 +1,9 @@
 from __future__ import absolute_import
 
+# Disable TF eager mode
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+
 # Config
 from . import config
 from .config import is_training, get_training_mode, init_graph

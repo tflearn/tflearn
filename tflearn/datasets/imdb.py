@@ -9,7 +9,7 @@ import gzip
 import os
 
 import numpy
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 def prepare_data(seqs, labels, maxlen=None):
     """Create the matrices from the datasets.

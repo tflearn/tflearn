@@ -10,7 +10,7 @@ except Exception:
     # Python 3
     import queue
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from . import utils
 
 

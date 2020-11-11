@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import tflearn
 
 from tflearn.vendor.arg_scope import add_arg_scope as contrib_add_arg_scope
-from tensorflow.python.framework import ops
-from tensorflow.python.ops import variable_scope
 
 
 @contrib_add_arg_scope
@@ -52,17 +50,21 @@ def variable(name, shape=None, dtype=tf.float32, initializer=None,
         regularizer = tflearn.regularizers.get(regularizer)
 
     collections = set(collections or [])
-    collections |= set([ops.GraphKeys.GLOBAL_VARIABLES,
-                        ops.GraphKeys.MODEL_VARIABLES])
+    collections |= set([tf.GraphKeys.GLOBAL_VARIABLES,
+                        tf.GraphKeys.MODEL_VARIABLES])
 
-    with ops.device(device or ''):
-        var = variable_scope.get_variable(name, shape=shape, dtype=dtype,
-                                           initializer=initializer,
-                                           regularizer=regularizer,
-                                           trainable=trainable,
-                                           collections=collections,
-                                           caching_device=caching_device,
-                                           validate_shape=validate_shape)
+    with tf.device(device or ''):
+        var = tf.get_variable(name, shape=shape, dtype=dtype,
+                              initializer=initializer,
+                              regularizer=None,
+                              trainable=trainable,
+                              collections=collections,
+                              caching_device=caching_device,
+                              validate_shape=validate_shape)
+
+        if regularizer is not None:
+            regul_t = regularizer(var)
+            tf.add_to_collection(tf.GraphKeys.REGULARIZATION_LOSSES, regul_t)
 
     if not restore:
         tf.add_to_collection(tf.GraphKeys.EXCL_RESTORE_VARS, var)

@@ -11,7 +11,7 @@ except Exception as e:
     print("hdf5 is not supported on this machine (please install/reinstall h5py for optimal experience)")
     H5PY_SUPPORTED = False
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from tensorflow.python import pywrap_tensorflow
 
 import tflearn.variables as vs

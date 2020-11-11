@@ -2,7 +2,7 @@ from __future__ import division, print_function, absolute_import
 
 import sys
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 from ..helpers.trainer import Trainer, evaluate as eval
 from ..helpers.evaluator import Evaluator
