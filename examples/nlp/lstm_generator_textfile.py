@@ -32,7 +32,7 @@ if args['temp'] and args['temp'][0] is not None:
     else:
         print("Will display multiple temperature outputs")
 
-if args['length'] is not 25: 
+if args['length'] != 25: 
     maxlen = args['length'][0] # default 25 is set in .add_argument above if not set by user
     print("Sequence max length set to ", maxlen)
 else:

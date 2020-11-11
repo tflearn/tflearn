@@ -221,10 +221,10 @@ def get_tensor_with_parent_name(tensor):
 
 def format_scope_name(scope_name, prefix, suffix):
     """ Add a predix and a suffix to a scope name. """
-    if prefix is not "":
+    if prefix != "":
         if not prefix[-1] == "/":
             prefix += "/"
-    if suffix is not "":
+    if suffix != "":
         if not suffix[0] == "/":
             suffix = "/" + suffix
     return prefix + scope_name + suffix

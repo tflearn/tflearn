@@ -101,7 +101,7 @@ def untar(fname,path=""):
             '/'.join(fname.split('/')[:-1])
         ))
         tar.close()
-        if path is "":
+        if path == "":
             print("File Extracted in Current Directory")
         else:
             print("File Extracted in to ".join(path))
