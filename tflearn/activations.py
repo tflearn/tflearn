@@ -340,3 +340,21 @@ def gelu(x):
     """
     
     return 0.5 * x * (1 + tf.tanh(tf.sqrt(2 / np.pi) * (x + 0.044715 * tf.pow(x, 3))))
+
+
+def swish(x):
+    """ Swish.
+    
+    Swish is smooth and non-monotonic
+    
+    Argumemts
+      x: A Tensor with type `float`, `double`, `int32`, `complex64`, `int64`,
+         or `qint32`.
+    
+    References:
+      Swish: A self-gated activation funtion 
+    
+    Links:
+        [https://arxiv.org/pdf/1710.05941v1.pdf]
+    """
+    return x * tf.nn.sigmoid(x)
