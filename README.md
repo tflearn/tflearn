@@ -18,7 +18,7 @@ TFLearn features include:
 
 The high-level API currently supports most of recent deep learning models, such as Convolutions, LSTM, BiRNN, BatchNorm, PReLU, Residual networks, Generative networks... In the future, TFLearn is also intended to stay up-to-date with latest deep learning techniques.
 
-Note: Latest TFLearn (v0.4) is only compatible with TensorFlow v2.0 and over.
+Note: Latest TFLearn (v0.5) is only compatible with TensorFlow v2.0 and over.
 
 ## Overview
 ```python

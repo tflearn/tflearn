@@ -1,11 +1,20 @@
-# Release 0.4.0
+# Release 0.5.0
 
 Major changes:
 - TensorFlow 2.3.0 support
 - Refactoring source to use tf.compat.v1
-- Update documentation
 
 Minor changes:
+- Update documentation
+- Various bug fix
+
+# Release 0.4.0
+
+Major changes:
+- Added new estimators (RandomForest, KMeans)
+
+Minor changes:
+- Added distance ops
 - Various bug fix
 
 # Release 0.3.2
