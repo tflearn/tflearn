@@ -1,7 +1,7 @@
 from __future__ import division, print_function, absolute_import
 
 from .utils import get_from_module
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 
 def get(identifier):

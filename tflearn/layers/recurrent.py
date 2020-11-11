@@ -3,7 +3,7 @@ from __future__ import division, print_function, absolute_import
 
 import logging
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from tensorflow.python.ops import array_ops
 try:
     from tensorflow.python.ops.rnn import rnn_cell_impl as _rnn_cell, dynamic_rnn as _drnn, static_rnn as _rnn, static_bidirectional_rnn as _brnn

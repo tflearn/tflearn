@@ -4,7 +4,7 @@ from __future__ import division, print_function, absolute_import
 import re
 import os
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from tensorflow.python.training import optimizer as tf_optimizer
 
 import tflearn

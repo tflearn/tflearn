@@ -5,7 +5,7 @@ This tutorial will introduce how to combine TFLearn built-in ops with any
 Tensorflow graph.
 """
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import tflearn
 
 # ----------------------------------

@@ -2,7 +2,7 @@
 
 from __future__ import division, print_function, absolute_import
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 from .utils import get_from_module
 

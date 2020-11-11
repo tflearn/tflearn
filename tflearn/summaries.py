@@ -1,6 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from tensorflow.core.framework import summary_pb2
 
 from .utils import format_scope_name
@@ -221,8 +221,8 @@ def add_loss_summaries(total_loss, loss, regul_losses_collection_key,
         loss_averages_op: op for generating moving averages of losses.
     """
     # Compute the moving average of all individual losses and the total loss.
-    loss_averages = tf.train.ExponentialMovingAverage(exp_moving_avg,
-                                                      ema_num_updates,
+    loss_averages = tf.train.ExponentialMovingAverage(decay=exp_moving_avg,
+                                                      num_updates=ema_num_updates,
                                                       name='moving_avg')
     other_losses = tf.get_collection(regul_losses_collection_key)
 

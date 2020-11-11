@@ -3,7 +3,7 @@ This tutorial will introduce how to combine TFLearn and Tensorflow, using
 TFLearn wrappers regular Tensorflow expressions.
 """
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import tflearn
 
 # ----------------------------

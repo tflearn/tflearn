@@ -7,7 +7,7 @@ are directly defined at the layer definition level and applied to inner
 variables.
 """
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import tflearn
 import tflearn.variables as va
 

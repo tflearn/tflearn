@@ -31,7 +31,7 @@ from skimage.color import rgb2gray
 from collections import deque
 
 import gym
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import tflearn
 
 # Fix for TF 0.12

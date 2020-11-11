@@ -1,3 +1,13 @@
+# Release 0.4.0
+
+Major changes:
+- TensorFlow 2.3.0 support
+- Refactoring source to use tf.compat.v1
+- Update documentation
+
+Minor changes:
+- Various bug fix
+
 # Release 0.3.2
 
 Major changes:
