@@ -72,7 +72,7 @@ or, with GPU-support:
 pip install tensorflow-gpu
 ```
 
-For more details see *[TensorFlow installation instructions](https://github.com/tensorflow/tensorflow/blob/master/tensorflow/g3doc/get_started/os_setup.md)*
+For more details see *[TensorFlow installation instructions](https://www.tensorflow.org/install)*
 
 **TFLearn Installation**
 
