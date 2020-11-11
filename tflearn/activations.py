@@ -291,7 +291,7 @@ def selu(x):
 
     Scaled Exponential Linear Unit.
 
-    Arguments
+    Arguments:
         x : A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
             `int16`, or `int8`
 
@@ -310,10 +310,10 @@ def hard_sigmoid(x):
     
     Segment-wise linear approximation of sigmoid. Faster than sigmoid
     
-    Arguments
+    Arguments:
       x: Input tensor.
       
-    Returns
+    Returns:
       Hard sigmoid activation:
       
       - `0` if `x < -2.5`
@@ -329,7 +329,7 @@ def gelu(x):
     
     GLUEs are nonconvex, nonmonotonic.
     
-    Arguments
+    Arguments:
       x: Input tensor.
     
     References:
@@ -345,9 +345,9 @@ def gelu(x):
 def swish(x):
     """ Swish.
     
-    Swish is smooth and non-monotonic
+    Swish is smooth and non-monotonic.
     
-    Argumemts
+    Argumemts:
       x: A Tensor with type `float`, `double`, `int32`, `complex64`, `int64`,
          or `qint32`.
     
@@ -358,3 +358,22 @@ def swish(x):
         [https://arxiv.org/pdf/1710.05941v1.pdf]
     """
     return x * tf.nn.sigmoid(x)
+
+
+def mish(x):
+    """Mish.
+    
+    Mish is self regularized and non-monotonous.
+    
+    Arguments:
+      x: Input tensor.
+    
+    References:
+      Mish: A Self Regularized Non-Monotonic Neural Activation Function, Misra.D et. al, 2019.
+      
+    Links: 
+        [https://arxiv.org/ftp/arxiv/papers/1908/1908.08681.pdf](https://arxiv.org/ftp/arxiv/papers/1908/1908.08681.pdf)
+    """
+    
+    return x * tf.math.tanh(tf.math.softplus(x))
+
