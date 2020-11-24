@@ -277,3 +277,28 @@ def contrastive_loss(y_pred, y_true, margin = 1.0):
         dis1 = y_true * tf.square(y_pred)
         dis2 = (1 - y_true) * tf.square(tf.maximum((margin - y_pred), 0))
         return tf.reduce_sum(dis1 +dis2) / 2.
+
+    
+  def triplet_loss(anchor, positive, negative, margin=1.0):
+    """ Triplet Loss.
+    
+        Computes the triplet loss between y_pred (logits) amd
+        y_true (labels).
+        
+        http://www.bmva.org/bmvc/2016/papers/paper119/paper119.pdf
+        V. Balntas, E. Riba et al.
+        Learning shallow convolutional feature descriptors with triplet losses
+
+        
+        Arguments:
+            anchor: `Tensor`. 
+            positive: `Tensor`. Same class as anchor
+            negative: `Tensor`. Different class from anchor
+            margin: . A self-set parameters that indicate the distance between the expected different identity features 
+     """
+    
+        with tf.name_scope("TripletLoss"):
+            dist1_postive = tf.math.reduce_sum(tf.math.pow((anchor - positive), 2))
+            dist2_negative = tf.math.reduce_sum(tf.math.pow((anchor - negative), 2))
+            loss = tf.nn.relu(dist1_positive - dist2_negative + margin)
+            return loss
