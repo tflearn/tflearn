@@ -257,6 +257,7 @@ def weak_cross_entropy_2d(y_pred, y_true, num_classes=None, epsilon=0.0001,
 
     return cross_entropy_mean
 
+
 def contrastive_loss(y_pred, y_true, margin = 1.0):
     """ Contrastive Loss.
     
@@ -272,14 +273,13 @@ def contrastive_loss(y_pred, y_true, margin = 1.0):
             y_true: `Tensor`. Targets (labels).
             margin: . A self-set parameters that indicate the distance between the expected different identity features. Defaults 1.
     """
-
     with tf.name_scope("ContrastiveLoss"):
         dis1 = y_true * tf.square(y_pred)
         dis2 = (1 - y_true) * tf.square(tf.maximum((margin - y_pred), 0))
         return tf.reduce_sum(dis1 +dis2) / 2.
 
     
-  def triplet_loss(anchor, positive, negative, margin=1.0):
+def triplet_loss(anchor, positive, negative, margin=1.0):
     """ Triplet Loss.
     
         Computes the triplet loss between y_pred (logits) amd
@@ -295,10 +295,9 @@ def contrastive_loss(y_pred, y_true, margin = 1.0):
             positive: `Tensor`. Same class as anchor
             negative: `Tensor`. Different class from anchor
             margin: . A self-set parameters that indicate the distance between the expected different identity features 
-     """
-    
-        with tf.name_scope("TripletLoss"):
-            dist1_postive = tf.math.reduce_sum(tf.math.pow((anchor - positive), 2))
-            dist2_negative = tf.math.reduce_sum(tf.math.pow((anchor - negative), 2))
-            loss = tf.nn.relu(dist1_positive - dist2_negative + margin)
-            return loss
+    """
+    with tf.name_scope("TripletLoss"):
+        dist1_postive = tf.math.reduce_sum(tf.math.pow((anchor - positive), 2))
+        dist2_negative = tf.math.reduce_sum(tf.math.pow((anchor - negative), 2))
+        loss = tf.nn.relu(dist1_postive - dist2_negative + margin)
+        return loss

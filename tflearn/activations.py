@@ -306,7 +306,7 @@ def selu(x):
 
 
 def hard_sigmoid(x):
-    """Hard sigmoid activation function.
+    """ Hard Sigmoid.
     
     Segment-wise linear approximation of sigmoid. Faster than sigmoid
     
@@ -325,9 +325,9 @@ def hard_sigmoid(x):
 
 
 def gelu(x):
-    """Gaussian Error Linear Units (GELUs)
+    """ GELU.
     
-    GLUEs are nonconvex, nonmonotonic.
+    Gaussian Error Linear Units. GLUEs are nonconvex, nonmonotonic.
     
     Arguments:
       x: Input tensor.
@@ -361,7 +361,7 @@ def swish(x):
 
 
 def mish(x):
-    """Mish.
+    """ Mish.
     
     Mish is self regularized and non-monotonous.
     
@@ -376,4 +376,3 @@ def mish(x):
     """
     
     return x * tf.math.tanh(tf.math.softplus(x))
-
