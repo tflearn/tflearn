@@ -26,8 +26,8 @@ n = 5
 # Data loading
 from tflearn.datasets import cifar10
 (X, Y), (testX, testY) = cifar10.load_data()
-Y = tflearn.data_utils.to_categorical(Y, 10)
-testY = tflearn.data_utils.to_categorical(testY, 10)
+Y = tflearn.data_utils.to_categorical(Y)
+testY = tflearn.data_utils.to_categorical(testY)
 
 # Real-time data preprocessing
 img_prep = tflearn.ImagePreprocessing()

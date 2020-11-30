@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
+import numpy as np
 import tflearn
 from . import initializations
 from . import variables as va
@@ -290,7 +291,7 @@ def selu(x):
 
     Scaled Exponential Linear Unit.
 
-    Arguments
+    Arguments:
         x : A `Tensor` with type `float`, `double`, `int32`, `int64`, `uint8`,
             `int16`, or `int8`
 
@@ -301,6 +302,77 @@ def selu(x):
         [https://arxiv.org/abs/1706.02515](https://arxiv.org/abs/1706.02515)
 
     """
-    alpha = 1.6732632423543772848170429916717
-    scale = 1.0507009873554804934193349852946
-    return scale * tf.nn.elu(x, alpha)
+    return tf.nn.selu(x)
+
+
+def hard_sigmoid(x):
+    """ Hard Sigmoid.
+    
+    Segment-wise linear approximation of sigmoid. Faster than sigmoid
+    
+    Arguments:
+      x: Input tensor.
+      
+    Returns:
+      Hard sigmoid activation:
+      
+      - `0` if `x < -2.5`
+      - `1` if `x > 2.5`
+      - `0.2 * x + 0.5` if `-2.5 <= x <= 2.5`.
+    
+    """
+    return tf.keras.backend.hard_sigmoid(x)
+
+
+def gelu(x):
+    """ GELU.
+    
+    Gaussian Error Linear Units. GLUEs are nonconvex, nonmonotonic.
+    
+    Arguments:
+      x: Input tensor.
+    
+    References:
+      Gaussian Error Linear Units (GELUs), Hendrycks et. al, 2018.
+      
+    Links: 
+        [https://arxiv.org/pdf/1606.08415.pdf](https://arxiv.org/pdf/1606.08415.pdf)
+    """
+    
+    return 0.5 * x * (1 + tf.tanh(tf.sqrt(2 / np.pi) * (x + 0.044715 * tf.pow(x, 3))))
+
+
+def swish(x):
+    """ Swish.
+    
+    Swish is smooth and non-monotonic.
+    
+    Argumemts:
+      x: A Tensor with type `float`, `double`, `int32`, `complex64`, `int64`,
+         or `qint32`.
+    
+    References:
+      Swish: A self-gated activation funtion 
+    
+    Links:
+        [https://arxiv.org/pdf/1710.05941v1.pdf]
+    """
+    return x * tf.nn.sigmoid(x)
+
+
+def mish(x):
+    """ Mish.
+    
+    Mish is self regularized and non-monotonous.
+    
+    Arguments:
+      x: Input tensor.
+    
+    References:
+      Mish: A Self Regularized Non-Monotonic Neural Activation Function, Misra.D et. al, 2019.
+      
+    Links: 
+        [https://arxiv.org/ftp/arxiv/papers/1908/1908.08681.pdf](https://arxiv.org/ftp/arxiv/papers/1908/1908.08681.pdf)
+    """
+    
+    return x * tf.math.tanh(tf.math.softplus(x))

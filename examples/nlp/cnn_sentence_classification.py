@@ -18,7 +18,7 @@ Links:
 """
 from __future__ import division, print_function, absolute_import
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import tflearn
 from tflearn.layers.core import input_data, dropout, fully_connected
 from tflearn.layers.conv import conv_1d, global_max_pool
@@ -38,8 +38,8 @@ testX, testY = test
 trainX = pad_sequences(trainX, maxlen=100, value=0.)
 testX = pad_sequences(testX, maxlen=100, value=0.)
 # Converting labels to binary vectors
-trainY = to_categorical(trainY, nb_classes=2)
-testY = to_categorical(testY, nb_classes=2)
+trainY = to_categorical(trainY)
+testY = to_categorical(testY)
 
 # Building convolutional network
 network = input_data(shape=[None, 100], name='input')

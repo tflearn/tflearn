@@ -3,7 +3,7 @@ from __future__ import division, print_function, absolute_import
 
 import numpy as np
 import pickle
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 _EPSILON = 1e-8
 

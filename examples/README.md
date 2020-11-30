@@ -24,12 +24,14 @@
 - [Alexnet](https://github.com/tflearn/tflearn/blob/master/examples/images/alexnet.py). Apply Alexnet to Oxford Flowers 17 classification task.
 - [VGGNet](https://github.com/tflearn/tflearn/blob/master/examples/images/vgg_network.py). Apply VGG Network to Oxford Flowers 17 classification task.
 - [VGGNet Finetuning (Fast Training)](https://github.com/tflearn/tflearn/blob/master/examples/images/vgg_network_finetuning.py). Use a pre-trained VGG Network and retrain it on your own data, for fast training.
+- [VGG19](https://github.com/AhmetHamzaEmra/tflearn/blob/master/examples/images/VGG19.py). Apply VGG19 Network to ImageNet classification task.
 - [RNN Pixels](https://github.com/tflearn/tflearn/blob/master/examples/images/rnn_pixels.py). Use RNN (over sequence of pixels) to classify images.
 - [Highway Network](https://github.com/tflearn/tflearn/blob/master/examples/images/highway_dnn.py). Highway Network implementation for classifying MNIST dataset.
 - [Highway Convolutional Network](https://github.com/tflearn/tflearn/blob/master/examples/images/convnet_highway_mnist.py). Highway Convolutional Network implementation for classifying MNIST dataset.
 - [Residual Network (MNIST)](https://github.com/tflearn/tflearn/blob/master/examples/images/residual_network_mnist.py). A bottleneck residual network applied to MNIST classification task.
 - [Residual Network (CIFAR-10)](https://github.com/tflearn/tflearn/blob/master/examples/images/residual_network_cifar10.py). A residual network applied to CIFAR-10 classification task.
-- [ResNeXt (CIFAR-10)](https://github.com/tflearn/tflearn/blob/master/examples/images/resnext_cifar10.py). Aggregated residual transformations network (ResNeXt) applied to CIFAR-10 classification task.
+- [ResNeXt](https://github.com/tflearn/tflearn/blob/master/examples/images/resnext_cifar10.py). Aggregated residual transformations network (ResNeXt) applied to CIFAR-10 classification task.
+- [DenseNet](https://github.com/tflearn/tflearn/blob/master/examples/images/densenet.py). A densely connected convolutional network applied to CIFAR-10 classification task.
 - [Google Inception (v3)](https://github.com/tflearn/tflearn/blob/master/examples/images/googlenet.py). Google's Inception v3 network applied to Oxford Flowers 17 classification task.
 ### Unsupervised
 - [Auto Encoder](https://github.com/tflearn/tflearn/blob/master/examples/images/autoencoder.py). An auto encoder applied to MNIST handwritten digits.

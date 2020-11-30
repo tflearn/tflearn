@@ -24,8 +24,8 @@ from tflearn.layers.estimator import regression
 from tflearn.datasets import cifar10
 (X, Y), (X_test, Y_test) = cifar10.load_data()
 X, Y = shuffle(X, Y)
-Y = to_categorical(Y, 10)
-Y_test = to_categorical(Y_test, 10)
+Y = to_categorical(Y)
+Y_test = to_categorical(Y_test)
 
 # Building 'Network In Network'
 network = input_data(shape=[None, 32, 32, 3])

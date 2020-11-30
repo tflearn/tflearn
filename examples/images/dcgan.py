@@ -17,7 +17,7 @@ from __future__ import division, print_function, absolute_import
 
 import matplotlib.pyplot as plt
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import tflearn
 
 # Data loading and preprocessing

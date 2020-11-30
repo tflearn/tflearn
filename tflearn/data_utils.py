@@ -7,6 +7,15 @@ import numpy as np
 from PIL import Image
 import pickle
 import csv
+import warnings
+import tensorflow.compat.v1 as tf
+try: #py3
+    from urllib.parse import urlparse
+    from urllib import request
+except: #py2
+    from urlparse import urlparse
+    from six.moves.urllib import request
+from io import BytesIO
 
 """
 Preprocessing provides some useful functions to preprocess data before
@@ -24,7 +33,7 @@ _EPSILON = 1e-8
 # =======================
 
 
-def to_categorical(y, nb_classes):
+def to_categorical(y, nb_classes=None):
     """ to_categorical.
 
     Convert class vector (integers from 0 to nb_classes)
@@ -32,15 +41,20 @@ def to_categorical(y, nb_classes):
 
     Arguments:
         y: `array`. Class vector to convert.
-        nb_classes: `int`. Total number of classes.
-
+        nb_classes: `int`. The total number of classes.
     """
-    y = np.asarray(y, dtype='int32')
-    if not nb_classes:
-        nb_classes = np.max(y)+1
-    Y = np.zeros((len(y), nb_classes))
-    Y[np.arange(len(y)),y] = 1.
-    return Y
+    if nb_classes:
+        y = np.asarray(y, dtype='int32')
+        if len(y.shape) > 2:
+            print("Warning: data array ndim > 2")
+        if len(y.shape) > 1:
+            y = y.reshape(-1)
+        Y = np.zeros((len(y), nb_classes))
+        Y[np.arange(len(y)), y] = 1.
+        return Y
+    else:
+        y = np.array(y)
+        return (y[:, None] == np.unique(y)).astype(np.float32)
 
 
 # =====================
@@ -86,7 +100,7 @@ def pad_sequences(sequences, maxlen=None, dtype='int32', padding='post',
         elif truncating == 'post':
             trunc = s[:maxlen]
         else:
-            raise ValueError("Truncating type '%s' not understood" % padding)
+            raise ValueError("Truncating type '%s' not understood" % truncating)
 
         if padding == 'post':
             x[idx, :len(trunc)] = trunc
@@ -166,15 +180,8 @@ def random_sequence_from_textfile(path, seq_maxlen):
     text = open(path).read()
     return random_sequence_from_string(text, seq_maxlen)
 
-try:
-    from tensorflow.contrib.learn.python.learn.preprocessing.text import \
-        VocabularyProcessor as _VocabularyProcessor
-except Exception:
-    _VocabularyProcessor = object
 
-
-# Mirroring TensorFLow `VocabularyProcessor`
-class VocabularyProcessor(_VocabularyProcessor):
+class VocabularyProcessor(object):
     """ Vocabulary Processor.
 
     Maps documents to sequences of word ids.
@@ -195,10 +202,19 @@ class VocabularyProcessor(_VocabularyProcessor):
                  min_frequency=0,
                  vocabulary=None,
                  tokenizer_fn=None):
-        super(VocabularyProcessor, self).__init__(max_document_length,
-                                                  min_frequency,
-                                                  vocabulary,
-                                                  tokenizer_fn)
+        from tensorflow.contrib.learn.python.learn.preprocessing.text import \
+            VocabularyProcessor as _VocabularyProcessor
+        self.__dict__['_vocabulary_processor'] = _VocabularyProcessor(
+            max_document_length,
+            min_frequency,
+            vocabulary,
+            tokenizer_fn)
+
+    def __getattr__(self, key):
+        return getattr(self._vocabulary_processor, key)
+
+    def __setattr__(self, key, value):
+        setattr(self._vocabulary_processor, key, value)
 
     def fit(self, raw_documents, unused_y=None):
         """ fit.
@@ -212,12 +228,12 @@ class VocabularyProcessor(_VocabularyProcessor):
         Returns:
             self
         """
-        return super(VocabularyProcessor, self).fit(raw_documents, unused_y)
+        return self._vocabulary_processor.fit(raw_documents, unused_y)
 
     def fit_transform(self, raw_documents, unused_y=None):
         """ fit_transform.
 
-        Learn the vocabulary dictionary and return indexies of words.
+        Learn the vocabulary dictionary and return indices of words.
 
         Arguments:
             raw_documents: An iterable which yield either str or unicode.
@@ -226,7 +242,7 @@ class VocabularyProcessor(_VocabularyProcessor):
         Returns:
             X: iterable, [n_samples, max_document_length] Word-id matrix.
         """
-        return super(VocabularyProcessor, self).fit_transform(raw_documents,
+        return self._vocabulary_processor.fit_transform(raw_documents,
                                                               unused_y)
 
     def transform(self, raw_documents):
@@ -243,7 +259,7 @@ class VocabularyProcessor(_VocabularyProcessor):
         Yields:
             X: iterable, [n_samples, max_document_length] Word-id matrix.
         """
-        return super(VocabularyProcessor, self).transform(raw_documents)
+        return self._vocabulary_processor.transform(raw_documents)
 
     def reverse(self, documents):
         """ reverse.
@@ -256,7 +272,7 @@ class VocabularyProcessor(_VocabularyProcessor):
         Returns:
             Iterator over mapped in words documents.
         """
-        return super(VocabularyProcessor, self).reverse(documents)
+        return self._vocabulary_processor.reverse(documents)
 
     def save(self, filename):
         """ save.
@@ -266,7 +282,7 @@ class VocabularyProcessor(_VocabularyProcessor):
         Arguments:
             filename: Path to output file.
         """
-        super(VocabularyProcessor, self).save(filename)
+        return self._vocabulary_processor.save(filename)
 
     @classmethod
     def restore(cls, filename):
@@ -280,7 +296,7 @@ class VocabularyProcessor(_VocabularyProcessor):
         Returns:
             VocabularyProcessor object.
         """
-        return super(VocabularyProcessor, cls).restore(filename)
+        return self._vocabulary_processor.restore(filename)
 
 
 # ===================
@@ -290,7 +306,7 @@ class VocabularyProcessor(_VocabularyProcessor):
 def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
                              mode='file', categorical_labels=True,
                              normalize=True, grayscale=False,
-                             files_extension=None, chunks=False):
+                             files_extension=None, chunks=False, image_base_path='', float_labels=False):
     """ Build HDF5 Image Dataset.
 
     Build an HDF5 dataset by providing either a root folder or a plain text
@@ -361,6 +377,8 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
         chunks: `bool` Whether to chunks the dataset or not. You should use
             chunking only when you really need it. See HDF5 documentation.
             If chunks is 'True' a sensitive default will be computed.
+        image_base_path: `str`. Base path for the images listed in the file mode.
+        float_labels: `bool`. Read float labels instead of integers in file mode.
 
     """
     import h5py
@@ -378,8 +396,12 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
             images, labels = [], []
             for l in f.readlines():
                 l = l.strip('\n').split()
+                l[0] = image_base_path + l[0]
                 images.append(l[0])
-                labels.append(int(l[1]))
+                if float_labels:
+                    labels.append(float(l[1]))
+                else:
+                    labels.append(int(l[1]))
 
     n_classes = np.max(labels) + 1
 
@@ -404,7 +426,7 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
             img = resize_image(img, image_shape[0], image_shape[1])
         if grayscale:
             img = convert_color(img, 'L')
-        elif img.mode == 'L':
+        elif img.mode == 'L' or img.mode == 'RGBA':
             img = convert_color(img, 'RGB')
 
         img = pil_to_nparray(img)
@@ -415,6 +437,7 @@ def build_hdf5_image_dataset(target_path, image_shape, output_path='dataset.h5',
             dataset['Y'][i] = to_categorical([labels[i]], n_classes)[0]
         else:
             dataset['Y'][i] = labels[i]
+
 
 def get_img_channel(image_path):
     """
@@ -430,9 +453,10 @@ def get_img_channel(image_path):
         channel = 1
     return channel
 
+
 def image_preloader(target_path, image_shape, mode='file', normalize=True,
                     grayscale=False, categorical_labels=True,
-                    files_extension=None, filter_channel=False):
+                    files_extension=None, filter_channel=False, image_base_path='', float_labels=False):
     """ Image PreLoader.
 
     Create a python array (`Preloader`) that loads images on the fly (from
@@ -501,6 +525,8 @@ def image_preloader(target_path, image_shape, mode='file', normalize=True,
             all files are allowed.
         filter_channel: `bool`. If true, images which the channel is not 3 should
             be filter.
+        image_base_path: `str`. Base path for the images listed in the file mode.
+        float_labels: `bool`. Read float labels instead of integers in file mode.
 
     Returns:
         (X, Y): with X the images array and Y the labels array.
@@ -515,12 +541,16 @@ def image_preloader(target_path, image_shape, mode='file', normalize=True,
             images, labels = [], []
             for l in f.readlines():
                 l = l.strip('\n').split()
+                l[0] = image_base_path + l[0]
                 if not files_extension or any(flag in l[0] for flag in files_extension):
                     if filter_channel:
                         if get_img_channel(l[0]) != 3:
                             continue
                     images.append(l[0])
-                    labels.append(int(l[1]))
+                    if float_labels:
+                        labels.append(float(l[1]))
+                    else:
+                        labels.append(int(l[1]))
 
     n_classes = np.max(labels) + 1
     X = ImagePreloader(images, image_shape, normalize, grayscale)
@@ -531,7 +561,15 @@ def image_preloader(target_path, image_shape, mode='file', normalize=True,
 
 def load_image(in_image):
     """ Load an image, returns PIL.Image. """
-    img = Image.open(in_image)
+    # if the path appears to be an URL
+    if urlparse(in_image).scheme in ('http', 'https',):
+        # set up the byte stream
+        img_stream = BytesIO(request.urlopen(in_image).read())
+        # and read in as PIL image
+        img = Image.open(img_stream)
+    else:
+        # else use it as local file path
+        img = Image.open(in_image)
     return img
 
 
@@ -825,6 +863,8 @@ class ImagePreloader(Preloader):
         if grayscale:
             img = convert_color(img, 'L')
         img = pil_to_nparray(img)
+        if grayscale:
+            img = np.reshape(img, img.shape + (1,))
         if normalize:
             img /= 255.
         return img
@@ -843,6 +883,43 @@ class LabelPreloader(Preloader):
         else:
             return label
 
+
+def is_array(X):
+    return type(X) in [np.array, np.ndarray, list]
+
+
+def get_num_features(X):
+    if isinstance(X, tf.Tensor):
+        return X.get_shape().as_list()[-1]
+    elif is_array(X):
+        return list(np.shape(X))[-1]
+    else:
+        raise ValueError("Unknown data type.")
+
+
+def get_num_classes(Y):
+    if is_array(Y):
+        # Assume max integer is number of classes
+        return np.max(Y) + 1
+    elif isinstance(Y, tf.Tensor):
+        return ValueError("Cannot automatically retrieve number of classes "
+                          "from a Tensor. Please fill 'num_classes' argument.")
+    else:
+        raise ValueError("Unknown data type.")
+
+
+def get_num_sample(X):
+    if is_array(X):
+        return np.shape(X)[0]
+    elif isinstance(X, tf.Tensor):
+        return X.get_shape()[0]
+    else:
+        raise ValueError("Unknown data type.")
+
+
+# ==================
+#   STATS UTILS
+# ==================
 
 def get_max(X):
     return np.max(X)

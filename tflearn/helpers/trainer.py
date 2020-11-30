@@ -4,7 +4,7 @@ from __future__ import division, print_function, absolute_import
 import re
 import os
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from tensorflow.python.training import optimizer as tf_optimizer
 
 import tflearn
@@ -135,6 +135,12 @@ class Trainer(object):
                 max_to_keep=max_checkpoints,
                 keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours,
                 allow_empty=True)
+            # Saver for saving a best validation accuracy model
+            if self.best_checkpoint_path:
+                self.val_saver = tf.train.Saver(
+                    max_to_keep=1,
+                    keep_checkpoint_every_n_hours=keep_checkpoint_every_n_hours,
+                    allow_empty=True)
             # Saver for restoring a model (With exclude variable list)
             all_vars = variables.get_all_variables()
             excl_vars = tf.get_collection(tf.GraphKeys.EXCL_RESTORE_VARS)
@@ -237,10 +243,9 @@ class Trainer(object):
 
         original_train_ops = list(self.train_ops)
         # Remove excluded train_ops
-        for t in self.train_ops:
-            if excl_trainops and t in excl_trainops:
-                self.train_ops.remove(t)
-
+        if excl_trainops:
+            self.train_ops = list(filter(lambda a: a not in excl_trainops, self.train_ops))
+	    
         # shuffle is an override for simplicty, it will overrides every
         # training op batch shuffling
         if isinstance(shuffle_all, bool):
@@ -287,7 +292,7 @@ class Trainer(object):
                                         daug_dict, show_metric,
                                         self.summ_writer, self.coord)
 
-                # Prepare TermLogger for training diplay
+                # Prepare TermLogger for training display
                 metric_term_name = None
                 if train_op.metric is not None:
                     if hasattr(train_op.metric, 'm_name'):
@@ -395,7 +400,7 @@ class Trainer(object):
         if len(val_loss) == 1: val_loss = val_loss[0]
         return val_loss
 
-    def save(self, model_file, global_step=None):
+    def save(self, model_file, global_step=None, use_val_saver=False):
         """ save.
 
         Save a Tensorflow model
@@ -404,6 +409,8 @@ class Trainer(object):
             model_file: `str`. Saving path of tensorflow model
             global_step: `int`. The training step to append to the
                 model file name (optional).
+            use_val_saver: If True, the "best validation accuracy" model saver is used
+                instead of the regular training model saver.
 
         """
         # Temp workaround for tensorflow 0.7+ dict proto serialization issue
@@ -411,7 +418,10 @@ class Trainer(object):
         # TF 0.12 Fix
         if not os.path.isabs(model_file):
             model_file = os.path.abspath(os.path.join(os.getcwd(), model_file))
-        self.saver.save(self.session, model_file, global_step=global_step)
+        if use_val_saver:
+            self.val_saver.save(self.session, model_file, global_step=global_step)
+        else:
+            self.saver.save(self.session, model_file, global_step=global_step)
         utils.fix_saver(obj_lists)
 
     def restore(self, model_file, trainable_variable_only=False, variable_name_map=None, scope_for_restore=None,

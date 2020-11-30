@@ -1,5 +1,9 @@
 from __future__ import absolute_import
 
+# Disable TF eager mode
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
+
 # Config
 from . import config
 from .config import is_training, get_training_mode, init_graph
@@ -21,7 +25,8 @@ from .helpers.summarizer import summarize, summarize_activations, \
 from .layers import normalization
 from . import metrics
 from . import activations
-from . import losses
+from . import distances
+from . import regularizers
 from . import initializations
 from . import optimizers
 from . import summaries
@@ -31,7 +36,7 @@ from . import collections # Add TFLearn collections to Tensorflow GraphKeys
 
 # Direct ops inclusion
 from .optimizers import SGD, AdaGrad, Adam, RMSProp, Momentum, Ftrl, AdaDelta, \
-    ProximalAdaGrad
+    ProximalAdaGrad, Nesterov
 from .activations import linear, tanh, sigmoid, softmax, softplus, softsign,\
     relu, relu6, leaky_relu, prelu, elu, crelu, selu
 from .variables import variable, get_all_trainable_variable, \
@@ -46,7 +51,7 @@ from .layers.conv import conv_2d, max_pool_2d, avg_pool_2d, conv_1d, \
     highway_conv_2d, highway_conv_1d, max_pool_1d, avg_pool_1d, \
     global_avg_pool, residual_block, residual_bottleneck, \
     conv_2d_transpose, upsample_2d, conv_3d, max_pool_3d, avg_pool_3d, \
-    resnext_block, upscore_layer, deconv_2d
+    resnext_block, upscore_layer, deconv_2d, densenet_block
 from .layers.core import input_data, dropout, custom_layer, reshape, \
     flatten, activation, fully_connected, single_unit, highway, \
     one_hot_encoding, time_distributed, multi_target_data

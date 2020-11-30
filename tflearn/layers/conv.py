@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import numpy as np
 from math import ceil
 
@@ -9,7 +9,7 @@ import tflearn
 from .. import variables as vs
 from .. import activations
 from .. import initializations
-from .. import losses
+from .. import regularizers
 from .. import utils
 from ..layers.normalization import batch_normalization
 
@@ -31,7 +31,7 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         incoming: `Tensor`. Incoming 4-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
         filter_size: `int` or `list of int`. Size of filters.
-        strides: 'int` or list of `int`. Strides of conv operation.
+        strides: `int` or list of `int`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -63,7 +63,7 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
@@ -77,9 +77,11 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
-        if regularizer:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        if regularizer is not None:
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
@@ -89,15 +91,18 @@ def conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
         b = None
         if bias:
+            b_shape = [nb_filter]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            b = vs.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
         inference = tf.nn.conv2d(incoming, W, strides, padding)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
 
         if activation:
             if isinstance(activation, str):
@@ -180,7 +185,7 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
 
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  nb_filter,
@@ -195,9 +200,11 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
-        if regularizer:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        if regularizer is not None:
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size,
                         regularizer=W_regul, initializer=W_init,
                         trainable=trainable, restore=restore)
@@ -206,9 +213,12 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
 
         b = None
         if bias:
+            b_shape = [nb_filter]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            b = vs.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
@@ -229,7 +239,7 @@ def conv_2d_transpose(incoming, nb_filter, filter_size, output_shape,
         # Reshape tensor so its shape is correct.
         inference.set_shape([None] + output_shape)
 
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
 
         if isinstance(activation, str):
             inference = activations.get(activation)(inference)
@@ -296,7 +306,7 @@ def atrous_conv_2d(incoming, nb_filter, filter_size, rate=1, padding='same',
         incoming: `Tensor`. Incoming 4-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
         filter_size: `int` or `list of int`. Size of filters.
-        rate: 'int`.  A positive int32. The stride with which we sample input
+        rate: `int`.  A positive int32. The stride with which we sample input
             values across the height and width dimensions. Equivalently, the
             rate by which we upsample the filter values by inserting zeros
             across the height and width dimensions. In the literature, the
@@ -331,7 +341,7 @@ def atrous_conv_2d(incoming, nb_filter, filter_size, rate=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
@@ -344,9 +354,11 @@ def atrous_conv_2d(incoming, nb_filter, filter_size, rate=1, padding='same',
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
-        if regularizer:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        if regularizer is not None:
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
@@ -356,15 +368,18 @@ def atrous_conv_2d(incoming, nb_filter, filter_size, rate=1, padding='same',
 
         b = None
         if bias:
+            b_shape = [nb_filter]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            b = vs.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
         inference = tf.nn.atrous_conv2d(incoming, W, rate, padding)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
 
         if activation:
             if isinstance(activation, str):
@@ -425,7 +440,7 @@ def grouped_conv_2d(incoming, channel_multiplier, filter_size, strides=1,
         incoming: `Tensor`. Incoming 4-D Tensor.
         channel_multiplier: `int`. The number of channels to expand to.
         filter_size: `int` or `list of int`. Size of filters.
-        strides: 'int` or list of `int`. Strides of conv operation.
+        strides: `int` or list of `int`. Strides of conv operation.
             Default: [1 1 1 1].
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -457,7 +472,7 @@ def grouped_conv_2d(incoming, channel_multiplier, filter_size, strides=1,
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
 
     nb_filter = channel_multiplier * input_shape[-1]
 
@@ -474,9 +489,11 @@ def grouped_conv_2d(incoming, channel_multiplier, filter_size, strides=1,
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
-        if regularizer:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        if regularizer is not None:
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
@@ -486,15 +503,18 @@ def grouped_conv_2d(incoming, channel_multiplier, filter_size, strides=1,
 
         b = None
         if bias:
+            b_shape = [nb_filter]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            b = vs.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
         inference = tf.nn.depthwise_conv2d(incoming, W, strides, padding)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
 
         if activation:
             if isinstance(activation, str):
@@ -542,7 +562,7 @@ def max_pool_2d(incoming, kernel_size, strides=None, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
 
     kernel = utils.autoformat_kernel_2d(kernel_size)
     strides = utils.autoformat_kernel_2d(strides) if strides else kernel
@@ -587,7 +607,7 @@ def avg_pool_2d(incoming, kernel_size, strides=None, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
 
     kernel = utils.autoformat_kernel_2d(kernel_size)
     strides = utils.autoformat_kernel_2d(strides) if strides else kernel
@@ -627,7 +647,7 @@ def upsample_2d(incoming, kernel_size, name="UpSample2D"):
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
     kernel = utils.autoformat_kernel_2d(kernel_size)
 
     with tf.name_scope(name) as scope:
@@ -661,7 +681,7 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
         4-D Tensor [batch, height, width, in_channels].
 
     Output:
-        4-D Tensor [batch, pooled height, pooled width, in_channels].
+        4-D Tensor [pooled height, pooled width].
 
     Arguments:
         incoming: `Tensor`. Incoming 4-D Layer to upsample.
@@ -691,7 +711,7 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
 
     strides = utils.autoformat_kernel_2d(strides)
     filter_size = utils.autoformat_filter_conv2d(kernel_size,
@@ -702,15 +722,15 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
                            reuse=reuse) as scope:
         name = scope.name
 
+        in_shape = tf.shape(incoming)
         if shape is None:
             # Compute shape out of Bottom
-            in_shape = tf.shape(incoming)
 
             h = ((in_shape[1] - 1) * strides[1]) + 1
             w = ((in_shape[2] - 1) * strides[1]) + 1
             new_shape = [in_shape[0], h, w, num_classes]
         else:
-            new_shape = [shape[0], shape[1], shape[2], num_classes]
+            new_shape = [in_shape[0], shape[0], shape[1], num_classes]
         output_shape = tf.stack(new_shape)
 
         def get_deconv_filter(f_shape):
@@ -740,6 +760,116 @@ def upscore_layer(incoming, num_classes, shape=None, kernel_size=4,
 
         weights = get_deconv_filter(filter_size)
         deconv = tf.nn.conv2d_transpose(incoming, weights, output_shape,
+                                        strides=strides, padding='SAME')
+
+    deconv.scope = scope
+
+    # Track output tensor.
+    tf.add_to_collection(tf.GraphKeys.LAYER_TENSOR + '/' + name, deconv)
+
+    return deconv
+
+def upscore_layer3d(incoming, num_classes, shape=None, kernel_size=4,
+                  strides=2, trainable=True, restore=True,
+                  reuse=False, scope=None, name='Upscore'):
+    """ Upscore.
+
+    This implements the upscore layer as used in
+    (Fully Convolutional Networks)[http://arxiv.org/abs/1411.4038].
+    The upscore layer is initialized as bilinear upsampling filter.
+
+    Input:
+        5-D Tensor [batch, height, width, depth, in_channels].
+
+    Output:
+        5-D Tensor [batch, pooled height, pooled width, pooled depth, in_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Layer to upsample.
+        num_classes: `int`. Number of output feature maps.
+        shape: `list of int`. Dimension of the output map
+            [new height, new width, new depth]. For convinience four values
+             are allows [new height, new width, new depth, X], where X
+             is ignored.
+        kernel_size: 'int` or `list of int`. Upsampling kernel size.
+        strides: 'int` or `list of int`. Strides of conv operation.
+            Default: [1 2 2 2 1].
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share variables between layers. Note that scope will
+            override name.
+            name: A name for this layer (optional). Default: 'Upscore'.
+
+    Attributes:
+        scope: `Scope`. This layer scope.
+
+    Links:
+        (Fully Convolutional Networks)[http://arxiv.org/abs/1411.4038]
+
+    """
+    input_shape = utils.get_incoming_shape(incoming)
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D, not %d-D" % len(input_shape)
+
+    strides = utils.autoformat_kernel_3d(strides)
+    filter_size = utils.autoformat_filter_conv3d(kernel_size,
+                                                 num_classes,
+                                                 input_shape[-1])
+
+    # Variable Scope fix for older TF
+    try:
+        vscope = tf.variable_scope(scope, default_name=name, values=[incoming],
+                                   reuse=reuse)
+    except Exception:
+        vscope = tf.variable_op_scope([incoming], scope, name, reuse=reuse)
+
+    with vscope as scope:
+        name = scope.name
+
+        in_shape = tf.shape(incoming)
+        if shape is None:
+            # Compute shape out of Bottom
+
+            h = ((in_shape[1] - 1) * strides[1]) + 1
+            w = ((in_shape[2] - 1) * strides[1]) + 1
+            d = ((in_shape[3] - 1) * strides[1]) + 1
+            new_shape = [in_shape[0], h, w, d, num_classes]
+        else:
+            new_shape = [in_shape[0], shape[0], shape[1], shape[2], num_classes]
+        output_shape = tf.stack(new_shape)
+
+        def get_deconv_filter(f_shape):
+            """
+            Create filter weights initialized as bilinear upsampling.
+            """
+            width = f_shape[0]
+            heigh = f_shape[0]
+            depth = f_shape[0]
+            f = ceil(width/2.0)
+            c = (2 * f - 1 - f % 2) / (2.0 * f)
+            bilinear = np.zeros([f_shape[0], f_shape[1], f_shape[2]])
+            for x in range(width):
+                for y in range(heigh):
+                    for z in range(depth):
+                        value = (1 - abs(x / f - c)) * (1 - abs(y / f - c)) * (1 - abs(z / f - c))
+                        bilinear[x, y, z] = value
+            weights = np.zeros(f_shape)
+            for i in range(f_shape[3]):
+                weights[:, :, :, i, i] = bilinear
+
+            init = tf.constant_initializer(value=weights,
+                                           dtype=tf.float32)
+            W = vs.variable(name="up_filter", initializer=init,
+                            shape=weights.shape, trainable=trainable,
+                            restore=restore)
+            tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
+            return W
+
+        weights = get_deconv_filter(filter_size)
+        deconv = tf.nn.conv3d_transpose(incoming, weights, output_shape,
                                         strides=strides, padding='SAME')
 
     deconv.scope = scope
@@ -799,7 +929,7 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D"
+    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D, not %d-D" % len(input_shape)
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
@@ -817,9 +947,11 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
-        if regularizer:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        if regularizer is not None:
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
@@ -828,9 +960,12 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
         b = None
         if bias:
+            b_shape = [nb_filter]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            b = vs.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
@@ -838,7 +973,7 @@ def conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         # Adding dummy dimension to fit with Tensorflow conv2d
         inference = tf.expand_dims(incoming, 2)
         inference = tf.nn.conv2d(inference, W, strides, padding)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
         inference = tf.squeeze(inference, [2])
 
         if isinstance(activation, str):
@@ -886,7 +1021,7 @@ def max_pool_1d(incoming, kernel_size, strides=None, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D"
+    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D, not %d-D" % len(input_shape)
 
     kernel = utils.autoformat_kernel_2d(kernel_size)
     kernel = [1, kernel[1], 1, 1]
@@ -935,7 +1070,7 @@ def avg_pool_1d(incoming, kernel_size, strides=None, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D"
+    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D, not %d-D" % len(input_shape)
 
     kernel = utils.autoformat_kernel_2d(kernel_size)
     kernel = [1, kernel[1], 1, 1]
@@ -976,7 +1111,7 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
         incoming: `Tensor`. Incoming 5-D Tensor.
         nb_filter: `int`. The number of convolutional filters.
         filter_size: `int` or `list of int`. Size of filters.
-        strides: 'int` or list of `int`. Strides of conv operation.
+        strides: `int` or list of `int`. Strides of conv operation.
             Default: [1 1 1 1 1]. Must have strides[0] = strides[4] = 1.
         padding: `str` from `"same", "valid"`. Padding algo to use.
             Default: 'same'.
@@ -1008,7 +1143,7 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D, not %d-D" % len(input_shape)
     filter_size = utils.autoformat_filter_conv3d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
@@ -1022,9 +1157,11 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
-        if regularizer:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        if regularizer is not None:
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
@@ -1033,15 +1170,18 @@ def conv_3d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
         b = None
         if bias:
+            b_shape = [nb_filter]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            b = vs.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
         inference = tf.nn.conv3d(incoming, W, strides, padding)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
 
         if isinstance(activation, str):
             inference = activations.get(activation)(inference)
@@ -1124,7 +1264,7 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D, not %d-D" % len(input_shape)
 
     filter_size = utils.autoformat_filter_conv3d(filter_size,
                                                  nb_filter,
@@ -1139,9 +1279,11 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
-        if regularizer:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        if regularizer is not None:
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size,
                         regularizer=W_regul, initializer=W_init,
                         trainable=trainable, restore=restore)
@@ -1150,9 +1292,12 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
 
         b = None
         if bias:
+            b_shape = [nb_filter]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = vs.variable('b', shape=nb_filter, initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            b = vs.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             # Track per layer variables
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
@@ -1173,7 +1318,7 @@ def conv_3d_transpose(incoming, nb_filter, filter_size, output_shape,
         # Reshape tensor so its shape is correct.
         inference.set_shape([None] + output_shape)
 
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
 
         if isinstance(activation, str):
             inference = activations.get(activation)(inference)
@@ -1221,7 +1366,7 @@ def max_pool_3d(incoming, kernel_size, strides=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D, not %d-D" % len(input_shape)
 
     kernel = utils.autoformat_kernel_3d(kernel_size)
     strides = utils.autoformat_stride_3d(strides)
@@ -1268,7 +1413,7 @@ def avg_pool_3d(incoming, kernel_size, strides=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D"
+    assert len(input_shape) == 5, "Incoming Tensor shape must be 5-D, not %d-D" % len(input_shape)
 
     kernel = utils.autoformat_kernel_3d(kernel_size)
     strides = utils.autoformat_stride_3d(strides)
@@ -1304,7 +1449,7 @@ def global_max_pool(incoming, name="GlobalMaxPool"):
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
 
     with tf.name_scope(name):
         inference = tf.reduce_max(incoming, [1, 2])
@@ -1330,7 +1475,7 @@ def global_avg_pool(incoming, name="GlobalAvgPool"):
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
 
     with tf.name_scope(name):
         inference = tf.reduce_mean(incoming, [1, 2])
@@ -1581,7 +1726,7 @@ def resnext_block(incoming, nb_blocks, out_channels, cardinality,
                   reuse=False, scope=None, name="ResNeXtBlock"):
     """ ResNeXt Block.
 
-    A ResNeXt block as described in ResNeXt paper (Figure 2, c).
+    A ResNeXt block as described in ResNeXt paper (Figure 3.c).
 
     Input:
         4-D Tensor [batch, height, width, in_channels].
@@ -1694,6 +1839,133 @@ def resnext_block(incoming, nb_blocks, out_channels, cardinality,
         return resnext
 
 
+def densenet_block(incoming, nb_layers, growth, bottleneck=True,
+                   downsample=True, downsample_strides=2, activation='relu',
+                   batch_norm=True, dropout=False, dropout_keep_prob=0.5,
+                   weights_init='variance_scaling', regularizer='L2',
+                   weight_decay=0.0001, bias=True, bias_init='zeros',
+                   trainable=True, restore=True, reuse=False, scope=None,
+                   name="DenseNetBlock"):
+    """ DenseNet Block.
+
+    A DenseNet block as described in DenseNet paper.
+
+    Input:
+        4-D Tensor [batch, height, width, in_channels].
+
+    Output:
+        4-D Tensor [batch, new height, new width, out_channels].
+
+    Arguments:
+        incoming: `Tensor`. Incoming 4-D Layer.
+        nb_blocks: `int`. Number of layer blocks.
+        growth: `int`. DenseNet 'growth': The number of convolutional
+            filters of each convolution.
+        bottleneck: `bool`. If True, add a 1x1 convolution before the 3x3 
+            convolution to reduce the number of input features map.
+        downsample: `bool`. If True, apply downsampling using
+            'downsample_strides' for strides.
+        downsample_strides: `int`. The strides to use when downsampling.
+        activation: `str` (name) or `function` (returning a `Tensor`).
+            Activation applied to this layer (see tflearn.activations).
+            Default: 'linear'.
+        batch_norm: `bool`. If True, apply batch normalization.
+        dropout: `bool`. If True, apply dropout. Use 'dropout_keep_prob' to 
+            specify the keep probability.
+        dropout_keep_prob: `float`. Keep probability parameter for dropout.
+        bias: `bool`. If True, a bias is used.
+        weights_init: `str` (name) or `Tensor`. Weights initialization.
+            (see tflearn.initializations) Default: 'uniform_scaling'.
+        bias_init: `str` (name) or `tf.Tensor`. Bias initialization.
+            (see tflearn.initializations) Default: 'zeros'.
+        regularizer: `str` (name) or `Tensor`. Add a regularizer to this
+            layer weights (see tflearn.regularizers). Default: None.
+        weight_decay: `float`. Regularizer decay parameter. Default: 0.001.
+        trainable: `bool`. If True, weights will be trainable.
+        restore: `bool`. If True, this layer weights will be restored when
+            loading a model.
+        reuse: `bool`. If True and 'scope' is provided, this layer variables
+            will be reused (shared).
+        scope: `str`. Define this layer scope (optional). A scope can be
+            used to share variables between layers. Note that scope will
+            override name.
+        name: A name for this layer (optional). Default: 'ResNeXtBlock'.
+
+    References:
+        Densely Connected Convolutional Networks, G. Huang, Z. Liu, 
+        K. Q. Weinberger, L. van der Maaten. 2016.
+
+    Links:
+        [https://arxiv.org/abs/1608.06993]
+        (https://arxiv.org/abs/1608.06993)
+
+    """
+    densenet = incoming
+
+    with tf.variable_scope(scope, default_name=name, values=[incoming],
+                           reuse=reuse) as scope:
+
+        for i in range(nb_layers):
+
+            # Identity
+            conn = densenet
+
+            # 1x1 Conv layer of the bottleneck block
+            if bottleneck:
+                if batch_norm:
+                    densenet = tflearn.batch_normalization(densenet)
+                densenet = tflearn.activation(densenet, activation)
+                densenet = conv_2d(densenet, nb_filter=growth,
+                                   filter_size=1,
+                                   bias=bias,
+                                   weights_init=weights_init,
+                                   bias_init=bias_init,
+                                   regularizer=regularizer,
+                                   weight_decay=weight_decay,
+                                   trainable=trainable,
+                                   restore=restore)
+
+            # 3x3 Conv layer
+            if batch_norm:
+                densenet = tflearn.batch_normalization(densenet)
+            densenet = tflearn.activation(densenet, activation)
+            densenet = conv_2d(densenet, nb_filter=growth,
+                               filter_size=3,
+                               bias=bias,
+                               weights_init=weights_init,
+                               bias_init=bias_init,
+                               regularizer=regularizer,
+                               weight_decay=weight_decay,
+                               trainable=trainable,
+                               restore=restore)
+
+            # Connections
+            densenet = tf.concat([densenet, conn], 3)
+
+        # 1x1 Transition Conv
+        if batch_norm:
+            densenet = tflearn.batch_normalization(densenet)
+        densenet = tflearn.activation(densenet, activation)
+        densenet = conv_2d(densenet, nb_filter=growth,
+                           filter_size=1,
+                           bias=bias,
+                           weights_init=weights_init,
+                           bias_init=bias_init,
+                           regularizer=regularizer,
+                           weight_decay=weight_decay,
+                           trainable=trainable,
+                           restore=restore)
+        if dropout:
+            densenet = tflearn.dropout(densenet, keep_prob=dropout_keep_prob)
+
+        # Downsampling
+        if downsample:
+            densenet = tflearn.avg_pool_2d(densenet, kernel_size=2,
+                                           strides=downsample_strides)
+
+    return densenet
+
+
 def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
                     activation='linear', weights_init='uniform_scaling',
                     bias_init='zeros', regularizer=None, weight_decay=0.001,
@@ -1744,7 +2016,7 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D"
+    assert len(input_shape) == 4, "Incoming Tensor shape must be 4-D, not %d-D" % len(input_shape)
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
@@ -1760,8 +2032,8 @@ def highway_conv_2d(incoming, nb_filter, filter_size, strides=1, padding='same',
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        if regularizer is not None:
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
@@ -1867,7 +2139,7 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
 
     """
     input_shape = utils.get_incoming_shape(incoming)
-    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D"
+    assert len(input_shape) == 3, "Incoming Tensor shape must be 3-D, not %d-D" % len(input_shape)
     filter_size = utils.autoformat_filter_conv2d(filter_size,
                                                  input_shape[-1],
                                                  nb_filter)
@@ -1886,9 +2158,11 @@ def highway_conv_1d(incoming, nb_filter, filter_size, strides=1, padding='same',
         W_init = weights_init
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
-        if regularizer:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        if regularizer is not None:
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = vs.variable('W', shape=filter_size,
                         regularizer=W_regul, initializer=W_init,
                         trainable=trainable, restore=restore)

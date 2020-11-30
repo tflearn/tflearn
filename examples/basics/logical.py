@@ -5,7 +5,7 @@ Simple Example to train logical operators
 
 from __future__ import absolute_import, division, print_function
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import tflearn
 
 # Logical NOT operator

@@ -19,8 +19,8 @@ from tflearn.layers.estimator import regression
 # CIFAR-10 Dataset
 from tflearn.datasets import cifar10
 (X, Y), (X_test, Y_test) = cifar10.load_data()
-Y = to_categorical(Y, 10)
-Y_test = to_categorical(Y_test, 10)
+Y = to_categorical(Y)
+Y_test = to_categorical(Y_test)
 
 # Create a hdf5 dataset from CIFAR-10 numpy array
 import h5py

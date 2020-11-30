@@ -1,11 +1,11 @@
 from __future__ import division, print_function, absolute_import
 
 from .utils import get_from_module
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 
 def get(identifier):
-    return get_from_module(identifier, globals(), 'optimizer')
+    return get_from_module(identifier, globals(), 'metrics')
 
 """
 Metric classes are meant to be used with TFLearn models (such as DNN). For
@@ -362,9 +362,9 @@ def r2_op(predictions, targets):
 
     """
     with tf.name_scope('StandardError'):
-        a = tf.reduce_sum(tf.square(predictions))
-        b = tf.reduce_sum(tf.square(targets))
-        return tf.divide(a, b)
+        a = tf.reduce_sum(tf.square(tf.subtract(targets, predictions)))
+        b = tf.reduce_sum(tf.square(tf.subtract(targets, tf.reduce_mean(targets))))
+        return tf.subtract(1.0, tf.divide(a, b))
 
 
 def weighted_r2_op(predictions, targets, inputs):

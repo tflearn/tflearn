@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import division, print_function, absolute_import
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from tensorflow.python.training import moving_averages
 
 import tflearn
@@ -177,7 +177,7 @@ def l2_normalize(incoming, dim, epsilon=1e-12, name="l2_normalize"):
       A `Tensor` with the same shape as `x`.
     """
     with tf.name_scope(name) as name:
-        x = tf.ops.convert_to_tensor(incoming, name="x")
+        x = tf.convert_to_tensor(incoming, name="x")
         square_sum = tf.reduce_sum(tf.square(x), [dim], keep_dims=True)
         x_inv_norm = tf.rsqrt(tf.maximum(square_sum, epsilon))
 

@@ -10,7 +10,7 @@ from __future__ import division, print_function, absolute_import
 
 import re
 import tflearn
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import tflearn.datasets.mnist as mnist
 
 from tflearn.layers.core import input_data, dropout, fully_connected

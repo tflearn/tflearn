@@ -1,7 +1,7 @@
 from __future__ import division, print_function, absolute_import
 
 import numpy as np
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from tensorflow.python.framework import dtypes
 from tensorflow.python.ops import standard_ops
 
@@ -11,7 +11,7 @@ from tflearn import utils
 from tflearn import variables as va
 from tflearn import activations
 from tflearn import initializations
-from tflearn import losses
+from tflearn import regularizers
 
 
 def input_data(shape=None, placeholder=None, dtype=tf.float32,
@@ -147,21 +147,29 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
         name = scope.name
 
         W_init = weights_init
+        filter_size = [n_inputs, n_units]
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
+        elif type(W_init) in [tf.Tensor, np.ndarray, list]:
+            filter_size = None
         W_regul = None
-        if regularizer:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
-        W = va.variable('W', shape=[n_inputs, n_units], regularizer=W_regul,
+        if regularizer is not None:
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
+        W = va.variable('W', shape=filter_size, regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)
         tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, W)
 
         b = None
         if bias:
+            b_shape = [n_units]
             if isinstance(bias_init, str):
                 bias_init = initializations.get(bias_init)()
-            b = va.variable('b', shape=[n_units], initializer=bias_init,
+            elif type(bias_init) in [tf.Tensor, np.ndarray, list]:
+                b_shape = None
+            if isinstance(bias_init, str):
+                bias_init = initializations.get(bias_init)()
+            b = va.variable('b', shape=b_shape, initializer=bias_init,
                             trainable=trainable, restore=restore)
             tf.add_to_collection(tf.GraphKeys.LAYER_VARIABLES + '/' + name, b)
 
@@ -171,7 +179,7 @@ def fully_connected(incoming, n_units, activation='linear', bias=True,
             inference = tf.reshape(inference, [-1, n_inputs])
 
         inference = tf.matmul(inference, W)
-        if b: inference = tf.nn.bias_add(inference, b)
+        if b is not None: inference = tf.nn.bias_add(inference, b)
         if activation:
             if isinstance(activation, str):
                 inference = activations.get(activation)(inference)
@@ -338,7 +346,7 @@ def activation(incoming, activation='linear', name='activation'):
 
     if isinstance(activation, str):
         x = activations.get(activation)(incoming)
-    elif hasattr(incoming, '__call__'):
+    elif hasattr(activation, '__call__'):
         x = activation(incoming)
     else:
         raise ValueError('Unknown activation type.')
@@ -407,7 +415,7 @@ def single_unit(incoming, activation='linear', bias=True, trainable=True,
             inference = tf.reshape(inference, [-1])
 
         inference = tf.multiply(inference, W)
-        if b: inference = tf.add(inference, b)
+        if b is not None: inference = tf.add(inference, b)
 
         if isinstance(activation, str):
             inference = activations.get(activation)(inference)
@@ -494,8 +502,8 @@ def highway(incoming, n_units, activation='linear', transform_dropout=None,
         if isinstance(weights_init, str):
             W_init = initializations.get(weights_init)()
         W_regul = None
-        if regularizer:
-            W_regul = lambda x: losses.get(regularizer)(x, weight_decay)
+        if regularizer is not None:
+            W_regul = lambda x: regularizers.get(regularizer)(x, weight_decay)
         W = va.variable('W', shape=[n_inputs, n_units], regularizer=W_regul,
                         initializer=W_init, trainable=trainable,
                         restore=restore)

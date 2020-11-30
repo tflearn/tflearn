@@ -1,6 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 from .utils import get_from_module
 
 
@@ -384,7 +384,7 @@ class Ftrl(Optimizer):
             Only positive values are allowed.
         l1_regularization_strength: `float`. Must be less or equal to zero.
         l2_regularization_strength: `float`. Must be less or equal to zero.
-        use_locking: bool`. If True use locks for update operation.
+        use_locking: `bool`. If True use locks for update operation.
         name: `str`. Optional name prefix for the operations created when
             applying gradients. Defaults to "Ftrl".
 

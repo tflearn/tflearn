@@ -1,6 +1,6 @@
 from __future__ import division, print_function, absolute_import
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 
 from .config import _EPSILON, _FLOATX
 from .utils import get_from_module
@@ -63,7 +63,7 @@ def categorical_crossentropy(y_pred, y_true):
     with tf.name_scope("Crossentropy"):
         y_pred /= tf.reduce_sum(y_pred,
                                 reduction_indices=len(y_pred.get_shape())-1,
-                                keep_dims=True)
+                                keepdims=True)
         # manual computation of crossentropy
         y_pred = tf.clip_by_value(y_pred, tf.cast(_EPSILON, dtype=_FLOATX),
                                   tf.cast(1.-_EPSILON, dtype=_FLOATX))
@@ -103,7 +103,7 @@ def binary_crossentropy(y_pred, y_true):
             logits=y_pred, labels=y_true))
 
 
-def weighted_crossentropy(y_pred, y_true, weight):
+def weighted_crossentropy(y_pred, y_true, weight=1.):
     """ Weighted Crossentropy.
 
     Computes weighted sigmoid cross entropy between y_pred (logits) and y_true
@@ -256,3 +256,48 @@ def weak_cross_entropy_2d(y_pred, y_true, num_classes=None, epsilon=0.0001,
                                             name="xentropy_mean")
 
     return cross_entropy_mean
+
+
+def contrastive_loss(y_pred, y_true, margin = 1.0):
+    """ Contrastive Loss.
+    
+        Computes the constrative loss between y_pred (logits) and
+        y_true (labels).
+
+        http://yann.lecun.com/exdb/publis/pdf/chopra-05.pdf
+        Sumit Chopra, Raia Hadsell and Yann LeCun (2005).
+        Learning a Similarity Metric Discriminatively, with Application to Face Verification.
+
+        Arguments:
+            y_pred: `Tensor`. Predicted values.
+            y_true: `Tensor`. Targets (labels).
+            margin: . A self-set parameters that indicate the distance between the expected different identity features. Defaults 1.
+    """
+    with tf.name_scope("ContrastiveLoss"):
+        dis1 = y_true * tf.square(y_pred)
+        dis2 = (1 - y_true) * tf.square(tf.maximum((margin - y_pred), 0))
+        return tf.reduce_sum(dis1 +dis2) / 2.
+
+    
+def triplet_loss(anchor, positive, negative, margin=1.0):
+    """ Triplet Loss.
+    
+        Computes the triplet loss between y_pred (logits) amd
+        y_true (labels).
+        
+        http://www.bmva.org/bmvc/2016/papers/paper119/paper119.pdf
+        V. Balntas, E. Riba et al.
+        Learning shallow convolutional feature descriptors with triplet losses
+
+        
+        Arguments:
+            anchor: `Tensor`. 
+            positive: `Tensor`. Same class as anchor
+            negative: `Tensor`. Different class from anchor
+            margin: . A self-set parameters that indicate the distance between the expected different identity features 
+    """
+    with tf.name_scope("TripletLoss"):
+        dist1_postive = tf.math.reduce_sum(tf.math.pow((anchor - positive), 2))
+        dist2_negative = tf.math.reduce_sum(tf.math.pow((anchor - negative), 2))
+        loss = tf.nn.relu(dist1_postive - dist2_negative + margin)
+        return loss
