@@ -2,6 +2,7 @@
 [![PyPI version](https://badge.fury.io/py/tflearn.svg)](https://badge.fury.io/py/tflearn)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Join the chat at https://gitter.im/einsteinsci/betterbeginnings](https://badges.gitter.im/tflearn/tflearn.svg)](https://gitter.im/tflearn/tflearn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Run on Repl.it](https://repl.it/badge/github/tflearn/tflearn)](https://repl.it/github/tflearn/tflearn)
 
 # TFLearn: Deep learning library featuring a higher-level API for TensorFlow.
 
