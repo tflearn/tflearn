@@ -212,14 +212,10 @@ class DataPreprocessing(object):
         return batch
 
     def _featurewise_zero_center(self, batch):
-        for i in range(len(batch)):
-            batch[i] -= self.global_mean.value
-        return batch
+        return batch - self.global_mean.value
 
     def _featurewise_stdnorm(self, batch):
-        for i in range(len(batch)):
-            batch[i] /= (self.global_std.value + _EPSILON)
-        return batch
+        return batch / (self.global_std.value + _EPSILON)
 
     def _zca_whitening(self, batch):
         for i in range(len(batch)):
