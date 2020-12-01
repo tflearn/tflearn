@@ -1712,8 +1712,8 @@ def residual_bottleneck(incoming, nb_blocks, bottleneck_size, out_channels,
                                   [[0, 0], [0, 0], [0, 0], [ch, ch]])
                 in_channels = out_channels
 
-                resnet = resnet + identity
-                resnet = tflearn.activation(resnet, activation)
+            resnet = resnet + identity
+            resnet = tflearn.activation(resnet, activation)
 
     return resnet
 
