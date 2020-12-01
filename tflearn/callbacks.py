@@ -48,7 +48,9 @@ class Callback(object):
 
 
 class ChainCallback(Callback):
-    def __init__(self, callbacks=[]):
+    def __init__(self, callbacks=None):
+        if callbacks is None:
+            callbacks = []
         self.callbacks = callbacks
 
     def on_train_begin(self, training_state):
