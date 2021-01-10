@@ -12,6 +12,16 @@ import tarfile
 
 import numpy as np
 import pickle
+import io
+import builtins
+
+safe_builtins = {
+    'range',
+    'complex',
+    'set',
+    'frozenset',
+    'slice',
+}
 
 from ..data_utils import to_categorical
 
@@ -56,9 +66,11 @@ def load_batch(fpath):
     with open(fpath, 'rb') as f:
         if sys.version_info > (3, 0):
             # Python3
+            restricted_loads(f.read())
             d = pickle.load(f, encoding='latin1')
         else:
             # Python2
+            restricted_loads(f.read())
             d = pickle.load(f)
     data = d["data"]
     labels = d["labels"]
