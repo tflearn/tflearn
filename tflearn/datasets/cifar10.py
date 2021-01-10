@@ -38,6 +38,7 @@ class RestrictedUnpickler(pickle.Unpickler):
 def restricted_loads(s):
     """Helper function analogous to pickle.loads()"""
     return RestrictedUnpickler(io.BytesIO(s)).load()
+
 def load_data(dirname="cifar-10-batches-py", one_hot=False):
     tarpath = maybe_download("cifar-10-python.tar.gz",
                              "http://www.cs.toronto.edu/~kriz/",
