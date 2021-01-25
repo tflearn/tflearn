@@ -12,9 +12,32 @@ import tarfile
 
 import numpy as np
 import pickle
+import io
+import builtins
+
+safe_builtins = {
+    'range',
+    'complex',
+    'set',
+    'frozenset',
+    'slice',
+}
 
 from ..data_utils import to_categorical
 
+class RestrictedUnpickler(pickle.Unpickler):
+
+    def find_class(self, module, name):
+        """Only allow safe classes from builtins"""
+        if module == "builtins" and name in safe_builtins:
+            return getattr(builtins, name)
+        """Forbid everything else"""
+        raise pickle.UnpicklingError("global '%s.%s' is forbidden" %
+                                     (module, name))
+
+def restricted_loads(s):
+    """Helper function analogous to pickle.loads()"""
+    return RestrictedUnpickler(io.BytesIO(s)).load()
 
 def load_data(dirname="cifar-10-batches-py", one_hot=False):
     tarpath = maybe_download("cifar-10-python.tar.gz",
@@ -56,9 +79,11 @@ def load_batch(fpath):
     with open(fpath, 'rb') as f:
         if sys.version_info > (3, 0):
             # Python3
+            restricted_loads(f.read())
             d = pickle.load(f, encoding='latin1')
         else:
             # Python2
+            restricted_loads(f.read())
             d = pickle.load(f)
     data = d["data"]
     labels = d["labels"]
