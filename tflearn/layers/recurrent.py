@@ -14,7 +14,7 @@ except:
     from tensorflow.python.ops.rnn import rnn_cell_impl as _rnn_cell, dynamic_rnn as _drnn
     from tensorflow.contrib.rnn.python.ops import core_rnn_cell
 
-from tensorflow.python.util.nest import is_sequence
+from tensorflow.python.util.nest import is_sequence_or_composite
 
 from .. import config
 from .. import utils
@@ -713,9 +713,9 @@ def _linear(args, output_size, bias, bias_start=0.0, weights_init=None,
     Raises:
         ValueError: if some of the arguments has unspecified or wrong shape.
     """
-    if args is None or (is_sequence(args) and not args):
+    if args is None or (is_sequence_or_composite(args) and not args):
         raise ValueError("`args` must be specified")
-    if not is_sequence(args):
+    if not is_sequence_or_composite(args):
         args = [args]
 
     # Calculate the total size of arguments on dimension 1.
