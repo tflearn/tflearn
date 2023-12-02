@@ -121,9 +121,14 @@ There are many neural network implementation available, see *[Examples](http://t
 
 ## Contributions
 
-This is the first release of TFLearn, if you find any bug, please report it in the GitHub issues section.
+Thank you for considering contributing to TFLearn! Your involvement helps us improve and grow.
 
-Improvements and requests for new features are more than welcome! Do not hesitate to twist and tweak TFLearn, and send pull-requests.
+- If you encounter any bugs or issues, please report them on the [GitHub issues](https://github.com/tflearn/tflearn/issues) page.
+- We welcome improvements and new feature requests. Before making significant changes, consider opening an issue to discuss your proposed modifications.
+- Pull requests are highly appreciated. Please follow our [contribution guidelines](http://tflearn.org/contributions) to ensure a smooth review process.
+
+We value your feedback and look forward to your contributions! 
+
 
 For more info: *[Contribute to TFLearn](http://tflearn.org/contributions)*.
 
